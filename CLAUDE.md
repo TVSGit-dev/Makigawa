@@ -45,15 +45,28 @@ L'athlète fait 6-7 trajets par semaine, majoritairement en vélo
 
 Deux conséquences non négociables :
 
-1. **Ignorer `average_watts` et toute donnée de puissance sur les
-   activités de type `EBikeRide`.** Il n'y a pas de capteur de puissance
+1. **Ignorer toute donnée de puissance sur les activités de type
+   `EBikeRide`** : moyenne (`average_watts`), normalisée / pondérée, pic,
+   courbe, et tout champ à venir. Il n'y a pas de capteur de puissance
    sur ce vélo (`has_device_watts: false`). Toute valeur de puissance y
-   est une estimation fausse.
+   est une estimation fausse, quelle que soit la façon dont elle est
+   présentée. **Exclure par principe, jamais par nom de champ** : ne
+   nommer qu'`average_watts` laisserait passer la puissance normalisée,
+   qui est justement celle affichée par défaut.
 2. La charge de ces trajets vient du **cardio**, telle que calculée par
    intervals.icu. Ne pas appliquer de coefficient correcteur maison.
 
 La puissance n'est exploitable que sur `Ride` (capteur présent) et
 `VirtualRide` (Zwift).
+
+**Moyenne ou normalisée : toujours préciser laquelle.** Pour une même
+sortie, intervals.icu affiche par défaut la puissance **normalisée**,
+systématiquement plus élevée que la moyenne arithmétique. Elle pondère les
+à-coups, qui coûtent plus cher physiologiquement qu'un effort régulier de
+même moyenne — d'où un écart d'autant plus grand que le parcours est haché.
+Sur le Hard Commute de référence : **220 W normalisés**, contre ~182 W
+relevés dans la reconstitution initiale. Les deux nombres décrivent la même
+sortie ; les comparer entre eux n'a pas de sens.
 
 ## Règles d'adaptation
 
@@ -130,10 +143,12 @@ Ne pas commencer l'interface avant que les règles soient testées.
 
 ## État de la mise en place
 
-> **À mettre à jour.** Voir `docs/mise-en-place-etapes.md`.
+> Dernière mise à jour : 5 septembre 2026. Détail des phases dans
+> `docs/mise-en-place-etapes.md`.
 
-- [ ] Compte intervals.icu créé
-- [ ] Garmin connecté, historique importé
+- [x] Compte intervals.icu créé
+- [x] Garmin connecté (OAuth autorisé)
+- [ ] Historique importé, date de reprise reculée — **non vérifié**
 - [ ] Profil athlète renseigné (poids, FCmax, zones)
 - [ ] Vélo électrique configuré à 100 % Fitness / Fatigue
 - [ ] Données vérifiées, pas de doublons
