@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Calendar } from './components/Calendar'
 import { ConnectionCheck } from './components/ConnectionCheck'
+import { WriteCheck } from './components/WriteCheck'
 import { StatusRow, type Tone } from './components/StatusRow'
 import { loadCredentials, type Credentials } from './storage/credentials'
 import { useDisplayMode } from './pwa/useDisplayMode'
@@ -113,6 +114,8 @@ export default function App() {
       <ConnectionCheck credentials={credentials} onCredentialsChange={setCredentials} />
 
       <Calendar credentials={credentials} />
+
+      <WriteCheck credentials={credentials} />
 
       <footer className="footer">
         <p className="muted">

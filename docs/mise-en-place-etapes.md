@@ -199,8 +199,10 @@ le code coûte beaucoup plus cher.
 - [x] Explorer l'API en lecture d'abord : lister les activités **(fait :
       le test de connexion les rapatrie)**, lire le calendrier **(fait :
       l'app affiche les séances des quatorze prochains jours)**.
-- [ ] Puis écriture : poser un événement de test, le modifier, le
-      supprimer.
+- [x] Puis écriture : poser un événement de test, le modifier, le
+      supprimer. L'app porte un test d'écriture qui enchaîne les trois et
+      vérifie la disparition ; il pose une **note** et non une séance, pour
+      qu'un ménage raté ne fausse aucune charge.
 - [ ] Seulement ensuite : implémenter les règles de la section 5.
 - [ ] Interface PWA en dernier.
 
