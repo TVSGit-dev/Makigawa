@@ -6,6 +6,19 @@ import { addDays, dayKeyOf, formatDay, formatDuration, toDayKey } from '../calen
 /** À partir d'aujourd'hui : la fin de cette semaine, et de quoi voir venir. */
 const WINDOW_DAYS = 14
 
+/**
+ * Ce qui compte comme une séance. Le calendrier d'intervals.icu porte aussi
+ * des repères qui ne sont pas des choses à faire — un SEASON_START y a été
+ * constaté le 5 septembre. Liste établie sur ce qui a été vu, pas devinée :
+ * elle s'allongera à mesure que le vocabulaire de l'API se révélera. Ce qui
+ * n'y figure pas n'est pas masqué, seulement rangé à part.
+ */
+const SESSION_CATEGORIES = new Set(['WORKOUT'])
+
+function isSession(event: CalendarEvent): boolean {
+  return event.category === null || SESSION_CATEGORIES.has(event.category)
+}
+
 type State =
   | { status: 'idle' }
   | { status: 'loading' }
@@ -102,10 +115,12 @@ export function Calendar({ credentials }: Props) {
 }
 
 function Days({ events }: { events: CalendarEvent[] }) {
+  const sessions = events.filter(isSession)
+  const markers = events.filter((event) => !isSession(event))
   const byDay = new Map<string, CalendarEvent[]>()
   let undated = 0
 
-  for (const event of events) {
+  for (const event of sessions) {
     const key = dayKeyOf(event.startDateLocal)
     if (!key) {
       undated += 1
@@ -143,8 +158,31 @@ function Days({ events }: { events: CalendarEvent[] }) {
         </p>
       ) : null}
 
+      <Markers markers={markers} />
       <Fields events={events} />
     </>
+  )
+}
+
+/**
+ * Les repères du calendrier — début de saison, et ce qu'on découvrira. Ils ne
+ * se planifient pas et n'ont rien à faire dans la liste des séances, mais les
+ * cacher tout à fait empêcherait de constater ce que l'API envoie.
+ */
+function Markers({ markers }: { markers: CalendarEvent[] }) {
+  if (markers.length === 0) return null
+
+  return (
+    <details className="raw">
+      <summary>
+        {markers.length} repère{markers.length > 1 ? 's' : ''} de calendrier, hors séances
+      </summary>
+      <p className="muted">
+        {markers
+          .map((marker) => `${marker.name ?? 'sans nom'} (${marker.category ?? 'sans catégorie'})`)
+          .join(', ')}
+      </p>
+    </details>
   )
 }
 
@@ -168,7 +206,7 @@ function Event({ event }: { event: CalendarEvent }) {
           ))}
         </p>
       ) : null}
-      {event.description ? <p className="row-hint">{event.description}</p> : null}
+      {event.description ? <p className="event-steps">{event.description}</p> : null}
       <details className="raw">
         <summary>Données brutes</summary>
         <pre>{JSON.stringify(event.raw, null, 2)}</pre>

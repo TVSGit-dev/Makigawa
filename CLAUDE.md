@@ -40,9 +40,26 @@ ligne de code.
 Préférer des **cibles en bpm** plutôt qu'en watts à la création d'une
 séance, pour la même raison que les seuils : la FTP n'est pas confirmée.
 
-**Réserve** : la façon dont l'API représente une séance planifiée reste à
-constater. C'est l'objet de la phase 6 de `docs/mise-en-place-etapes.md` —
-poser quelques séances à la main, puis regarder ce que l'API en dit.
+### Ce que l'API renvoie pour une séance planifiée
+
+**Constaté le 5 septembre 2026**, la réserve est levée. Le calendrier se lit
+sur `/events`, qui renvoie une soixantaine de champs par entrée. Une séance
+porte `category: "WORKOUT"`, un `name`, un `type` d'activité (`Ride`…), des
+bornes `start_date_local` et `end_date_local`, un `moving_time`, une charge
+prévue `icu_training_load`, et les projections `icu_atl` / `icu_ctl` — à
+afficher, jamais à recalculer.
+
+**La structure de la séance arrive en texte**, dans `description`, une ligne
+par bloc en notation de zones (`- 5m z2`). Makigawa la relaie telle quelle :
+elle ne la compose pas, ne la découpe pas, ne la traduit pas.
+
+Le calendrier porte aussi des **repères qui ne sont pas des séances** — un
+`SEASON_START` a été constaté. Filtrer sur `category` plutôt que supposer
+que tout événement du calendrier est une chose à faire.
+
+**Réserve restante** : la notation `z2`, `z3`… désigne-t-elle des zones de
+puissance ou de fréquence cardiaque ? La préférence pour des cibles en bpm
+dépend de la réponse.
 
 ## Constantes athlète
 

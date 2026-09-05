@@ -18,9 +18,13 @@
 > depuis le navigateur, le test de connexion a rapatrié les activités. Pas
 > de relais à construire, l'app reste un client local.
 >
-> Restent le test FTP, qui attend les jambes, et la lecture du calendrier,
-> qui attend quelques séances posées à la main. La phase 6 court en
-> arrière-plan.
+> La lecture du calendrier fonctionne : `/events` était le bon point
+> d'entrée, et la forme d'une séance planifiée est désormais consignée dans
+> `CLAUDE.md`. Reste le test FTP, qui attend les jambes.
+>
+> **Prochaine étape : l'écriture**, troisième point de la phase 7 — poser un
+> événement de test, le modifier, le supprimer. C'est elle qui dira si le
+> navigateur autorise aussi les autres méthodes HTTP.
 
 ---
 
@@ -167,8 +171,11 @@ Ne pas passer à la suite avant que ça soit vérifié.
 ## Phase 6 — Période d'observation (2 à 3 semaines)
 
 - [ ] Laisser tourner sans rien automatiser.
-- [ ] Poser manuellement quelques séances dans le calendrier
-      intervals.icu pour voir comment l'API les représente.
+- [x] Poser manuellement quelques séances dans le calendrier
+      intervals.icu pour voir comment l'API les représente. Fait le
+      5 septembre : la forme est consignée dans `CLAUDE.md`, la réserve est
+      levée. À poursuivre pour couvrir d'autres types — le renfo et la
+      mobilité n'ont pas encore été observés.
 - [ ] Faire au moins une séance N1 et une N2 pour avoir de la matière.
 - [ ] Vérifier que les seuils de la section 5.1 tombent juste sur des
       journées réelles : un aller-retour électrique doit sortir en
@@ -189,8 +196,9 @@ le code coûte beaucoup plus cher.
       lettre : la décision du 5 septembre supprime le serveur. La clé est
       saisie sur le téléphone et vit dans son `localStorage`, jamais dans
       le dépôt ni dans le bundle — l'esprit est respecté.
-- [ ] Explorer l'API en lecture d'abord : lister les activités **(fait :
-      le test de connexion les rapatrie)**, lire le calendrier.
+- [x] Explorer l'API en lecture d'abord : lister les activités **(fait :
+      le test de connexion les rapatrie)**, lire le calendrier **(fait :
+      l'app affiche les séances des quatorze prochains jours)**.
 - [ ] Puis écriture : poser un événement de test, le modifier, le
       supprimer.
 - [ ] Seulement ensuite : implémenter les règles de la section 5.
