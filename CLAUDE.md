@@ -15,6 +15,34 @@ le site web.
 - Pas de multi-utilisateur, pas de comptes, pas de monétisation.
 - Pas d'analyse fine de puissance.
 - Pas de modèle prédictif. Les règles d'adaptation sont déterministes.
+- **Pas d'éditeur de séance.** Le contenu des séances se crée dans
+  intervals.icu, qui a déjà l'outil pour ça.
+
+## Répartition des rôles
+
+Décision du 5 septembre 2026, à la découverte de l'éditeur de séances
+d'intervals.icu.
+
+| intervals.icu | Makigawa |
+|---|---|
+| Le **quoi** : structure d'une séance, intervalles, cibles | Le **quand** et le **si** |
+| Le calendrier, comme stockage de référence | Décale, dégrade, abandonne |
+| Fitness / Fatigue / Forme | Les affiche, ne les recalcule pas |
+
+Les séances sont **créées et stockées dans intervals.icu**, jamais définies
+dans Makigawa. L'app lit ce calendrier, applique les règles d'adaptation et
+réécrit les événements. Elle décide du moment, pas du contenu.
+
+Deux conséquences immédiates : aucun éditeur de séance à construire, et la
+bibliothèque peut se remplir à la main dès maintenant, sans attendre une
+ligne de code.
+
+Préférer des **cibles en bpm** plutôt qu'en watts à la création d'une
+séance, pour la même raison que les seuils : la FTP n'est pas confirmée.
+
+**Réserve** : la façon dont l'API représente une séance planifiée reste à
+constater. C'est l'objet de la phase 6 de `docs/mise-en-place-etapes.md` —
+poser quelques séances à la main, puis regarder ce que l'API en dit.
 
 ## Constantes athlète
 
@@ -128,8 +156,9 @@ Dans l'ordre :
 3. Replanification automatique selon les règles ci-dessus.
 4. Distinction visuelle claire électrique / musculaire.
 
-Secondaire : bibliothèque de séances courtes (15-30 min), vue de charge
-sur les dernières semaines.
+Secondaire : vue de charge sur les dernières semaines. La bibliothèque de
+séances courtes (15-30 min) se constitue dans intervals.icu — c'est du
+contenu, pas du code, et elle ne bloque rien.
 
 ## Ordre de développement
 
