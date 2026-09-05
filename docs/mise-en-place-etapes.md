@@ -8,9 +8,12 @@
 > FTP volontairement basse à 221 W. Vélo électrique réglé, sa charge vient
 > bien du cardio — le point le plus délicat de la mise en place est passé.
 >
-> En attente : la LTHR, rendue à intervals.icu pour ré-estimation, et le
-> contrôle des zones qui en dépend. **Prochaine étape : phase 4**, le
-> contrôle des données importées.
+> Phase 2 complétée le 5 septembre au soir : FCmax relevée à 202 bpm, LTHR
+> affichée à 183 bpm — 15 bpm au-dessus de l'attendu, ce qui fait échouer le
+> contrôle des zones sans toucher aux règles. Import confirmé depuis le
+> 7 septembre 2025, soit un an.
+>
+> **Prochaine étape : phase 4**, le contrôle des données importées.
 
 ---
 
@@ -34,13 +37,20 @@
       C'est proposé dans le parcours de création. Le faire à ce moment-là
       évite d'avoir à reconfigurer ensuite.
 - [x] Autoriser la connexion OAuth vers Garmin.
-- [x] **Régler la date de reprise de l'historique.** Fait : l'import a
-      fonctionné, c'est sur ces données qu'intervals.icu calcule. Reste à
-      confirmer sa profondeur — c'est l'objet de la phase 4, qui vérifie la
-      présence des trajets de juillet-août.
+- [x] **Régler la date de reprise de l'historique.** Fait et confirmé :
+      l'import démarre au **7 septembre 2025**, soit un an d'historique —
+      bien au-delà du janvier 2026 visé. C'est sur ces données
+      qu'intervals.icu calcule.
 
 > Point d'attention : si tu changes ton mot de passe Garmin plus tard, le
 > jeton OAuth est invalidé et il faut refaire la connexion.
+
+> **Sur la plausibilité d'une LTHR à 183.** Les Hard Commutes tournent à
+> ~160 bpm de moyenne, deux fois par semaine. Avec une LTHR à 168, cela
+> ferait 95 % du seuil, en soutenu et répété — difficilement tenable au
+> quotidien. Avec 183, cela fait 87 %, un effort tempo exigeant mais
+> répétable. L'usage réel penche donc plutôt vers 183 que vers 168. Ce n'est
+> pas une preuve, c'est un argument de vraisemblance.
 
 ---
 
@@ -50,22 +60,30 @@
 l'historique sera calculé avec des valeurs par défaut fausses.
 
 - [x] Poids : **80 kg**
-- [x] FCmax : **200 bpm**
+- [x] FCmax : **202 bpm** — valeur affichée par intervals.icu, relevée sur
+      l'historique, et non les 200 bpm supposés.
 - [x] FTP : **221 W**, posée délibérément sous les 240 W estimés par
       Garmin. L'athlète juge les 240 W atteignables, mais préfère viser bas
       après six semaines sans sortie musculaire — même raisonnement que
       celui qui, en phase 5, interdit le test FTP en première séance.
-      À confirmer par ce test.
-- [ ] **LTHR : ré-estimation en cours.** Posée à la main à 168 bpm le
-      5 septembre, puis rendue à intervals.icu — l'athlète ne veut pas d'un
-      chiffre inventé, et l'import d'historique étant confirmé, l'estimation
-      sur données réelles est possible. Reporter ici la valeur obtenue.
-      Quelle qu'elle soit dans la fourchette 168-172, 150 bpm se situe entre
-      87 et 89 % du seuil : le classement de ce repère bouge peu.
-- [ ] Vérifier les zones cardio une fois la LTHR ré-estimée : où tombe
-      150 bpm, le `T_effort` de la section 5 ? Le premier contrôle avait été
-      obtenu en ajustant la LTHR plutôt qu'en la constatant, il ne valait
-      donc pas confirmation. Cette fois l'observation sera indépendante.
+      intervals.icu estime de son côté une **eFTP à 205 W**, plus basse
+      encore : l'intuition de viser bas est confortée. À confirmer par le
+      test de 20 min.
+- [x] **LTHR : 183 bpm**, valeur affichée par intervals.icu après avoir
+      rendu le réglage plutôt que de le choisir. C'est **15 bpm au-dessus**
+      des 168-172 attendus, et 90,6 % de la FCmax — haut pour un seuil.
+      **Reste à confirmer** : intervals.icu présente-t-il 183 comme une
+      estimation sur données, ou comme une valeur par défaut ? Le champ
+      « HRRc Min FC » affiche le même nombre, ce qui pourrait indiquer une
+      valeur liée plutôt qu'estimée.
+- [x] Zones cardio observées, sans ajustement préalable cette fois — et
+      **le contrôle échoue**. Avec une LTHR de 183, 150 bpm tombe en bas de
+      Z2 Aérobie (148-162) et non en bas de tempo (163-171) ; 175 bpm tombe
+      en Z4 SubThreshold (172-182). Il faudrait une LTHR de 169 bpm pour que
+      150 tombe où la phase 2 le supposait. Sans conséquence sur les règles,
+      qui comparent des bpm bruts, mais la justification « bas de zone
+      tempo » de `T_effort` ne tient plus. Le contrôle qui vaut est celui de
+      la phase 6, sur des journées réelles.
 
 ---
 

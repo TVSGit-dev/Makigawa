@@ -49,21 +49,30 @@ poser quelques séances à la main, puis regarder ce que l'API en dit.
 | Donnée | Valeur | Statut |
 |---|---|---|
 | Poids | 80 kg | confirmé |
-| FCmax | 200 bpm | confirmé |
-| FTP | 221 W | volontairement sous les 240 W estimés, **non confirmée par test** |
-| LTHR (FC seuil) | 168 bpm | **provisoire** — ré-estimation par intervals.icu en cours |
-| `T_effort` | 150 bpm (75 % FCmax) | seuil de travail |
-| `T_haut` | 175 bpm (87 % FCmax) | seuil haut |
+| FCmax | 202 bpm | relevée par intervals.icu sur l'historique |
+| FTP | 221 W | sous les 240 W estimés (eFTP : 205 W), **non confirmée par test** |
+| LTHR (FC seuil) | 183 bpm | valeur d'intervals.icu, **origine à confirmer** |
+| `T_effort` | 150 bpm (74 % FCmax, 82 % LTHR) | seuil de travail |
+| `T_haut` | 175 bpm (87 % FCmax, 96 % LTHR) | seuil haut |
 
 **Aucune règle métier ne doit dépendre de la FTP.** Les seuils sont en
 bpm, délibérément : la FTP est incertaine, le cardio est mesuré.
 
 **Les zones d'intervals.icu ne portent aucune règle non plus.** La
 classification des journées compare des bpm bruts à 150 et 175, jamais un
-nom de zone. Que 150 bpm tombe en bas de zone tempo (89 % d'une LTHR à 168)
-est un contrôle de cohérence, pas une dépendance : le jour où intervals.icu
-ré-estime la LTHR sur l'historique et déplace les zones, aucune règle ne
-bouge.
+nom de zone.
+
+Cette indépendance vient de servir. Avec la LTHR de 183 bpm affichée par
+intervals.icu, 150 bpm tombe en bas de zone **aérobie** (Z2, 148-162) et non
+en bas de tempo (163-171) comme le supposait la phase 2 ; 175 bpm tombe en
+Z4 SubThreshold. Le contrôle de cohérence prévu échoue donc, **sans qu'aucune
+règle ne bouge**. La justification « 150 bpm = bas de zone tempo » ne tient
+plus ; le seuil, lui, reste à 150 bpm et garde son rôle : il sépare un trajet
+électrique (~129 bpm) d'un aller-retour musculaire (~160 bpm).
+
+Le contrôle qui vaut est celui de la phase 6, sur des journées réelles : un
+aller-retour électrique doit sortir en légère, un aller-retour musculaire en
+chargée. Tant qu'il n'a pas été fait, ne pas déplacer les seuils.
 
 ## Sources de données
 
