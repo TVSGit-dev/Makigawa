@@ -51,7 +51,7 @@ poser quelques séances à la main, puis regarder ce que l'API en dit.
 | Poids | 80 kg | confirmé |
 | FCmax | 200 bpm | confirmé |
 | FTP | 221 W | volontairement sous les 240 W estimés, **non confirmée par test** |
-| LTHR (FC seuil) | 168 bpm | posée à la main, bas de la fourchette 168-172 |
+| LTHR (FC seuil) | 168 bpm | **provisoire** — ré-estimation par intervals.icu en cours |
 | `T_effort` | 150 bpm (75 % FCmax) | seuil de travail |
 | `T_haut` | 175 bpm (87 % FCmax) | seuil haut |
 
@@ -185,9 +185,9 @@ Ne pas commencer l'interface avant que les règles soient testées.
 
 - [x] Compte intervals.icu créé
 - [x] Garmin connecté (OAuth autorisé)
-- [ ] Historique importé, date de reprise reculée — **non vérifié**
+- [x] Historique importé — confirmé, c'est la base des calculs d'intervals.icu
 - [x] Profil athlète renseigné (poids, FCmax, FTP, LTHR, zones)
-- [ ] Vélo électrique configuré à 100 % Fitness / Fatigue
+- [x] Vélo électrique configuré, charge confirmée depuis le cardio
 - [ ] Données vérifiées, pas de doublons
 - [ ] Zwift connecté
 - [ ] Test FTP fait

@@ -3,13 +3,14 @@
 > Ordre à respecter. Chaque phase dépend de la précédente.
 > Phases 0 à 5 : faisables depuis le téléphone. Phase 6+ : ordinateur.
 
-> **Avancement au 5 septembre 2026** — phases 0 et 1 faites (compte créé,
-> Garmin connecté). Reste à vérifier dans la phase 1 la date de reprise de
-> l'historique — cette vérification conditionne maintenant la ré-estimation
-> de la LTHR. Phase 2 faite le 5 septembre (profil renseigné, FTP 221 W et
-> LTHR 168 bpm posées à la main). **Prochaine étape : phase 3**, le réglage
-> du vélo électrique, puis phase 4. Rien n'a encore été contrôlé côté
-> données.
+> **Avancement au 5 septembre 2026** — phases 0 à 3 faites. Compte créé,
+> Garmin connecté, import d'historique confirmé. Profil renseigné, avec une
+> FTP volontairement basse à 221 W. Vélo électrique réglé, sa charge vient
+> bien du cardio — le point le plus délicat de la mise en place est passé.
+>
+> En attente : la LTHR, rendue à intervals.icu pour ré-estimation, et le
+> contrôle des zones qui en dépend. **Prochaine étape : phase 4**, le
+> contrôle des données importées.
 
 ---
 
@@ -33,9 +34,10 @@
       C'est proposé dans le parcours de création. Le faire à ce moment-là
       évite d'avoir à reconfigurer ensuite.
 - [x] Autoriser la connexion OAuth vers Garmin.
-- [ ] **Régler la date de reprise de l'historique.** Par défaut, seules les
-      nouvelles activités sont téléchargées. Il faut cliquer sur la date
-      pour la reculer. Viser au moins janvier 2026, idéalement plus tôt.
+- [x] **Régler la date de reprise de l'historique.** Fait : l'import a
+      fonctionné, c'est sur ces données qu'intervals.icu calcule. Reste à
+      confirmer sa profondeur — c'est l'objet de la phase 4, qui vérifie la
+      présence des trajets de juillet-août.
 
 > Point d'attention : si tu changes ton mot de passe Garmin plus tard, le
 > jeton OAuth est invalidé et il faut refaire la connexion.
@@ -54,14 +56,16 @@ l'historique sera calculé avec des valeurs par défaut fausses.
       après six semaines sans sortie musculaire — même raisonnement que
       celui qui, en phase 5, interdit le test FTP en première séance.
       À confirmer par ce test.
-- [x] **LTHR : 168 bpm**, posée à la main le 5 septembre — bas de la
-      fourchette 168-172 que suggèrent les données. La consigne initiale
-      était de laisser intervals.icu l'estimer sur l'historique : à refaire
-      une fois l'import vérifié, pour confirmer ou corriger.
-- [x] Zones cardio vérifiées : 150 bpm tombe bien en bas de zone tempo
-      (89 % d'une LTHR à 168), soit le `T_effort` de la section 5.
-      Obtenu en ajustant la LTHR plutôt qu'en la constatant — le contrôle
-      est donc à refaire quand la LTHR sera estimée sur données réelles.
+- [ ] **LTHR : ré-estimation en cours.** Posée à la main à 168 bpm le
+      5 septembre, puis rendue à intervals.icu — l'athlète ne veut pas d'un
+      chiffre inventé, et l'import d'historique étant confirmé, l'estimation
+      sur données réelles est possible. Reporter ici la valeur obtenue.
+      Quelle qu'elle soit dans la fourchette 168-172, 150 bpm se situe entre
+      87 et 89 % du seuil : le classement de ce repère bouge peu.
+- [ ] Vérifier les zones cardio une fois la LTHR ré-estimée : où tombe
+      150 bpm, le `T_effort` de la section 5 ? Le premier contrôle avait été
+      obtenu en ajustant la LTHR plutôt qu'en la constatant, il ne valait
+      donc pas confirmation. Cette fois l'observation sera indépendante.
 
 ---
 
@@ -70,15 +74,15 @@ l'historique sera calculé avec des valeurs par défaut fausses.
 C'est le point le plus délicat de toute la mise en place, et celui qui
 casse silencieusement si on le rate.
 
-- [ ] Vérifier comment intervals.icu classe tes `EBikeRide` : type
+- [x] Vérifier comment intervals.icu classe tes `EBikeRide` : type
       d'activité reconnu, et surtout **s'il compte dans la charge**.
-- [ ] Par défaut, l'électrique peut être exclu du calcul Fitness/Fatigue.
+- [x] Par défaut, l'électrique peut être exclu du calcul Fitness/Fatigue.
       Or il porte 60 à 100 % de ta charge réelle. Il faut le faire
       compter.
-- [ ] Dans les réglages de type d'activité, mettre l'électrique à
+- [x] Dans les réglages de type d'activité, mettre l'électrique à
       **100 % Fitness et 100 % Fatigue** (un utilisateur a rapporté que
       la catégorie disparaît à 100 % de fatigue — si ça arrive, mettre 99).
-- [ ] Vérifier que la charge de ces trajets est bien calculée **depuis le
+- [x] Vérifier que la charge de ces trajets est bien calculée **depuis le
       cardio**. Sans capteur de puissance sur ce vélo, ça devrait se faire
       seul, mais à contrôler sur les premières activités.
 
