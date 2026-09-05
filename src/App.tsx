@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GeoCheck } from './components/GeoCheck'
+import { ConnectionCheck } from './components/ConnectionCheck'
 import { StatusRow, type Tone } from './components/StatusRow'
 import { useDisplayMode } from './pwa/useDisplayMode'
 import { useInstallPrompt } from './pwa/useInstallPrompt'
@@ -107,12 +107,12 @@ export default function App() {
         {installOutcome ? <p className="muted">{installOutcome}</p> : null}
       </section>
 
-      <GeoCheck />
+      <ConnectionCheck />
 
       <footer className="footer">
         <p className="muted">
-          Cet écran vérifie le raccord avec le téléphone. Les fonctionnalités vélo viendront
-          ensuite.
+          Écran de mise en route. Le calendrier des séances viendra une fois la connexion
+          établie.
         </p>
       </footer>
     </div>

@@ -88,10 +88,23 @@ objectif de compétition.
 
 ## Sécurité
 
-- **La clé API intervals.icu ne doit jamais apparaître dans le front.**
-  Elle vit côté serveur : fonction serverless, ou secret de dépôt pour
-  le job planifié.
+**Décision du 5 septembre 2026 : pas de serveur.** L'app est un client
+local à un seul utilisateur ; la clé est saisie sur le téléphone. Ceci
+remplace la consigne initiale « elle vit côté serveur », qui imposerait
+un hébergeur, des secrets à gérer et une authentification pour ne pas
+exposer les données — hors de proportion pour un usage personnel.
+
+- **La clé API intervals.icu ne doit jamais apparaître dans le code.**
+  Ni en dur, ni dans le bundle, ni derrière un préfixe `VITE_` : ce
+  préfixe l'embarquerait dans le JavaScript servi au navigateur.
+- Elle est saisie par l'athlète dans l'app et conservée dans le
+  `localStorage` de son téléphone. Elle n'est transmise qu'à
+  intervals.icu, jamais à un tiers.
 - Ne jamais la committer, même en exemple. Utiliser `.env.example`.
+- **Réserve non levée** : si intervals.icu refuse les appels directs
+  depuis un navigateur (politique CORS), un relais deviendra nécessaire.
+  Il devra rester sans état et sans secret — le téléphone continuerait
+  d'envoyer la clé, le relais ne ferait que transmettre.
 
 ## Priorités fonctionnelles
 

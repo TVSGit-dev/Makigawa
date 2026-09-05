@@ -1,8 +1,11 @@
 # Makigawa
 
-Suivi d’entraînement vélo personnel, construit comme une **PWA installable** :
-une app web qui s’ajoute à l’écran d’accueil d’Android et se comporte comme une
-app native (plein écran, icône, démarrage hors-ligne, accès au GPS).
+Interface mobile personnelle posée au-dessus d’**intervals.icu** : consulter
+les séances à venir et encoder ce qui a été fait, sans ouvrir le site web.
+Construite comme une **PWA installable** — une app web qui s’ajoute à l’écran
+d’accueil d’Android et se comporte comme une app native.
+
+Voir `CLAUDE.md` pour le contexte, les règles métier et les contraintes.
 
 **Local-first** : les données restent dans le stockage du navigateur, sur le
 téléphone. Pas de compte, pas de serveur, pas de synchronisation — rien ne
@@ -26,8 +29,9 @@ du domaine, qui dépend d’un autre dépôt.
 3. Lancer Makigawa depuis l’écran d’accueil. L’écran « Raccord » doit afficher
    *App installée*, *Hors-ligne : prêt* et *HTTPS*.
 
-Le bouton **Tester le GPS** vérifie que la géolocalisation est bien accordée à
-l’app installée — la permission est distincte de celle de l’onglet navigateur.
+Saisir ensuite l’identifiant athlète et la clé API intervals.icu, puis
+**Tester la connexion**. Les identifiants restent dans le stockage local du
+téléphone et ne sont envoyés qu’à intervals.icu.
 
 Pour vérifier le mode hors-ligne : activer le mode avion, puis relancer l’app
 depuis l’écran d’accueil. Elle doit démarrer normalement.

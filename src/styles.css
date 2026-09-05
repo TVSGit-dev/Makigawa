@@ -245,3 +245,35 @@ p {
 .footer {
   padding-top: 0.5rem;
 }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field span {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.field input {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  /* Cible tactile confortable, et 16px evite le zoom automatique d'Android. */
+  min-height: 3rem;
+  padding: 0 0.875rem;
+}
+
+.field input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.success {
+  color: var(--ok);
+  font-size: 0.875rem;
+}
