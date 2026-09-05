@@ -3,16 +3,21 @@
 > Ordre à respecter. Chaque phase dépend de la précédente.
 > Phases 0 à 5 : faisables depuis le téléphone. Phase 6+ : ordinateur.
 
+> **Avancement au 5 septembre 2026** — phases 0 et 1 faites (compte créé,
+> Garmin connecté). Reste à vérifier dans la phase 1 la date de reprise de
+> l'historique. **En cours : phase 3**, le réglage du vélo électrique, puis
+> phase 4. Rien n'a encore été contrôlé côté données.
+
 ---
 
 ## Phase 0 — Décisions à acter avant de créer quoi que ce soit
 
-- [ ] **Ne pas connecter Strava.** Le brief le prévoyait « en secours ».
+- [x] **Ne pas connecter Strava.** Le brief le prévoyait « en secours ».
       À écarter : Strava estime une puissance fausse sur les trajets
       électriques (306 W relevés là où tu en produis ~133), et cumulé avec
       Garmin il crée des doublons d'activités. Garmin a déjà tout
       l'historique, Strava n'apporte rien.
-- [ ] **Sources retenues : Garmin Connect + Zwift, en direct.**
+- [x] **Sources retenues : Garmin Connect + Zwift, en direct.**
 - [ ] Vérifier que tes activités Garmin ne sont pas en privé global.
       Les activités privées ne remontent pas.
 
@@ -20,11 +25,11 @@
 
 ## Phase 1 — Création du compte intervals.icu
 
-- [ ] Créer le compte sur intervals.icu.
-- [ ] **Au moment de l'inscription, choisir Garmin Connect comme source.**
+- [x] Créer le compte sur intervals.icu.
+- [x] **Au moment de l'inscription, choisir Garmin Connect comme source.**
       C'est proposé dans le parcours de création. Le faire à ce moment-là
       évite d'avoir à reconfigurer ensuite.
-- [ ] Autoriser la connexion OAuth vers Garmin.
+- [x] Autoriser la connexion OAuth vers Garmin.
 - [ ] **Régler la date de reprise de l'historique.** Par défaut, seules les
       nouvelles activités sont téléchargées. Il faut cliquer sur la date
       pour la reculer. Viser au moins janvier 2026, idéalement plus tôt.
@@ -82,7 +87,9 @@ Ne pas passer à la suite avant que ça soit vérifié.
 
 - [ ] Les trajets de juillet-août sont bien là, sans doublons.
 - [ ] Les Hard Commutes du 6 et 15 juillet apparaissent en `Ride`
-      avec puissance (~182 W) et cardio (~160 bpm).
+      avec puissance et cardio (~160 bpm). intervals.icu affiche la
+      puissance **normalisée** : attendre **~220 W**, et non les ~182 W
+      de la reconstitution initiale. Les deux décrivent la même sortie.
 - [ ] Les Chill Commutes apparaissent en `EBikeRide` avec cardio
       (~129 bpm) et **sans puissance aberrante**.
 - [ ] La sortie du 27 juillet est là (35,9 km, 1 h 25, 387 m D+).
