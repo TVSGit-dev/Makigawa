@@ -50,12 +50,20 @@ poser quelques séances à la main, puis regarder ce que l'API en dit.
 |---|---|---|
 | Poids | 80 kg | confirmé |
 | FCmax | 200 bpm | confirmé |
-| FTP | ~240 W | estimation Garmin, **non confirmée par test** |
+| FTP | 221 W | posée à la main le 5/09, **non confirmée par test** |
+| LTHR (FC seuil) | 168 bpm | posée à la main, bas de la fourchette 168-172 |
 | `T_effort` | 150 bpm (75 % FCmax) | seuil de travail |
 | `T_haut` | 175 bpm (87 % FCmax) | seuil haut |
 
 **Aucune règle métier ne doit dépendre de la FTP.** Les seuils sont en
 bpm, délibérément : la FTP est incertaine, le cardio est mesuré.
+
+**Les zones d'intervals.icu ne portent aucune règle non plus.** La
+classification des journées compare des bpm bruts à 150 et 175, jamais un
+nom de zone. Que 150 bpm tombe en bas de zone tempo (89 % d'une LTHR à 168)
+est un contrôle de cohérence, pas une dépendance : le jour où intervals.icu
+ré-estime la LTHR sur l'historique et déplace les zones, aucune règle ne
+bouge.
 
 ## Sources de données
 
@@ -178,7 +186,7 @@ Ne pas commencer l'interface avant que les règles soient testées.
 - [x] Compte intervals.icu créé
 - [x] Garmin connecté (OAuth autorisé)
 - [ ] Historique importé, date de reprise reculée — **non vérifié**
-- [ ] Profil athlète renseigné (poids, FCmax, zones)
+- [x] Profil athlète renseigné (poids, FCmax, FTP, LTHR, zones)
 - [ ] Vélo électrique configuré à 100 % Fitness / Fatigue
 - [ ] Données vérifiées, pas de doublons
 - [ ] Zwift connecté

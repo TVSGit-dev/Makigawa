@@ -5,10 +5,11 @@
 
 > **Avancement au 5 septembre 2026** — phases 0 et 1 faites (compte créé,
 > Garmin connecté). Reste à vérifier dans la phase 1 la date de reprise de
-> l'historique. **Prochaine étape : phase 2, le profil athlète**, qui
-> conditionne tout le reste — les zones cardio en découlent, et c'est sur
-> elles que reposent les seuils de la section 5. Ensuite seulement phase 3,
-> puis phase 4. Rien n'a encore été contrôlé côté données.
+> l'historique — cette vérification conditionne maintenant la ré-estimation
+> de la LTHR. Phase 2 faite le 5 septembre (profil renseigné, FTP 221 W et
+> LTHR 168 bpm posées à la main). **Prochaine étape : phase 3**, le réglage
+> du vélo électrique, puis phase 4. Rien n'a encore été contrôlé côté
+> données.
 
 ---
 
@@ -46,16 +47,18 @@
 À renseigner avant que les calculs de charge tournent, sinon tout
 l'historique sera calculé avec des valeurs par défaut fausses.
 
-- [ ] Poids : **80 kg**
-- [ ] FCmax : **200 bpm**
-- [ ] FTP : laisser vide ou mettre 240 W en provisoire, à confirmer
-      en phase 5.
-- [ ] **LTHR : ne pas deviner.** Laisser intervals.icu l'estimer une fois
-      l'historique importé. Tes données suggèrent 168-172, mais une
-      estimation sur données réelles vaudra mieux qu'un chiffre posé
-      à la main.
-- [ ] Vérifier les zones cardio générées et qu'elles placent bien
-      150 bpm en bas de zone tempo (c'est le `T_effort` de la section 5).
+- [x] Poids : **80 kg**
+- [x] FCmax : **200 bpm**
+- [x] FTP : **221 W**, posée à la main le 5 septembre plutôt que les 240 W
+      provisoires. Origine du chiffre à préciser. À confirmer en phase 5.
+- [x] **LTHR : 168 bpm**, posée à la main le 5 septembre — bas de la
+      fourchette 168-172 que suggèrent les données. La consigne initiale
+      était de laisser intervals.icu l'estimer sur l'historique : à refaire
+      une fois l'import vérifié, pour confirmer ou corriger.
+- [x] Zones cardio vérifiées : 150 bpm tombe bien en bas de zone tempo
+      (89 % d'une LTHR à 168), soit le `T_effort` de la section 5.
+      Obtenu en ajustant la LTHR plutôt qu'en la constatant — le contrôle
+      est donc à refaire quand la LTHR sera estimée sur données réelles.
 
 ---
 
