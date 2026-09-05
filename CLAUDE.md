@@ -159,10 +159,13 @@ exposer les données — hors de proportion pour un usage personnel.
   `localStorage` de son téléphone. Elle n'est transmise qu'à
   intervals.icu, jamais à un tiers.
 - Ne jamais la committer, même en exemple. Utiliser `.env.example`.
-- **Réserve non levée** : si intervals.icu refuse les appels directs
-  depuis un navigateur (politique CORS), un relais deviendra nécessaire.
-  Il devra rester sans état et sans secret — le téléphone continuerait
-  d'envoyer la clé, le relais ne ferait que transmettre.
+- **Réserve CORS levée le 5 septembre 2026.** intervals.icu accepte les
+  appels directs depuis un navigateur : le test de connexion a rapatrié les
+  activités depuis la page. Aucun relais n'est nécessaire, l'app reste un
+  client purement local. Le contrôle préalable du navigateur est passé, ce
+  qui est le point dur — l'en-tête `Authorization` force ce contrôle. À
+  reconstater tout de même au moment de l'écriture : créer ou modifier un
+  événement emploie d'autres méthodes HTTP, donc un contrôle distinct.
 
 ## Priorités fonctionnelles
 
@@ -197,10 +200,10 @@ Ne pas commencer l'interface avant que les règles soient testées.
 - [x] Historique importé — confirmé, c'est la base des calculs d'intervals.icu
 - [x] Profil athlète renseigné (poids, FCmax, FTP, LTHR, zones)
 - [x] Vélo électrique configuré, charge confirmée depuis le cardio
-- [ ] Données vérifiées, pas de doublons
-- [ ] Zwift connecté
+- [x] Données vérifiées, pas de doublons
+- [x] Zwift connecté — doublon avec Garmin à surveiller à la première séance
 - [ ] Test FTP fait
-- [ ] Clé API générée
+- [x] Clé API générée, connexion établie depuis le téléphone
 
 ## Conventions
 

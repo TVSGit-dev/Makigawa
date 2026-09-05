@@ -13,11 +13,14 @@
 > contrôle des zones sans toucher aux règles. Import confirmé depuis le
 > 7 septembre 2025, soit un an. Phase 4 vérifiée dans la foulée.
 >
-> **Phases 0 à 4 faites.** La suite se mène sur deux fronts parallèles :
-> phase 5 côté athlète — connecter Zwift **avant** toute séance, sans quoi
-> elle n'arrive nulle part — et le début de la phase 7 côté technique, la
-> clé API, avancée hors de son rang pour lever au plus tôt la réserve CORS.
-> La phase 6 court en arrière-plan pendant ce temps.
+> **Phases 0 à 4 faites, Zwift connecté, clé API générée.** Et surtout :
+> **la réserve CORS est levée** — intervals.icu accepte les appels directs
+> depuis le navigateur, le test de connexion a rapatrié les activités. Pas
+> de relais à construire, l'app reste un client local.
+>
+> Restent le test FTP, qui attend les jambes, et la lecture du calendrier,
+> qui attend quelques séances posées à la main. La phase 6 court en
+> arrière-plan.
 
 ---
 
@@ -142,9 +145,13 @@ Ne pas passer à la suite avant que ça soit vérifié.
 
 ## Phase 5 — Connexion Zwift et test FTP
 
-- [ ] Connecter Zwift **en direct** à intervals.icu, avant la séance.
+- [x] Connecter Zwift **en direct** à intervals.icu, avant la séance.
       Garmin ne relaie pas les activités Zwift vers les tiers : sans cette
-      connexion, ta séance n'arrive nulle part.
+      connexion, ta séance n'arrive nulle part. Fait le 5 septembre.
+      Zwift alimente aussi Garmin Connect, d'où une crainte de doublon —
+      mais c'est la prémisse ci-dessus qui l'écarte : si Garmin relayait,
+      la connexion directe aurait été inutile. **À constater sur la
+      première séance** : une seule activité doit apparaître.
 - [ ] Faire une ou deux séances Zwift faciles d'abord.
 - [ ] **Ne pas faire le test FTP en première séance.** Tu n'as pas roulé
       en musculaire depuis 6 semaines. Un test à froid donnera un plancher,
@@ -174,12 +181,16 @@ le code coûte beaucoup plus cher.
 
 ## Phase 7 — Sur ordinateur
 
-- [ ] Générer la clé API depuis la page de réglages du compte.
-- [ ] Relever l'athlete ID.
-- [ ] **Ne jamais mettre la clé dans le front.** Fonction serverless côté
-      serveur, ou secret de dépôt pour le job planifié.
-- [ ] Explorer l'API en lecture d'abord : lister les activités, lire le
-      calendrier.
+- [x] Générer la clé API depuis la page de réglages du compte. Fait le
+      5 septembre, en avance sur son rang pour lever au plus tôt la
+      réserve CORS.
+- [x] Relever l'athlete ID.
+- [x] **Ne jamais mettre la clé dans le front.** Consigne dépassée dans sa
+      lettre : la décision du 5 septembre supprime le serveur. La clé est
+      saisie sur le téléphone et vit dans son `localStorage`, jamais dans
+      le dépôt ni dans le bundle — l'esprit est respecté.
+- [ ] Explorer l'API en lecture d'abord : lister les activités **(fait :
+      le test de connexion les rapatrie)**, lire le calendrier.
 - [ ] Puis écriture : poser un événement de test, le modifier, le
       supprimer.
 - [ ] Seulement ensuite : implémenter les règles de la section 5.
