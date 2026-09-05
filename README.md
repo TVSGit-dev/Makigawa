@@ -44,8 +44,23 @@ Chaque push sur `main` ou `claude/mobile-execution-m4j7mk` déclenche
 `.github/workflows/deploy.yml`, qui construit le site et le publie sur GitHub
 Pages.
 
-**Réglage à faire une seule fois** si le workflow échoue à l’étape « Configurer
-Pages » : dans *Settings → Pages* du dépôt, choisir **Source : GitHub Actions**.
+**Réglage à faire une seule fois** : dans *Settings → Pages* du dépôt, choisir
+**Source : GitHub Actions**. Tant que ce n’est pas fait, le workflow échoue à
+l’étape « Configurer Pages » — le jeton d’un workflow n’a pas le droit de créer
+le site Pages lui-même, seul le propriétaire du dépôt peut l’activer.
+
+Deux contraintes propres aux dépôts **privés** :
+
+- Publier des Pages depuis un dépôt privé demande un plan **GitHub Pro** (ou
+  Team / Enterprise). Sur un compte gratuit, l’option n’est disponible que pour
+  les dépôts publics.
+- Même avec Pro, le site publié est **accessible publiquement** ; seul le code
+  reste privé. Restreindre l’accès au site demande GitHub Enterprise.
+
+Si aucune des deux ne convient, les alternatives qui déploient un dépôt privé
+sans le rendre public sont Vercel, Netlify et Cloudflare Pages (niveaux
+gratuits) : il suffit alors de remplacer ce workflow et de construire avec
+`VITE_BASE=/`.
 
 L’horodatage du build est affiché en haut de l’app : il permet de confirmer d’un
 coup d’œil que le téléphone a bien reçu la dernière version. Quand une nouvelle
