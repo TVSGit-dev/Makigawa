@@ -37,8 +37,18 @@ Deux conséquences immédiates : aucun éditeur de séance à construire, et la
 bibliothèque peut se remplir à la main dès maintenant, sans attendre une
 ligne de code.
 
-Préférer des **cibles en bpm** plutôt qu'en watts à la création d'une
-séance, pour la même raison que les seuils : la FTP n'est pas confirmée.
+**Les cibles de séance sont en watts, les décisions en bpm.** Constaté le
+5 septembre : la notation `z2`, `z3` du `description` désigne des **zones de
+puissance**, calculées sur la FTP. La préférence initiale pour des cibles en
+bpm tombe, et la répartition qui s'installe est cohérente — la puissance sert
+au *contenu* des séances d'intérieur, où le capteur est réel ; le cardio sert
+aux *décisions*, où le vélo électrique n'a que lui.
+
+Deux conséquences. Les séances existantes sont calibrées sur une FTP de 221 W
+posée volontairement basse, leurs cibles sont donc un peu douces — l'effet
+recherché pour une reprise. Et le jour où le test de la phase 5 corrigera la
+FTP, **toutes les cibles se recalibrent d'un coup**, sans retoucher une seule
+séance.
 
 ### Ce que l'API renvoie pour une séance planifiée
 
@@ -57,9 +67,6 @@ Le calendrier porte aussi des **repères qui ne sont pas des séances** — un
 `SEASON_START` a été constaté. Filtrer sur `category` plutôt que supposer
 que tout événement du calendrier est une chose à faire.
 
-**Réserve restante** : la notation `z2`, `z3`… désigne-t-elle des zones de
-puissance ou de fréquence cardiaque ? La préférence pour des cibles en bpm
-dépend de la réponse.
 
 ## Constantes athlète
 

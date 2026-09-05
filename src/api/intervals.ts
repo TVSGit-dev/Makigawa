@@ -33,11 +33,26 @@ function isoDate(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-async function request<T>(path: string, { athleteId, apiKey }: Credentials): Promise<ApiOutcome<T>> {
+type RequestOptions = {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  /** Sérialisé en JSON. Sa présence ajoute l'en-tête `Content-Type`. */
+  body?: unknown
+}
+
+async function request<T>(
+  path: string,
+  { athleteId, apiKey }: Credentials,
+  { method = 'GET', body }: RequestOptions = {},
+): Promise<ApiOutcome<T>> {
+  const headers: Record<string, string> = { Authorization: authorization(apiKey) }
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
+
   let response: Response
   try {
     response = await fetch(`${API_BASE}/athlete/${encodeURIComponent(athleteId)}${path}`, {
-      headers: { Authorization: authorization(apiKey) },
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
     })
   } catch (error) {
     // fetch ne rejette que sur erreur réseau ou refus CORS : dans les deux cas
@@ -55,8 +70,13 @@ async function request<T>(path: string, { athleteId, apiKey }: Credentials): Pro
     return { kind: 'httpError', status: response.status, detail: detail.slice(0, 200) }
   }
 
+  const raw = await response.text().catch(() => '')
+  // Une suppression réussie ne renvoie rien : corps vide vaut succès, pas
+  // réponse illisible.
+  if (raw.trim() === '') return { kind: 'ok', data: null as T }
+
   try {
-    return { kind: 'ok', data: (await response.json()) as T }
+    return { kind: 'ok', data: JSON.parse(raw) as T }
   } catch {
     return { kind: 'httpError', status: response.status, detail: 'Réponse illisible (JSON attendu)' }
   }
@@ -146,6 +166,45 @@ export async function fetchCalendarEvents(
     .filter((record): record is Record<string, unknown> => record !== null)
 
   return { kind: 'ok', data: records.map(toCalendarEvent) }
+}
+
+/**
+ * Écriture dans le calendrier.
+ *
+ * Makigawa décide du **quand** et du **si** : elle décale, dégrade ou
+ * abandonne des séances créées dans intervals.icu. Ces trois fonctions sont
+ * donc son seul pouvoir d'action, et la charge utile reste volontairement
+ * ouverte — le vocabulaire de l'API se constate, il ne se devine pas.
+ */
+export async function createEvent(
+  credentials: Credentials,
+  event: Record<string, unknown>,
+): Promise<ApiOutcome<CalendarEvent | null>> {
+  const outcome = await request<unknown>('/events', credentials, { method: 'POST', body: event })
+  if (outcome.kind !== 'ok') return outcome
+  const record = asRecord(outcome.data)
+  return { kind: 'ok', data: record ? toCalendarEvent(record) : null }
+}
+
+export async function updateEvent(
+  credentials: Credentials,
+  eventId: string,
+  changes: Record<string, unknown>,
+): Promise<ApiOutcome<CalendarEvent | null>> {
+  const outcome = await request<unknown>(`/events/${encodeURIComponent(eventId)}`, credentials, {
+    method: 'PUT',
+    body: changes,
+  })
+  if (outcome.kind !== 'ok') return outcome
+  const record = asRecord(outcome.data)
+  return { kind: 'ok', data: record ? toCalendarEvent(record) : null }
+}
+
+export async function deleteEvent(
+  credentials: Credentials,
+  eventId: string,
+): Promise<ApiOutcome<null>> {
+  return request<null>(`/events/${encodeURIComponent(eventId)}`, credentials, { method: 'DELETE' })
 }
 
 /** Fenêtre courte : on veut valider l'accès, pas rapatrier l'historique. */
