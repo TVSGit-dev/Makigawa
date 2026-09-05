@@ -15,19 +15,64 @@ le site web.
 - Pas de multi-utilisateur, pas de comptes, pas de monétisation.
 - Pas d'analyse fine de puissance.
 - Pas de modèle prédictif. Les règles d'adaptation sont déterministes.
+- **Pas d'éditeur de séance.** Le contenu des séances se crée dans
+  intervals.icu, qui a déjà l'outil pour ça.
+
+## Répartition des rôles
+
+Décision du 5 septembre 2026, à la découverte de l'éditeur de séances
+d'intervals.icu.
+
+| intervals.icu | Makigawa |
+|---|---|
+| Le **quoi** : structure d'une séance, intervalles, cibles | Le **quand** et le **si** |
+| Le calendrier, comme stockage de référence | Décale, dégrade, abandonne |
+| Fitness / Fatigue / Forme | Les affiche, ne les recalcule pas |
+
+Les séances sont **créées et stockées dans intervals.icu**, jamais définies
+dans Makigawa. L'app lit ce calendrier, applique les règles d'adaptation et
+réécrit les événements. Elle décide du moment, pas du contenu.
+
+Deux conséquences immédiates : aucun éditeur de séance à construire, et la
+bibliothèque peut se remplir à la main dès maintenant, sans attendre une
+ligne de code.
+
+Préférer des **cibles en bpm** plutôt qu'en watts à la création d'une
+séance, pour la même raison que les seuils : la FTP n'est pas confirmée.
+
+**Réserve** : la façon dont l'API représente une séance planifiée reste à
+constater. C'est l'objet de la phase 6 de `docs/mise-en-place-etapes.md` —
+poser quelques séances à la main, puis regarder ce que l'API en dit.
 
 ## Constantes athlète
 
 | Donnée | Valeur | Statut |
 |---|---|---|
 | Poids | 80 kg | confirmé |
-| FCmax | 200 bpm | confirmé |
-| FTP | ~240 W | estimation Garmin, **non confirmée par test** |
-| `T_effort` | 150 bpm (75 % FCmax) | seuil de travail |
-| `T_haut` | 175 bpm (87 % FCmax) | seuil haut |
+| FCmax | 202 bpm | relevée par intervals.icu sur l'historique |
+| FTP | 221 W | sous les 240 W estimés (eFTP : 205 W), **non confirmée par test** |
+| LTHR (FC seuil) | 183 bpm | valeur d'intervals.icu, **origine à confirmer** |
+| `T_effort` | 150 bpm (74 % FCmax, 82 % LTHR) | seuil de travail |
+| `T_haut` | 175 bpm (87 % FCmax, 96 % LTHR) | seuil haut |
 
 **Aucune règle métier ne doit dépendre de la FTP.** Les seuils sont en
 bpm, délibérément : la FTP est incertaine, le cardio est mesuré.
+
+**Les zones d'intervals.icu ne portent aucune règle non plus.** La
+classification des journées compare des bpm bruts à 150 et 175, jamais un
+nom de zone.
+
+Cette indépendance vient de servir. Avec la LTHR de 183 bpm affichée par
+intervals.icu, 150 bpm tombe en bas de zone **aérobie** (Z2, 148-162) et non
+en bas de tempo (163-171) comme le supposait la phase 2 ; 175 bpm tombe en
+Z4 SubThreshold. Le contrôle de cohérence prévu échoue donc, **sans qu'aucune
+règle ne bouge**. La justification « 150 bpm = bas de zone tempo » ne tient
+plus ; le seuil, lui, reste à 150 bpm et garde son rôle : il sépare un trajet
+électrique (~129 bpm) d'un aller-retour musculaire (~160 bpm).
+
+Le contrôle qui vaut est celui de la phase 6, sur des journées réelles : un
+aller-retour électrique doit sortir en légère, un aller-retour musculaire en
+chargée. Tant qu'il n'a pas été fait, ne pas déplacer les seuils.
 
 ## Sources de données
 
@@ -128,8 +173,9 @@ Dans l'ordre :
 3. Replanification automatique selon les règles ci-dessus.
 4. Distinction visuelle claire électrique / musculaire.
 
-Secondaire : bibliothèque de séances courtes (15-30 min), vue de charge
-sur les dernières semaines.
+Secondaire : vue de charge sur les dernières semaines. La bibliothèque de
+séances courtes (15-30 min) se constitue dans intervals.icu — c'est du
+contenu, pas du code, et elle ne bloque rien.
 
 ## Ordre de développement
 
@@ -148,9 +194,9 @@ Ne pas commencer l'interface avant que les règles soient testées.
 
 - [x] Compte intervals.icu créé
 - [x] Garmin connecté (OAuth autorisé)
-- [ ] Historique importé, date de reprise reculée — **non vérifié**
-- [ ] Profil athlète renseigné (poids, FCmax, zones)
-- [ ] Vélo électrique configuré à 100 % Fitness / Fatigue
+- [x] Historique importé — confirmé, c'est la base des calculs d'intervals.icu
+- [x] Profil athlète renseigné (poids, FCmax, FTP, LTHR, zones)
+- [x] Vélo électrique configuré, charge confirmée depuis le cardio
 - [ ] Données vérifiées, pas de doublons
 - [ ] Zwift connecté
 - [ ] Test FTP fait

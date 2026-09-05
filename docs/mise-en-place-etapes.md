@@ -3,12 +3,17 @@
 > Ordre à respecter. Chaque phase dépend de la précédente.
 > Phases 0 à 5 : faisables depuis le téléphone. Phase 6+ : ordinateur.
 
-> **Avancement au 5 septembre 2026** — phases 0 et 1 faites (compte créé,
-> Garmin connecté). Reste à vérifier dans la phase 1 la date de reprise de
-> l'historique. **Prochaine étape : phase 2, le profil athlète**, qui
-> conditionne tout le reste — les zones cardio en découlent, et c'est sur
-> elles que reposent les seuils de la section 5. Ensuite seulement phase 3,
-> puis phase 4. Rien n'a encore été contrôlé côté données.
+> **Avancement au 5 septembre 2026** — phases 0 à 3 faites. Compte créé,
+> Garmin connecté, import d'historique confirmé. Profil renseigné, avec une
+> FTP volontairement basse à 221 W. Vélo électrique réglé, sa charge vient
+> bien du cardio — le point le plus délicat de la mise en place est passé.
+>
+> Phase 2 complétée le 5 septembre au soir : FCmax relevée à 202 bpm, LTHR
+> affichée à 183 bpm — 15 bpm au-dessus de l'attendu, ce qui fait échouer le
+> contrôle des zones sans toucher aux règles. Import confirmé depuis le
+> 7 septembre 2025, soit un an.
+>
+> **Prochaine étape : phase 4**, le contrôle des données importées.
 
 ---
 
@@ -32,12 +37,20 @@
       C'est proposé dans le parcours de création. Le faire à ce moment-là
       évite d'avoir à reconfigurer ensuite.
 - [x] Autoriser la connexion OAuth vers Garmin.
-- [ ] **Régler la date de reprise de l'historique.** Par défaut, seules les
-      nouvelles activités sont téléchargées. Il faut cliquer sur la date
-      pour la reculer. Viser au moins janvier 2026, idéalement plus tôt.
+- [x] **Régler la date de reprise de l'historique.** Fait et confirmé :
+      l'import démarre au **7 septembre 2025**, soit un an d'historique —
+      bien au-delà du janvier 2026 visé. C'est sur ces données
+      qu'intervals.icu calcule.
 
 > Point d'attention : si tu changes ton mot de passe Garmin plus tard, le
 > jeton OAuth est invalidé et il faut refaire la connexion.
+
+> **Sur la plausibilité d'une LTHR à 183.** Les Hard Commutes tournent à
+> ~160 bpm de moyenne, deux fois par semaine. Avec une LTHR à 168, cela
+> ferait 95 % du seuil, en soutenu et répété — difficilement tenable au
+> quotidien. Avec 183, cela fait 87 %, un effort tempo exigeant mais
+> répétable. L'usage réel penche donc plutôt vers 183 que vers 168. Ce n'est
+> pas une preuve, c'est un argument de vraisemblance.
 
 ---
 
@@ -46,16 +59,31 @@
 À renseigner avant que les calculs de charge tournent, sinon tout
 l'historique sera calculé avec des valeurs par défaut fausses.
 
-- [ ] Poids : **80 kg**
-- [ ] FCmax : **200 bpm**
-- [ ] FTP : laisser vide ou mettre 240 W en provisoire, à confirmer
-      en phase 5.
-- [ ] **LTHR : ne pas deviner.** Laisser intervals.icu l'estimer une fois
-      l'historique importé. Tes données suggèrent 168-172, mais une
-      estimation sur données réelles vaudra mieux qu'un chiffre posé
-      à la main.
-- [ ] Vérifier les zones cardio générées et qu'elles placent bien
-      150 bpm en bas de zone tempo (c'est le `T_effort` de la section 5).
+- [x] Poids : **80 kg**
+- [x] FCmax : **202 bpm** — valeur affichée par intervals.icu, relevée sur
+      l'historique, et non les 200 bpm supposés.
+- [x] FTP : **221 W**, posée délibérément sous les 240 W estimés par
+      Garmin. L'athlète juge les 240 W atteignables, mais préfère viser bas
+      après six semaines sans sortie musculaire — même raisonnement que
+      celui qui, en phase 5, interdit le test FTP en première séance.
+      intervals.icu estime de son côté une **eFTP à 205 W**, plus basse
+      encore : l'intuition de viser bas est confortée. À confirmer par le
+      test de 20 min.
+- [x] **LTHR : 183 bpm**, valeur affichée par intervals.icu après avoir
+      rendu le réglage plutôt que de le choisir. C'est **15 bpm au-dessus**
+      des 168-172 attendus, et 90,6 % de la FCmax — haut pour un seuil.
+      **Reste à confirmer** : intervals.icu présente-t-il 183 comme une
+      estimation sur données, ou comme une valeur par défaut ? Le champ
+      « HRRc Min FC » affiche le même nombre, ce qui pourrait indiquer une
+      valeur liée plutôt qu'estimée.
+- [x] Zones cardio observées, sans ajustement préalable cette fois — et
+      **le contrôle échoue**. Avec une LTHR de 183, 150 bpm tombe en bas de
+      Z2 Aérobie (148-162) et non en bas de tempo (163-171) ; 175 bpm tombe
+      en Z4 SubThreshold (172-182). Il faudrait une LTHR de 169 bpm pour que
+      150 tombe où la phase 2 le supposait. Sans conséquence sur les règles,
+      qui comparent des bpm bruts, mais la justification « bas de zone
+      tempo » de `T_effort` ne tient plus. Le contrôle qui vaut est celui de
+      la phase 6, sur des journées réelles.
 
 ---
 
@@ -64,15 +92,15 @@ l'historique sera calculé avec des valeurs par défaut fausses.
 C'est le point le plus délicat de toute la mise en place, et celui qui
 casse silencieusement si on le rate.
 
-- [ ] Vérifier comment intervals.icu classe tes `EBikeRide` : type
+- [x] Vérifier comment intervals.icu classe tes `EBikeRide` : type
       d'activité reconnu, et surtout **s'il compte dans la charge**.
-- [ ] Par défaut, l'électrique peut être exclu du calcul Fitness/Fatigue.
+- [x] Par défaut, l'électrique peut être exclu du calcul Fitness/Fatigue.
       Or il porte 60 à 100 % de ta charge réelle. Il faut le faire
       compter.
-- [ ] Dans les réglages de type d'activité, mettre l'électrique à
+- [x] Dans les réglages de type d'activité, mettre l'électrique à
       **100 % Fitness et 100 % Fatigue** (un utilisateur a rapporté que
       la catégorie disparaît à 100 % de fatigue — si ça arrive, mettre 99).
-- [ ] Vérifier que la charge de ces trajets est bien calculée **depuis le
+- [x] Vérifier que la charge de ces trajets est bien calculée **depuis le
       cardio**. Sans capteur de puissance sur ce vélo, ça devrait se faire
       seul, mais à contrôler sur les premières activités.
 
