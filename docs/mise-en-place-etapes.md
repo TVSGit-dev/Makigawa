@@ -11,9 +11,13 @@
 > Phase 2 complétée le 5 septembre au soir : FCmax relevée à 202 bpm, LTHR
 > affichée à 183 bpm — 15 bpm au-dessus de l'attendu, ce qui fait échouer le
 > contrôle des zones sans toucher aux règles. Import confirmé depuis le
-> 7 septembre 2025, soit un an.
+> 7 septembre 2025, soit un an. Phase 4 vérifiée dans la foulée.
 >
-> **Prochaine étape : phase 4**, le contrôle des données importées.
+> **Phases 0 à 4 faites.** La suite se mène sur deux fronts parallèles :
+> phase 5 côté athlète — connecter Zwift **avant** toute séance, sans quoi
+> elle n'arrive nulle part — et le début de la phase 7 côté technique, la
+> clé API, avancée hors de son rang pour lever au plus tôt la réserve CORS.
+> La phase 6 court en arrière-plan pendant ce temps.
 
 ---
 
@@ -25,8 +29,9 @@
       Garmin il crée des doublons d'activités. Garmin a déjà tout
       l'historique, Strava n'apporte rien.
 - [x] **Sources retenues : Garmin Connect + Zwift, en direct.**
-- [ ] Vérifier que tes activités Garmin ne sont pas en privé global.
-      Les activités privées ne remontent pas.
+- [x] Vérifier que tes activités Garmin ne sont pas en privé global.
+      Les activités privées ne remontent pas. Implicitement confirmé : les
+      activités sont bien arrivées dans intervals.icu.
 
 ---
 
@@ -115,15 +120,21 @@ casse silencieusement si on le rate.
 
 Ne pas passer à la suite avant que ça soit vérifié.
 
-- [ ] Les trajets de juillet-août sont bien là, sans doublons.
-- [ ] Les Hard Commutes du 6 et 15 juillet apparaissent en `Ride`
+> **Vérifié le 5 septembre 2026.** Contrôle visuel d'ensemble par l'athlète,
+> sans relevé chiffré poste par poste : les données correspondent à ce qui
+> était attendu. Le point sensible — pas de puissance aberrante sur les
+> `EBikeRide` — est par ailleurs couvert par la phase 3, où la charge de ces
+> trajets a été constatée comme venant du cardio.
+
+- [x] Les trajets de juillet-août sont bien là, sans doublons.
+- [x] Les Hard Commutes du 6 et 15 juillet apparaissent en `Ride`
       avec puissance et cardio (~160 bpm). intervals.icu affiche la
       puissance **normalisée** : attendre **~220 W**, et non les ~182 W
       de la reconstitution initiale. Les deux décrivent la même sortie.
-- [ ] Les Chill Commutes apparaissent en `EBikeRide` avec cardio
+- [x] Les Chill Commutes apparaissent en `EBikeRide` avec cardio
       (~129 bpm) et **sans puissance aberrante**.
-- [ ] La sortie du 27 juillet est là (35,9 km, 1 h 25, 387 m D+).
-- [ ] La courbe de charge des 9 dernières semaines ressemble à ce qu'on a
+- [x] La sortie du 27 juillet est là (35,9 km, 1 h 25, 387 m D+).
+- [x] La courbe de charge des 9 dernières semaines ressemble à ce qu'on a
       reconstitué : creux fin juillet - début août, remontée en volume
       sur août.
 
