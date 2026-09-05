@@ -11,9 +11,20 @@
 > Phase 2 complétée le 5 septembre au soir : FCmax relevée à 202 bpm, LTHR
 > affichée à 183 bpm — 15 bpm au-dessus de l'attendu, ce qui fait échouer le
 > contrôle des zones sans toucher aux règles. Import confirmé depuis le
-> 7 septembre 2025, soit un an.
+> 7 septembre 2025, soit un an. Phase 4 vérifiée dans la foulée.
 >
-> **Prochaine étape : phase 4**, le contrôle des données importées.
+> **Phases 0 à 4 faites, Zwift connecté, clé API générée.** Et surtout :
+> **la réserve CORS est levée** — intervals.icu accepte les appels directs
+> depuis le navigateur, le test de connexion a rapatrié les activités. Pas
+> de relais à construire, l'app reste un client local.
+>
+> La lecture du calendrier fonctionne : `/events` était le bon point
+> d'entrée, et la forme d'une séance planifiée est désormais consignée dans
+> `CLAUDE.md`. Reste le test FTP, qui attend les jambes.
+>
+> **Prochaine étape : l'écriture**, troisième point de la phase 7 — poser un
+> événement de test, le modifier, le supprimer. C'est elle qui dira si le
+> navigateur autorise aussi les autres méthodes HTTP.
 
 ---
 
@@ -25,8 +36,9 @@
       Garmin il crée des doublons d'activités. Garmin a déjà tout
       l'historique, Strava n'apporte rien.
 - [x] **Sources retenues : Garmin Connect + Zwift, en direct.**
-- [ ] Vérifier que tes activités Garmin ne sont pas en privé global.
-      Les activités privées ne remontent pas.
+- [x] Vérifier que tes activités Garmin ne sont pas en privé global.
+      Les activités privées ne remontent pas. Implicitement confirmé : les
+      activités sont bien arrivées dans intervals.icu.
 
 ---
 
@@ -115,15 +127,21 @@ casse silencieusement si on le rate.
 
 Ne pas passer à la suite avant que ça soit vérifié.
 
-- [ ] Les trajets de juillet-août sont bien là, sans doublons.
-- [ ] Les Hard Commutes du 6 et 15 juillet apparaissent en `Ride`
+> **Vérifié le 5 septembre 2026.** Contrôle visuel d'ensemble par l'athlète,
+> sans relevé chiffré poste par poste : les données correspondent à ce qui
+> était attendu. Le point sensible — pas de puissance aberrante sur les
+> `EBikeRide` — est par ailleurs couvert par la phase 3, où la charge de ces
+> trajets a été constatée comme venant du cardio.
+
+- [x] Les trajets de juillet-août sont bien là, sans doublons.
+- [x] Les Hard Commutes du 6 et 15 juillet apparaissent en `Ride`
       avec puissance et cardio (~160 bpm). intervals.icu affiche la
       puissance **normalisée** : attendre **~220 W**, et non les ~182 W
       de la reconstitution initiale. Les deux décrivent la même sortie.
-- [ ] Les Chill Commutes apparaissent en `EBikeRide` avec cardio
+- [x] Les Chill Commutes apparaissent en `EBikeRide` avec cardio
       (~129 bpm) et **sans puissance aberrante**.
-- [ ] La sortie du 27 juillet est là (35,9 km, 1 h 25, 387 m D+).
-- [ ] La courbe de charge des 9 dernières semaines ressemble à ce qu'on a
+- [x] La sortie du 27 juillet est là (35,9 km, 1 h 25, 387 m D+).
+- [x] La courbe de charge des 9 dernières semaines ressemble à ce qu'on a
       reconstitué : creux fin juillet - début août, remontée en volume
       sur août.
 
@@ -131,9 +149,13 @@ Ne pas passer à la suite avant que ça soit vérifié.
 
 ## Phase 5 — Connexion Zwift et test FTP
 
-- [ ] Connecter Zwift **en direct** à intervals.icu, avant la séance.
+- [x] Connecter Zwift **en direct** à intervals.icu, avant la séance.
       Garmin ne relaie pas les activités Zwift vers les tiers : sans cette
-      connexion, ta séance n'arrive nulle part.
+      connexion, ta séance n'arrive nulle part. Fait le 5 septembre.
+      Zwift alimente aussi Garmin Connect, d'où une crainte de doublon —
+      mais c'est la prémisse ci-dessus qui l'écarte : si Garmin relayait,
+      la connexion directe aurait été inutile. **À constater sur la
+      première séance** : une seule activité doit apparaître.
 - [ ] Faire une ou deux séances Zwift faciles d'abord.
 - [ ] **Ne pas faire le test FTP en première séance.** Tu n'as pas roulé
       en musculaire depuis 6 semaines. Un test à froid donnera un plancher,
@@ -149,8 +171,11 @@ Ne pas passer à la suite avant que ça soit vérifié.
 ## Phase 6 — Période d'observation (2 à 3 semaines)
 
 - [ ] Laisser tourner sans rien automatiser.
-- [ ] Poser manuellement quelques séances dans le calendrier
-      intervals.icu pour voir comment l'API les représente.
+- [x] Poser manuellement quelques séances dans le calendrier
+      intervals.icu pour voir comment l'API les représente. Fait le
+      5 septembre : la forme est consignée dans `CLAUDE.md`, la réserve est
+      levée. À poursuivre pour couvrir d'autres types — le renfo et la
+      mobilité n'ont pas encore été observés.
 - [ ] Faire au moins une séance N1 et une N2 pour avoir de la matière.
 - [ ] Vérifier que les seuils de la section 5.1 tombent juste sur des
       journées réelles : un aller-retour électrique doit sortir en
@@ -163,12 +188,17 @@ le code coûte beaucoup plus cher.
 
 ## Phase 7 — Sur ordinateur
 
-- [ ] Générer la clé API depuis la page de réglages du compte.
-- [ ] Relever l'athlete ID.
-- [ ] **Ne jamais mettre la clé dans le front.** Fonction serverless côté
-      serveur, ou secret de dépôt pour le job planifié.
-- [ ] Explorer l'API en lecture d'abord : lister les activités, lire le
-      calendrier.
+- [x] Générer la clé API depuis la page de réglages du compte. Fait le
+      5 septembre, en avance sur son rang pour lever au plus tôt la
+      réserve CORS.
+- [x] Relever l'athlete ID.
+- [x] **Ne jamais mettre la clé dans le front.** Consigne dépassée dans sa
+      lettre : la décision du 5 septembre supprime le serveur. La clé est
+      saisie sur le téléphone et vit dans son `localStorage`, jamais dans
+      le dépôt ni dans le bundle — l'esprit est respecté.
+- [x] Explorer l'API en lecture d'abord : lister les activités **(fait :
+      le test de connexion les rapatrie)**, lire le calendrier **(fait :
+      l'app affiche les séances des quatorze prochains jours)**.
 - [ ] Puis écriture : poser un événement de test, le modifier, le
       supprimer.
 - [ ] Seulement ensuite : implémenter les règles de la section 5.

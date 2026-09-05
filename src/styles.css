@@ -328,6 +328,15 @@ p {
   gap: 0.375rem;
 }
 
+/* La structure d'une séance arrive en texte multiligne dans `description`
+   (« - 5m z2 » par ligne). Sans cela le navigateur la replie en un seul
+   paragraphe et l'enchaînement des blocs devient illisible. */
+.event-steps {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  white-space: pre-line;
+}
+
 .chip {
   background: var(--surface);
   border: 1px solid var(--border);
