@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { Calendar } from './components/Calendar'
 import { ConnectionCheck } from './components/ConnectionCheck'
 import { StatusRow, type Tone } from './components/StatusRow'
+import { loadCredentials, type Credentials } from './storage/credentials'
 import { useDisplayMode } from './pwa/useDisplayMode'
 import { useInstallPrompt } from './pwa/useInstallPrompt'
 import { useOnline } from './pwa/useOnline'
@@ -17,6 +19,7 @@ export default function App() {
   const { offlineReady, needRefresh, applyUpdate, dismissUpdate } = useServiceWorker()
   const { canPrompt, installed, promptInstall } = useInstallPrompt()
   const [installOutcome, setInstallOutcome] = useState<string | null>(null)
+  const [credentials, setCredentials] = useState<Credentials | null>(() => loadCredentials())
 
   const handleInstall = async () => {
     const outcome = await promptInstall()
@@ -107,12 +110,14 @@ export default function App() {
         {installOutcome ? <p className="muted">{installOutcome}</p> : null}
       </section>
 
-      <ConnectionCheck />
+      <ConnectionCheck credentials={credentials} onCredentialsChange={setCredentials} />
+
+      <Calendar credentials={credentials} />
 
       <footer className="footer">
         <p className="muted">
-          Écran de mise en route. Le calendrier des séances viendra une fois la connexion
-          établie.
+          Lecture seule. Les séances se créent dans intervals.icu ; Makigawa lit le calendrier
+          et décidera du moment.
         </p>
       </footer>
     </div>

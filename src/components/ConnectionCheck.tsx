@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fetchRecentActivities } from '../api/intervals'
-import { clearCredentials, loadCredentials, saveCredentials } from '../storage/credentials'
+import { clearCredentials, saveCredentials, type Credentials } from '../storage/credentials'
 
 type TestState =
   | { status: 'idle' }
@@ -8,8 +8,13 @@ type TestState =
   | { status: 'ok'; count: number }
   | { status: 'error'; title: string; detail: string }
 
-export function ConnectionCheck() {
-  const stored = loadCredentials()
+type Props = {
+  credentials: Credentials | null
+  /** Les identifiants vivent dans App : le calendrier en dépend aussi. */
+  onCredentialsChange: (credentials: Credentials | null) => void
+}
+
+export function ConnectionCheck({ credentials: stored, onCredentialsChange }: Props) {
   const [athleteId, setAthleteId] = useState(stored?.athleteId ?? '')
   const [apiKey, setApiKey] = useState(stored?.apiKey ?? '')
   const [saved, setSaved] = useState(stored !== null)
@@ -33,6 +38,9 @@ export function ConnectionCheck() {
     switch (outcome.kind) {
       case 'ok':
         setState({ status: 'ok', count: outcome.data.length })
+        // Seule une connexion établie fait charger le calendrier : inutile
+        // de le lancer sur des identifiants qu'intervals.icu vient de refuser.
+        onCredentialsChange(credentials)
         break
       case 'unauthorized':
         setState({
@@ -65,6 +73,7 @@ export function ConnectionCheck() {
     setApiKey('')
     setSaved(false)
     setState({ status: 'idle' })
+    onCredentialsChange(null)
   }
 
   return (
