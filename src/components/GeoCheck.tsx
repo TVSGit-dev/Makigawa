@@ -9,7 +9,7 @@ type GeoState =
 function describe(error: GeolocationPositionError): string {
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      return 'Permission refusée. Autorise la localisation pour Bikeapp dans les paramètres du site.'
+      return 'Permission refusée. Autorise la localisation pour Makigawa dans les paramètres du site.'
     case error.POSITION_UNAVAILABLE:
       return 'Position indisponible. Vérifie que le GPS du téléphone est activé.'
     case error.TIMEOUT:

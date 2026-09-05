@@ -1,19 +1,29 @@
-# Bikeapp
+# Makigawa
 
-Application vélo personnelle, construite comme une **PWA installable** : une app web
-qui s’ajoute à l’écran d’accueil d’Android et se comporte comme une app native
-(plein écran, icône, démarrage hors-ligne, accès au GPS).
+Suivi d’entraînement vélo personnel, construit comme une **PWA installable** :
+une app web qui s’ajoute à l’écran d’accueil d’Android et se comporte comme une
+app native (plein écran, icône, démarrage hors-ligne, accès au GPS).
 
-Pour l’instant le dépôt ne contient que le « raccord » : le squelette technique et
-l’écran de vérification qui confirme que tout fonctionne sur le téléphone. Les
-fonctionnalités vélo viennent ensuite.
+**Local-first** : les données restent dans le stockage du navigateur, sur le
+téléphone. Pas de compte, pas de serveur, pas de synchronisation — rien ne
+quitte l’appareil, et l’app fonctionne sans réseau. Corollaire à garder en
+tête : effacer les données du site depuis Chrome efface l’historique, d’où
+l’intérêt d’un export une fois qu’il y aura des sorties à perdre.
+
+Pour l’instant le dépôt ne contient que le « raccord » : le squelette technique
+et l’écran de vérification qui confirme que tout fonctionne sur le téléphone.
+Les fonctionnalités de suivi viennent ensuite.
+
+La page porte une balise `noindex` : elle n’est pas indexée par les moteurs de
+recherche. Un `robots.txt` ne conviendrait pas ici, il n’est lu qu’à la racine
+du domaine, qui dépend d’un autre dépôt.
 
 ## Installer sur le téléphone
 
-1. Ouvrir **https://tvsgit-dev.github.io/Bikeapp/** dans Chrome sur Android.
+1. Ouvrir **https://tvsgit-dev.github.io/Makigawa/** dans Chrome sur Android.
 2. Chrome propose l’installation (bannière, ou bouton « Installer sur l’écran
    d’accueil » dans l’app). Sinon : menu ⋮ → **Ajouter à l’écran d’accueil**.
-3. Lancer Bikeapp depuis l’écran d’accueil. L’écran « Raccord » doit afficher
+3. Lancer Makigawa depuis l’écran d’accueil. L’écran « Raccord » doit afficher
    *App installée*, *Hors-ligne : prêt* et *HTTPS*.
 
 Le bouton **Tester le GPS** vérifie que la géolocalisation est bien accordée à
@@ -34,7 +44,7 @@ npm run icons      # régénère les icônes PNG depuis scripts/generate-icons.m
 ```
 
 `npm run dev` écoute sur toutes les interfaces (`--host`) : depuis un téléphone
-sur le même réseau Wi-Fi, l’URL est `http://<ip-de-la-machine>:5173/Bikeapp/`.
+sur le même réseau Wi-Fi, l’URL est `http://<ip-de-la-machine>:5173/Makigawa/`.
 Attention, en HTTP simple le navigateur bloque le GPS et le service worker —
 seul le site déployé en HTTPS permet de tester le raccord complet.
 
@@ -69,7 +79,7 @@ se recharger toute seule — utile pour ne pas perdre l’écran en pleine sorti
 
 ### Chemin de base
 
-Le site est servi sous `/Bikeapp/`, d’où `base: '/Bikeapp/'` dans
+Le site est servi sous `/Makigawa/`, d’où `base: '/Makigawa/'` dans
 `vite.config.ts`. Pour un domaine personnalisé ou un déploiement à la racine,
 construire avec `VITE_BASE=/ npm run build`.
 

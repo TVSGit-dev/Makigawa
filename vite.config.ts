@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // GitHub Pages sert le site sous /<nom-du-depot>/. Surchargeable via VITE_BASE
 // (ex. VITE_BASE=/ pour un domaine personnalisé ou un déploiement à la racine).
-const base = process.env.VITE_BASE ?? '/Bikeapp/'
+const base = process.env.VITE_BASE ?? '/Makigawa/'
 
 export default defineConfig({
   base,
@@ -20,9 +20,9 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: base,
-        name: 'Bikeapp',
-        short_name: 'Bikeapp',
-        description: 'Application vélo personnelle',
+        name: 'Makigawa',
+        short_name: 'Makigawa',
+        description: 'Suivi d’entraînement vélo personnel',
         lang: 'fr',
         dir: 'ltr',
         start_url: base,

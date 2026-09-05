@@ -45,7 +45,7 @@ export default function App() {
       <header className="header">
         <img className="logo" src={`${import.meta.env.BASE_URL}icons/icon-192.png`} alt="" />
         <div>
-          <h1>Bikeapp</h1>
+          <h1>Makigawa</h1>
           <p className="muted">Build du {BUILD_LABEL}</p>
         </div>
       </header>
@@ -60,7 +60,7 @@ export default function App() {
           hint={
             mode === 'standalone'
               ? undefined
-              : 'Ajoute Bikeapp à l’écran d’accueil pour le plein écran.'
+              : 'Ajoute Makigawa à l’écran d’accueil pour le plein écran.'
           }
         />
         <StatusRow
