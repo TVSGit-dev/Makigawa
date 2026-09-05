@@ -5,8 +5,10 @@
 
 > **Avancement au 5 septembre 2026** — phases 0 et 1 faites (compte créé,
 > Garmin connecté). Reste à vérifier dans la phase 1 la date de reprise de
-> l'historique. **En cours : phase 3**, le réglage du vélo électrique, puis
-> phase 4. Rien n'a encore été contrôlé côté données.
+> l'historique. **Prochaine étape : phase 2, le profil athlète**, qui
+> conditionne tout le reste — les zones cardio en découlent, et c'est sur
+> elles que reposent les seuils de la section 5. Ensuite seulement phase 3,
+> puis phase 4. Rien n'a encore été contrôlé côté données.
 
 ---
 
