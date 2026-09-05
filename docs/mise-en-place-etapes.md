@@ -49,8 +49,11 @@ l'historique sera calculé avec des valeurs par défaut fausses.
 
 - [x] Poids : **80 kg**
 - [x] FCmax : **200 bpm**
-- [x] FTP : **221 W**, posée à la main le 5 septembre plutôt que les 240 W
-      provisoires. Origine du chiffre à préciser. À confirmer en phase 5.
+- [x] FTP : **221 W**, posée délibérément sous les 240 W estimés par
+      Garmin. L'athlète juge les 240 W atteignables, mais préfère viser bas
+      après six semaines sans sortie musculaire — même raisonnement que
+      celui qui, en phase 5, interdit le test FTP en première séance.
+      À confirmer par ce test.
 - [x] **LTHR : 168 bpm**, posée à la main le 5 septembre — bas de la
       fourchette 168-172 que suggèrent les données. La consigne initiale
       était de laisser intervals.icu l'estimer sur l'historique : à refaire

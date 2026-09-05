@@ -50,7 +50,7 @@ poser quelques séances à la main, puis regarder ce que l'API en dit.
 |---|---|---|
 | Poids | 80 kg | confirmé |
 | FCmax | 200 bpm | confirmé |
-| FTP | 221 W | posée à la main le 5/09, **non confirmée par test** |
+| FTP | 221 W | volontairement sous les 240 W estimés, **non confirmée par test** |
 | LTHR (FC seuil) | 168 bpm | posée à la main, bas de la fourchette 168-172 |
 | `T_effort` | 150 bpm (75 % FCmax) | seuil de travail |
 | `T_haut` | 175 bpm (87 % FCmax) | seuil haut |
