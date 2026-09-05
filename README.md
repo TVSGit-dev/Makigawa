@@ -1,0 +1,71 @@
+# Bikeapp
+
+Application vélo personnelle, construite comme une **PWA installable** : une app web
+qui s’ajoute à l’écran d’accueil d’Android et se comporte comme une app native
+(plein écran, icône, démarrage hors-ligne, accès au GPS).
+
+Pour l’instant le dépôt ne contient que le « raccord » : le squelette technique et
+l’écran de vérification qui confirme que tout fonctionne sur le téléphone. Les
+fonctionnalités vélo viennent ensuite.
+
+## Installer sur le téléphone
+
+1. Ouvrir **https://tvsgit-dev.github.io/Bikeapp/** dans Chrome sur Android.
+2. Chrome propose l’installation (bannière, ou bouton « Installer sur l’écran
+   d’accueil » dans l’app). Sinon : menu ⋮ → **Ajouter à l’écran d’accueil**.
+3. Lancer Bikeapp depuis l’écran d’accueil. L’écran « Raccord » doit afficher
+   *App installée*, *Hors-ligne : prêt* et *HTTPS*.
+
+Le bouton **Tester le GPS** vérifie que la géolocalisation est bien accordée à
+l’app installée — la permission est distincte de celle de l’onglet navigateur.
+
+Pour vérifier le mode hors-ligne : activer le mode avion, puis relancer l’app
+depuis l’écran d’accueil. Elle doit démarrer normalement.
+
+## Développement
+
+```bash
+npm install
+npm run dev        # serveur local, service worker actif
+npm run build      # vérification des types + build de production dans dist/
+npm run preview    # sert dist/ comme en production
+npm run typecheck  # types seuls
+npm run icons      # régénère les icônes PNG depuis scripts/generate-icons.mjs
+```
+
+`npm run dev` écoute sur toutes les interfaces (`--host`) : depuis un téléphone
+sur le même réseau Wi-Fi, l’URL est `http://<ip-de-la-machine>:5173/Bikeapp/`.
+Attention, en HTTP simple le navigateur bloque le GPS et le service worker —
+seul le site déployé en HTTPS permet de tester le raccord complet.
+
+## Déploiement
+
+Chaque push sur `main` ou `claude/mobile-execution-m4j7mk` déclenche
+`.github/workflows/deploy.yml`, qui construit le site et le publie sur GitHub
+Pages.
+
+**Réglage à faire une seule fois** si le workflow échoue à l’étape « Configurer
+Pages » : dans *Settings → Pages* du dépôt, choisir **Source : GitHub Actions**.
+
+L’horodatage du build est affiché en haut de l’app : il permet de confirmer d’un
+coup d’œil que le téléphone a bien reçu la dernière version. Quand une nouvelle
+version est déployée, l’app affiche une bannière « Mettre à jour » plutôt que de
+se recharger toute seule — utile pour ne pas perdre l’écran en pleine sortie.
+
+### Chemin de base
+
+Le site est servi sous `/Bikeapp/`, d’où `base: '/Bikeapp/'` dans
+`vite.config.ts`. Pour un domaine personnalisé ou un déploiement à la racine,
+construire avec `VITE_BASE=/ npm run build`.
+
+## Structure
+
+```
+.github/workflows/deploy.yml  Build + déploiement GitHub Pages
+scripts/generate-icons.mjs    Génération des icônes PNG (sans dépendance)
+public/                       Icônes, favicon — copiés tels quels
+src/pwa/                      Service worker, invite d’installation, mode d’affichage
+src/components/               Éléments d’interface
+src/App.tsx                   Écran « Raccord »
+vite.config.ts                Build + manifest de la PWA
+```
