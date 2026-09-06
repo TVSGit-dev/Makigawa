@@ -27,9 +27,12 @@ import {
 } from '../actions/place'
 import {
   openRideEvent,
-  OPEN_RIDE_TARGETS,
+  rideLabel,
+  targetsFor,
   type Where,
 } from '../actions/open-ride'
+import { mobilityEvent, mobilitySeconds, MOBILITY_LOAD, ROUTINE } from '../workouts/mobility'
+import { Profile } from './Profile'
 import {
   compose,
   durationsFor,
@@ -52,6 +55,7 @@ const AHEAD_DAYS = 14
 type Plan =
   | { kind: 'composee'; workout: Workout }
   | { kind: 'ouverte'; load: number; where: Where }
+  | { kind: 'souplesse' }
   | { kind: 'bibliotheque'; workout: LibraryWorkout }
 
 type Step =
@@ -156,6 +160,21 @@ export function Place({ credentials, context, intent, today, onPlaced }: Props) 
           onPick={() => setStep({ at: 'charges', where: 'zwift' })}
         />
         <Choice
+          name="Chill Commute"
+          why="Le trajet en électrique. Sa charge compte, mais ce n’est pas une séance."
+          onPick={() => setStep({ at: 'charges', where: 'chill' })}
+        />
+        <Choice
+          name="Hard Commute"
+          why="Le même trajet, en musculaire. Un aller-retour fait une journée chargée."
+          onPick={() => setStep({ at: 'charges', where: 'hard' })}
+        />
+        <Choice
+          name="Souplesse"
+          why="Hanches et psoas. Sans puissance, sans charge — elle se pose n’importe quel jour."
+          onPick={() => setStep({ at: 'jours', plan: { kind: 'souplesse' } })}
+        />
+        <Choice
           name="Test FTP"
           why="Vingt minutes à fond, pour que toutes les autres séances soient justes."
           onPick={() => setStep({ at: 'test' })}
@@ -166,8 +185,8 @@ export function Place({ credentials, context, intent, today, onPlaced }: Props) 
           onPick={() => void openLibrary()}
         />
         <p className="muted small">
-          Les trajets n’y sont pas : ils ne se posent pas, ils arrivent tout seuls de Garmin.
-          Leur charge compte quand même dans la journée.
+          Les trajets arrivent aussi tout seuls de Garmin. Les poser d’avance sert à savoir,
+          la veille, ce que la journée pourra encore porter.
         </p>
       </Panel>
     )
@@ -212,14 +231,22 @@ export function Place({ credentials, context, intent, today, onPlaced }: Props) 
     const where = step.where
     return (
       <Panel
-        title={where === 'dehors' ? 'Sortie longue' : 'Zwift libre'}
+        title={rideLabel(where)}
         onBack={() => setStep({ at: 'styles' })}
       >
-        <p className="muted small">Quelle charge vises-tu ?</p>
-        {OPEN_RIDE_TARGETS.map((target) => (
+        <p className="muted small">
+          {where === 'chill' || where === 'hard'
+            ? 'Un aller, ou l’aller-retour ?'
+            : 'Quelle charge vises-tu ?'}
+        </p>
+        {targetsFor(where).map((target) => (
           <Choice
             key={target.load}
-            name={`Charge ${target.load}`}
+            name={
+              where === 'chill' || where === 'hard'
+                ? `${target.hint === 'aller-retour' || target.hint.startsWith('aller-retour') ? 'Aller-retour' : 'Un trajet'} · ${target.load}`
+                : `Charge ${target.load}`
+            }
             why={target.hint}
             onPick={() =>
               setStep({ at: 'jours', plan: { kind: 'ouverte', load: target.load, where } })
@@ -242,6 +269,7 @@ export function Place({ credentials, context, intent, today, onPlaced }: Props) 
           chiffre coûte un cycle. L’app ne te propose donc qu’un jour, pas quatorze.
         </p>
 
+        <Profile blocks={workout.blocks} />
         <details className="structure">
           <summary>La structure — {formatDuration(workout.seconds)}</summary>
           <pre>{toNotation(workout)}</pre>
@@ -311,9 +339,28 @@ export function Place({ credentials, context, intent, today, onPlaced }: Props) 
   return (
     <Panel title={titleOf(plan)} onBack={() => setStep({ at: 'styles' })} backLabel="Changer">
       {plan.kind === 'composee' ? (
-        <details className="structure">
-          <summary>La structure — {formatDuration(plan.workout.seconds)}</summary>
-          <pre>{toNotation(plan.workout)}</pre>
+        <>
+          <Profile blocks={plan.workout.blocks} />
+          <details className="structure">
+            <summary>La structure — {formatDuration(plan.workout.seconds)}</summary>
+            <pre>{toNotation(plan.workout)}</pre>
+          </details>
+        </>
+      ) : null}
+
+      {plan.kind === 'souplesse' ? (
+        <details className="structure" open>
+          <summary>La routine — {formatDuration(mobilitySeconds())}</summary>
+          <div className="routine">
+            {ROUTINE.map((move) => (
+              <p className="routine-move" key={move.name}>
+                <strong>{move.name}</strong> — {move.seconds}s
+                {move.bothSides ? ' par côté' : ''}
+                <br />
+                <span className="muted">{move.how}</span>
+              </p>
+            ))}
+          </div>
         </details>
       ) : null}
 
@@ -419,7 +466,11 @@ function candidateOf(plan: Plan): Candidate {
       // Pas de charge : intervals.icu la calculera depuis la structure.
       return { load: null, kind: 'endurance' }
     case 'ouverte':
-      return { load: plan.load, kind: 'endurance' }
+      // Un trajet électrique n'est jamais une séance : sa charge compte, mais
+      // il n'entre dans aucune règle d'espacement.
+      return { load: plan.load, kind: plan.where === 'chill' ? 'autre' : 'endurance' }
+    case 'souplesse':
+      return { load: MOBILITY_LOAD, kind: 'autre' }
     case 'bibliotheque':
       return asPlanned(plan.workout, plan.workout.id ?? '')
   }
@@ -430,7 +481,9 @@ function titleOf(plan: Plan): string {
     case 'composee':
       return plan.workout.name
     case 'ouverte':
-      return `${plan.where === 'dehors' ? 'Sortie longue' : 'Zwift libre'} · ${plan.load}`
+      return `${rideLabel(plan.where)} · ${plan.load}`
+    case 'souplesse':
+      return 'Souplesse'
     case 'bibliotheque':
       return plan.workout.name ?? 'Séance'
   }
@@ -442,6 +495,8 @@ function bodyFor(plan: Plan, date: DayKey): Record<string, unknown> {
       return composedEvent(plan.workout, date)
     case 'ouverte':
       return openRideEvent(plan.load, date, plan.where)
+    case 'souplesse':
+      return mobilityEvent(date)
     case 'bibliotheque':
       return libraryEvent(plan.workout, date)
   }

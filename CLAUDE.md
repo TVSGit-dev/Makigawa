@@ -238,6 +238,13 @@ document avant le code.
 
 ## Contraintes d'interface
 
+**La palette est grise, rose et noire** — choix de l'athlète, 6 septembre 2026.
+La sévérité s'exprime par la profondeur du rose plutôt que par de nouvelles
+couleurs : une app d'entraînement n'a pas besoin d'un feu tricolore. Une seule
+exception, tenue par le projet lui-même : **la distinction électrique /
+musculaire**, où le gris dit « ce ne sont pas tes jambes » et le rose dit
+« si ».
+
 L'application doit être **tolérante, pas culpabilisante**. C'est une
 contrainte technique, pas une intention :
 
@@ -300,6 +307,21 @@ contenu, pas du code, et elle ne bloque rien.
 
 Les quatre étapes sont franchies. La suite se joue en phase 6 : observer les
 règles sur des semaines réelles, et corriger les bornes plutôt que le code.
+
+### La souplesse
+
+**Constaté le 6 septembre 2026 :** fourmis dans la jambe gauche après une
+trentaine de kilomètres, et un psoas gauche moins mobile que le droit.
+
+Le psoas et l'iliaque sont raccourcis à chaque coup de pédale et ne s'allongent
+jamais pendant la sortie. La routine de `src/workouts/mobility.ts` en tient
+compte : mobilité avant, tenues de 60 à 90 s après, et du renforcement — les
+trois ensemble, parce qu'étirer seul ne tient pas.
+
+**Les fourmis ne sont pas un sujet d'entraînement.** Une compression nerveuse
+qui revient à la même distance relève d'abord d'une étude posturale, et d'un
+avis médical si elle dure au-delà de la sortie ou s'accompagne de faiblesse.
+L'app n'a pas à en juger, et n'en juge pas.
 
 ### Ce que l'app ne mesure pas encore
 

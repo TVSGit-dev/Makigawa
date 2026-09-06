@@ -12,8 +12,9 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
-const BG = [0x0b, 0x12, 0x20]
-const FG = [0x3d, 0xdc, 0x97]
+// Gris, rose, noir — la palette du 6 septembre 2026.
+const BG = [0x0c, 0x0c, 0x0e]
+const FG = [0xf4, 0x72, 0xa6]
 
 /** Suréchantillonnage : 4×4 sous-pixels, suffisant pour un rendu net. */
 const SS = 4

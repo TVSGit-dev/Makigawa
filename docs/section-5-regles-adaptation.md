@@ -872,6 +872,72 @@ laquelle des quatre conditions manque, plutôt que de laisser chercher.
 Un plan qui glisserait un test maximal entre deux séances serait un plan qui
 n'a pas compris ce qu'est un test.
 
+## E.12 Le démenti de nuit
+
+La décision 8, enfin construite. intervals.icu reçoit déjà les données de
+sommeil de la montre : l'app **affiche ce que la montre a mesuré**, et un seul
+tap la contredit.
+
+**Pourquoi un démenti et non une saisie.** Un score de sommeil compte des
+durées et des phases. Se lever deux fois pour un enfant coûte quelques minutes
+sur chaque compteur, donc le score reste bon — et la nuit a pourtant été
+hachée. Les deux mesurent des choses différentes, et aucune n'a tort. Mais pour
+l'entraînement, c'est le ressenti qui porte le signal : le sentiment subjectif
+de fatigue est un marqueur reconnu de surcharge (A.3), et il précède souvent
+les chiffres.
+
+Les jours où les deux sont d'accord — la grande majorité — **il n'y a rien à
+saisir**. Ce qui se perdait avant, c'était précisément l'information des jours
+de désaccord.
+
+**Ce que le démenti fait.** Il force le mode **prudent** pour la journée :
+plancher de fraîcheur à −10, une seule séance de qualité, une seule journée
+chargée. Ni plus ni moins. C'est un effet borné, réversible d'un tap, et qui ne
+touche qu'aujourd'hui — une mauvaise nuit ne condamne pas la semaine.
+
+Le démenti **n'est jamais envoyé à intervals.icu**. Il vit dans le téléphone,
+comme les identifiants : c'est un ressenti, pas une mesure, et le calendrier
+n'a pas à en porter la trace.
+
+## E.13 Les trajets, et la souplesse
+
+Deux ajouts demandés le 6 septembre 2026.
+
+### Les trajets se planifient
+
+Ils arrivent de Garmin, mais l'athlète veut aussi pouvoir les **poser
+d'avance** — parce qu'un aller-retour connu change ce que la journée peut
+encore porter, et que le savoir la veille vaut mieux que le découvrir après.
+
+Deux formes, nommées comme il les nomme, et chargées comme il les a mesurées :
+
+| | Type | Aller | Aller-retour |
+|---|---|---|---|
+| **Chill Commute** | électrique | 18 | 35 |
+| **Hard Commute** | musculaire | 58 | 115 |
+
+**Un trajet posé reste un trajet.** Il n'a pas de structure, sa charge visée
+est tout ce qui le définit, et le E.1 le situe comme n'importe quelle autre
+journée. Le Chill Commute reste de niveau 1 ; le Hard Commute, lui, monte au
+niveau 3 en aller-retour — c'est bien une journée chargée, et les règles la
+traitent comme telle. C'est déjà ce qu'elles faisaient sur les trajets
+observés ; elles le font maintenant aussi d'avance.
+
+### La souplesse
+
+Le psoas et l'iliaque sont **raccourcis à chaque coup de pédale** et ne
+s'allongent jamais pendant la sortie. La recherche est nette sur trois points :
+étirer ne suffit pas seul, les tenues doivent durer **60 à 90 secondes** et non
+quinze, et l'ensemble ne vaut que combiné à du renforcement des fessiers et du
+tronc.
+
+La séance de souplesse n'a **ni puissance, ni zone, ni charge** — c'est la
+seule chose du catalogue qui n'en a pas. Elle porte une charge visée
+volontairement basse, qui la place au niveau 0 : elle ne bloque rien, elle
+n'est jamais une séance de qualité, et elle peut se poser n'importe quel jour,
+y compris le lendemain d'une journée chargée. C'est précisément là qu'elle sert
+le plus.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -901,7 +967,9 @@ Trois précisions s'y sont ajoutées le même jour :
 | 13 | Sorties extérieures sans structure | **la sortie ouverte** : une charge visée, pas de blocs (E.8) |
 | 14 | Qui compose les séances | **Makigawa les assemble**, sur des motifs relevés chez l'athlète ; les chiffres restent à intervals.icu (E.9) |
 | 15 | Qui fait le planning | **Makigawa le propose**, selon la forme et la fatigue ; l'athlète accepte (E.10) |
-| 16 | Le test FTP | **un seul jour proposé**, sous trois conditions plus strictes que le E.2 (E.11) |
+| 16 | Le test FTP | **un seul jour proposé**, sous quatre conditions plus strictes que le E.2 (E.11) |
+| 17 | Effet du démenti de nuit | **force le mode prudent pour la journée**, rien de plus (E.12) |
+| 18 | Trajets et souplesse | **se posent d'avance**, sans structure ; la souplesse au niveau 0 (E.13) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

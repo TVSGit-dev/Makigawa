@@ -1,44 +1,64 @@
 :root {
-  --bg: #f6f8fb;
+  /* Gris, rose, noir. La sévérité s'exprime par la profondeur du rose plutôt
+     que par de nouvelles couleurs — une app d'entraînement n'a pas besoin d'un
+     feu tricolore. */
+  --bg: #f4f4f5;
   --surface: #ffffff;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --muted: #5a6b85;
-  --accent: #0b7a55;
+  --border: #e4e4e7;
+  --text: #18181b;
+  --muted: #6b6b74;
+  --accent: #b01455;
   --accent-contrast: #ffffff;
-  --ok: #0b7a55;
-  --warn: #a35c00;
-  --bad: #b91c1c;
-  --idle: #64748b;
+  --accent-soft: #fce7f0;
+  --ok: #b01455;
+  --warn: #92400e;
+  --bad: #9f1239;
+  --idle: #a1a1aa;
 
   /* La distinction électrique / musculaire est une priorité déclarée du
-     projet : ce sont deux mondes qui ne se comparent pas. */
-  --electric: #6d3fd4;
-  --muscular: #0b7a55;
-  --indoor: #1d63b8;
-  --force: #9a5b00;
+     projet. Le gris dit « ce ne sont pas tes jambes », le rose dit « si ». */
+  --electric: #71717a;
+  --muscular: #b01455;
+  --indoor: #d4457f;
+  --force: #52525b;
+
+  /* Le profil d'une séance : six paliers, du plus facile au plus dur. */
+  --tone-1: #e2d4dc;
+  --tone-2: #d3a9c0;
+  --tone-3: #c47fa3;
+  --tone-4: #b45587;
+  --tone-5: #a22b6a;
+  --tone-6: #85094c;
 
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b1220;
-    --surface: #151f33;
-    --border: #24314b;
-    --text: #e8edf7;
-    --muted: #9aa8c0;
-    --accent: #3ddc97;
-    --accent-contrast: #06281c;
-    --ok: #3ddc97;
-    --warn: #fbbf24;
-    --bad: #f87171;
-    --idle: #94a3b8;
+    --bg: #0c0c0e;
+    --surface: #18181b;
+    --border: #2a2a2f;
+    --text: #f0f0f2;
+    --muted: #a1a1aa;
+    --accent: #f472a6;
+    --accent-contrast: #1a0512;
+    --accent-soft: #2a1220;
+    --ok: #f472a6;
+    --warn: #d9a441;
+    --bad: #fb7185;
+    --idle: #71717a;
 
-    --electric: #b79bff;
-    --muscular: #3ddc97;
-    --indoor: #74b3ff;
-    --force: #fbbf24;
+    --electric: #a1a1aa;
+    --muscular: #f472a6;
+    --indoor: #f9a8cd;
+    --force: #d4d4d8;
+
+    --tone-1: #3a2b34;
+    --tone-2: #55384a;
+    --tone-3: #714560;
+    --tone-4: #8d5276;
+    --tone-5: #a95f8c;
+    --tone-6: #e0629f;
   }
 }
 
@@ -670,4 +690,130 @@ p {
   border: none;
   border-top: 1px solid var(--border);
   border-radius: 0;
+}
+
+/* ---------- le profil d'une séance ---------- */
+
+.profile {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 48px;
+  padding-top: 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-bar {
+  border-radius: 2px 2px 0 0;
+  min-width: 1px;
+}
+
+.tone-1 { background: var(--tone-1); }
+.tone-2 { background: var(--tone-2); }
+.tone-3 { background: var(--tone-3); }
+.tone-4 { background: var(--tone-4); }
+.tone-5 { background: var(--tone-5); }
+.tone-6 { background: var(--tone-6); }
+
+/* ---------- forme, fatigue, fraîcheur ---------- */
+
+.value {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  background: var(--bg);
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  padding: 0.625rem;
+  cursor: pointer;
+}
+
+.value-open {
+  border-color: var(--accent);
+}
+
+.value-label {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.value-number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.explain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem;
+  background: var(--bg);
+  border-radius: 0.75rem;
+}
+
+.explain-text {
+  font-size: 0.875rem;
+}
+
+/* Les quatorze derniers jours. Les sept derniers ressortent : ce sont eux qui
+   pèsent sur la fatigue. */
+.history {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 44px;
+}
+
+.history-bar {
+  flex: 1;
+  background: var(--tone-2);
+  border-radius: 2px 2px 0 0;
+}
+
+.history-recent {
+  background: var(--accent);
+}
+
+/* ---------- le démenti de nuit ---------- */
+
+.night {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--bg);
+  border-radius: 0.75rem;
+}
+
+.night-denied {
+  border-left: 3px solid var(--accent);
+}
+
+.night-text {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  flex: 1 1 12rem;
+}
+
+/* ---------- la routine de souplesse ---------- */
+
+.routine {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.375rem;
+}
+
+.routine-move {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
 }

@@ -19,10 +19,11 @@ import {
   type Wellness,
 } from '../api/intervals'
 import { changeFor, writeChange, type Change } from '../actions/apply'
-import { buildContext, isSession } from '../rules/context'
+import { buildContext, isSession, toDayRecords } from '../rules/context'
 import { propose, type Proposal } from '../rules/decide'
 import { weighDay } from '../rules/scale'
 import type { Intent } from '../rules/intent'
+import type { DayRecord } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
 import { dismiss, fingerprint, forgetOlderThan } from '../storage/preferences'
 import { addDays, dayKeyOf, formatDay, toDayKey, type DayKey } from '../calendar/dates'
@@ -50,13 +51,21 @@ type State =
   | { status: 'ok'; data: Data }
   | { status: 'error'; title: string; detail: string }
 
+/** Ce que l'en-tête a besoin de savoir, lu une seule fois pour les deux écrans. */
+export type Readout = {
+  fitness: number | null
+  fatigue: number | null
+  sleepScore: number | null
+  days: readonly DayRecord[]
+}
+
 type Props = {
   credentials: Credentials
   intent: Intent
-  onFitnessChange: (fitness: number | null, fatigue: number | null) => void
+  onReadout: (readout: Readout) => void
 }
 
-export function Plan({ credentials, intent, onFitnessChange }: Props) {
+export function Plan({ credentials, intent, onReadout }: Props) {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [writes, setWrites] = useState<Record<string, WriteState>>({})
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set())
@@ -118,13 +127,24 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
       .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
       .at(-1)?.ctl ?? null
 
+  const observed = state.status === 'ok' ? toDayRecords(state.data.activities) : []
+
   useEffect(() => {
     const latest = wellness
       .filter((day) => day.date !== null && day.date <= today && day.ctl !== null)
       .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
       .at(-1)
-    onFitnessChange(latest?.ctl ?? null, latest?.atl ?? null)
-  }, [wellness, today, onFitnessChange])
+    const night = wellness.find((day) => day.date === today)
+    onReadout({
+      fitness: latest?.ctl ?? null,
+      fatigue: latest?.atl ?? null,
+      sleepScore: night?.sleepScore ?? null,
+      days: observed,
+    })
+    // `observed` est reconstruit à chaque rendu ; c'est `wellness` et l'état
+    // qui disent quand il a vraiment changé.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wellness, state, today, onReadout])
 
   const context = useMemo(() => {
     if (state.status !== 'ok') return null

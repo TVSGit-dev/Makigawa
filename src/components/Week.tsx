@@ -16,6 +16,7 @@ import { eventFor, toNotation } from '../workouts/compose'
 import type { Suggestion } from '../workouts/week'
 import type { Credentials } from '../storage/credentials'
 import { formatDuration, formatRelativeDay, type DayKey } from '../calendar/dates'
+import { Profile } from './Profile'
 
 type Writing =
   | { status: 'idle' }
@@ -104,6 +105,8 @@ export function Week({ credentials, suggestions, fitness, today, empty, onPlaced
           <p className="suggested-day">{formatRelativeDay(suggestion.date, today)}</p>
           <p className="suggested-name">{suggestion.workout.name}</p>
           <p className="suggested-why">{suggestion.because}</p>
+
+          <Profile blocks={suggestion.workout.blocks} />
 
           <details className="structure">
             <summary>La structure — {formatDuration(suggestion.workout.seconds)}</summary>
