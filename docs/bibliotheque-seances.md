@@ -191,7 +191,7 @@ Charge estimée **85**. Quatre blocs de trois minutes, récupération égale.
 - 3m z5
 - 3m z2
 - 3m z5
-- 9m z1
+- 12m z1
 ```
 
 ---
