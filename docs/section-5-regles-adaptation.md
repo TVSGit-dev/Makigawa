@@ -777,6 +777,101 @@ reste — la veille chargée, la séance de qualité voisine, le renfo trop proc
 C'est moins qu'un verdict complet, et l'app le dit ; c'est vrai, ce qui vaut
 mieux qu'une charge inventée. Le verdict complet vient à la lecture suivante.
 
+## E.10 Le planning de la semaine
+
+Décidé le 6 septembre 2026, après le premier usage réel. L'athlète l'a dit en
+une phrase : *« je ne veux pas encoder moi-même, je veux que, en fonction de la
+charge et la fatigue, Makigawa fasse le planning et me propose des séances pour
+m'améliorer. »*
+
+Jusqu'ici l'app savait **ajuster** ce qui existait et **poser** ce qu'on lui
+demandait. Elle ne savait pas **proposer**. C'était le manque, et il expliquait
+pourquoi un calendrier vide le restait.
+
+### Combien de séances
+
+Le quota du mode en cours (partie D) : une en prudent, deux en normal, trois en
+ambitieux. Ce ne sont pas des séances en plus des règles, ce sont les mêmes
+règles utilisées à l'endroit : au lieu de refuser après coup, on cherche les
+jours qui conviennent et on s'y installe.
+
+### Lesquelles
+
+**La forme d'intervals.icu décide de ce qui est disponible.** Une CTL basse veut
+dire un corps qui n'a pas encaissé de travail dur depuis longtemps ; lui poser
+du VO2 max la première semaine est le meilleur moyen de le blesser ou de le
+dégoûter.
+
+| Forme (CTL) | Familles ouvertes |
+|---|---|
+| moins de 25 | endurance, tempo, sweet spot |
+| 25 à 39 | + seuil |
+| 40 et plus | + VO2 max, navette lactate |
+
+C'est une progression, pas un classement : les familles du bas restent
+disponibles à tous les niveaux, et une semaine de décharge s'y appuie.
+
+**La séance la plus exigeante passe en premier** dans la semaine, les suivantes
+descendent. Elle est placée quand la fraîcheur est la meilleure — la reporter
+en fin de semaine reviendrait à la faire sur des jambes déjà entamées.
+
+### Quel jour
+
+Le premier jour de l'horizon où le E.2 dit oui, la séance déjà proposée
+comprise. **Chaque séance retenue entre dans le décor de la suivante** : sans
+cela l'app en placerait deux le même jour, ou deux d'affilée, et se
+contredirait au premier examen.
+
+Quand aucun jour ne convient, la séance n'est pas proposée. L'app en propose
+moins plutôt que de proposer mal.
+
+### Ce que le planning n'est pas
+
+Un contrat. C'est un point de départ que les règles modifieront jour après
+jour — et rien n'est écrit sans un tap, comme partout ailleurs (E.7).
+
+### Ce qui manque encore
+
+**La reprise du E.5 n'est pas détectée.** Reconnaître « quatorze jours sans
+séance de qualité » demande de distinguer une séance d'un trajet dans
+l'historique, ce que l'app ne sait pas encore faire. En attendant, une CTL
+basse produit d'elle-même un plan prudent — de l'endurance et du tempo — ce qui
+donne le bon comportement sans la règle. Le jour où la détection existera, elle
+imposera en plus le plafond de +10 % par semaine.
+
+## E.11 Le test FTP
+
+Décidé le 6 septembre 2026. Le protocole est celui de l'athlète lui-même — son
+fichier « 20 Minute FTP Test » — et Makigawa n'y touche pas. Ce qu'elle apporte
+est, comme toujours, le **quand**.
+
+**Un test exige plus qu'une séance de qualité.** Passé sur des jambes lourdes,
+il ne mesure pas la FTP : il mesure la fatigue, et il rend un chiffre trop bas
+que l'athlète traînera ensuite dans toutes ses séances, puisque toutes sont
+écrites en pourcentage de cette FTP. Une mauvaise mesure ne coûte pas une
+séance, elle coûte un cycle.
+
+Quatre conditions s'ajoutent donc au E.2 :
+
+0. **Le jour lui-même doit être léger.** Les règles ordinaires laissent passer
+   une séance de qualité sur une journée qui porte déjà du travail ; pour un
+   test, c'est disqualifiant.
+1. **La fraîcheur doit être positive.** Pas seulement au-dessus du plancher du
+   mode : au-dessus de zéro. C'est la seule règle du projet qui exige mieux que
+   « pas trop fatigué ».
+2. **Les deux jours précédents doivent être légers.** Les trajets ne comptent
+   pas — ils n'entament pas ce qu'un test sollicite.
+3. **Rien de chargé le lendemain non plus.** Un test est un effort maximal ; le
+   poser la veille d'une grosse journée gâche les deux.
+
+**L'app ne propose donc pas quatorze jours, elle en propose un** — le premier
+qui remplit tout cela. Quand aucun ne convient, elle le dit et explique
+laquelle des quatre conditions manque, plutôt que de laisser chercher.
+
+**Le test n'entre pas dans le planning automatique du E.10.** Il se demande.
+Un plan qui glisserait un test maximal entre deux séances serait un plan qui
+n'a pas compris ce qu'est un test.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -805,6 +900,8 @@ Trois précisions s'y sont ajoutées le même jour :
 | 12 | Autonomie de l'app | **elle propose, l'athlète confirme** (E.7) |
 | 13 | Sorties extérieures sans structure | **la sortie ouverte** : une charge visée, pas de blocs (E.8) |
 | 14 | Qui compose les séances | **Makigawa les assemble**, sur des motifs relevés chez l'athlète ; les chiffres restent à intervals.icu (E.9) |
+| 15 | Qui fait le planning | **Makigawa le propose**, selon la forme et la fatigue ; l'athlète accepte (E.10) |
+| 16 | Le test FTP | **un seul jour proposé**, sous trois conditions plus strictes que le E.2 (E.11) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles
