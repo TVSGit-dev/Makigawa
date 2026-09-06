@@ -12,6 +12,8 @@ import type { Change } from '../actions/apply'
 import type { Proposal } from '../rules/decide'
 import type { Intent } from '../rules/intent'
 import type { DayKey } from '../calendar/dates'
+import { Profile } from './Profile'
+import { blocksOf } from '../workouts/read'
 import {
   actionLabel,
   activityLabel,
@@ -68,6 +70,8 @@ export function SessionCard({
           </span>
         ))}
       </p>
+
+      {event.description ? <Profile blocks={blocksOf(event.description)} /> : null}
 
       {event.description ? (
         <details className="structure" open={open}>

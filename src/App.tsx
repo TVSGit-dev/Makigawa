@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react'
 import { ConnectionCheck } from './components/ConnectionCheck'
 import { effectiveIntent, Freshness } from './components/Freshness'
-import { Plan } from './components/Plan'
+import { Plan, type Readout } from './components/Plan'
 import { Settings } from './components/Settings'
 import { loadCredentials, type Credentials } from './storage/credentials'
 import { loadIntents, saveIntent, weeksBefore } from './storage/preferences'
+import { forgetNightsBefore, intentAfterNight, toggleDenial } from './storage/night'
 import { mondayOf, toDayKey } from './calendar/dates'
 import type { Intent } from './rules/intent'
 import { useDisplayMode } from './pwa/useDisplayMode'
@@ -24,19 +25,29 @@ export default function App() {
   const { canPrompt, installed, promptInstall } = useInstallPrompt()
   const [credentials, setCredentials] = useState<Credentials | null>(() => loadCredentials())
 
-  const week = mondayOf(toDayKey(new Date()))
+  const today = toDayKey(new Date())
+  const week = mondayOf(today)
   const [intents, setIntents] = useState(() => loadIntents())
   const wanted: Intent = intents[week] ?? 'normal'
-  // Le garde-fou du A.3 : le mode ambitieux ne tient pas trois semaines.
-  const intent = effectiveIntent(wanted, weeksBefore(intents, week))
 
-  const [fitness, setFitness] = useState<number | null>(null)
-  const [fatigue, setFatigue] = useState<number | null>(null)
+  // Deux garde-fous se succèdent : le A.3 borne le mode ambitieux à deux
+  // semaines, et le E.12 fait passer la journée en prudent si la nuit est
+  // démentie. Le second est le plus récent, donc il a le dernier mot.
+  const [nights, setNights] = useState(() => forgetNightsBefore(today))
+  const nightDenied = nights.has(today)
+  const intent = intentAfterNight(
+    effectiveIntent(wanted, weeksBefore(intents, week)),
+    nightDenied,
+  )
 
-  const handleFitness = useCallback((ctl: number | null, atl: number | null) => {
-    setFitness(ctl)
-    setFatigue(atl)
-  }, [])
+  const [readout, setReadout] = useState<Readout>({
+    fitness: null,
+    fatigue: null,
+    sleepScore: null,
+    days: [],
+  })
+
+  const handleReadout = useCallback((next: Readout) => setReadout(next), [])
 
   const handleInstall = () => void promptInstall()
 
@@ -71,14 +82,19 @@ export default function App() {
       {credentials ? (
         <>
           <Freshness
-            fitness={fitness}
-            fatigue={fatigue}
+            fitness={readout.fitness}
+            fatigue={readout.fatigue}
             intent={intent}
             wanted={wanted}
+            days={readout.days}
+            today={today}
+            nightDenied={nightDenied}
+            sleepScore={readout.sleepScore}
             onIntentChange={chooseIntent}
+            onDenyNight={() => setNights(toggleDenial(today))}
           />
 
-          <Plan credentials={credentials} intent={intent} onFitnessChange={handleFitness} />
+          <Plan credentials={credentials} intent={intent} onReadout={handleReadout} />
 
           <Settings
             credentials={credentials}
