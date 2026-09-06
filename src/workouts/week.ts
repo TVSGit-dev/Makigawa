@@ -62,6 +62,20 @@ export type WeekOptions = {
   /** La forme d'intervals.icu. Elle décide de ce qui est ouvert. */
   fitness: number | null
   horizon?: number
+  /**
+   * Les familles que l'athlète a écartées (E.14).
+   *
+   * On n'y revient pas pour avoir quelque chose à montrer : si tout est
+   * écarté, l'app ne propose rien et le dit.
+   */
+  refused?: readonly string[]
+  /**
+   * Le jour avant lequel il ne veut rien (E.14).
+   *
+   * L'horizon repart de là plutôt que d'aujourd'hui : repousser ne doit pas
+   * réduire ce que l'app peut proposer.
+   */
+  notBefore?: DayKey | null
 }
 
 /**
@@ -74,11 +88,26 @@ export type WeekOptions = {
  * **Chaque séance retenue entre dans le décor de la suivante.** Sans cela
  * l'app en placerait deux le même jour, ou deux d'affilée, et se
  * contredirait au premier examen.
+ *
+ * Le plan est **recalculé en entier** à chaque refus plutôt que rapiécé
+ * (E.14) : les séances suivantes sont placées par rapport à la première, donc
+ * déplacer celle-ci sans replacer les autres produirait deux séances collées.
  */
-export function planWeek({ context, today, fitness, horizon = HORIZON_DAYS }: WeekOptions): Suggestion[] {
+export function planWeek({
+  context,
+  today,
+  fitness,
+  horizon = HORIZON_DAYS,
+  refused = [],
+  notBefore = null,
+}: WeekOptions): Suggestion[] {
   const quota = INTENTS[context.intent].chargedDaysPerWeek
-  const available = familiesFor(fitness)
+  const available = familiesFor(fitness).filter((family) => !refused.includes(family.key))
   if (available.length === 0) return []
+
+  // Un report déplace la fenêtre entière, il ne la rogne pas : le plan repart
+  // du premier jour encore acceptable (E.14).
+  const start = notBefore && notBefore > today ? notBefore : today
 
   const suggestions: Suggestion[] = []
   // Une copie du décor, qu'on enrichit à mesure : la deuxième séance doit voir
@@ -94,7 +123,7 @@ export function planWeek({ context, today, fitness, horizon = HORIZON_DAYS }: We
     // fait le plus volontiers quand on est frais.
     const workout = compose(family, index === 0 ? 45 : 30)
 
-    const placed = firstFittingDay({ ...context, planned }, today, horizon, workout, taken)
+    const placed = firstFittingDay({ ...context, planned }, start, horizon, workout, taken)
     if (!placed) continue
 
     suggestions.push({
@@ -121,13 +150,13 @@ export function planWeek({ context, today, fitness, horizon = HORIZON_DAYS }: We
  */
 function firstFittingDay(
   context: Context,
-  today: DayKey,
+  start: DayKey,
   horizon: number,
   workout: Workout,
   taken: readonly DayKey[],
 ): DayKey | null {
   for (let ahead = 0; ahead < horizon; ahead += 1) {
-    const date = shiftDayKey(today, ahead)
+    const date = shiftDayKey(start, ahead)
     if (touchesTaken(date, taken)) continue
     if (!refuse(sessionFor(workout, date), date, context)) return date
   }
