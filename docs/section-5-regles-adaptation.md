@@ -298,11 +298,11 @@ courtes avec quelques accélérations brèves pour ne pas s'éteindre.
 
 ## C.1 Semaine de reprise
 
-**Quand :** après 14 jours ou plus sans séance N1/N2 (voir E.5).
+**Quand :** après 14 jours ou plus sans séance de qualité (voir E.5).
 
 - Volume de qualité réduit, remontée de **+10 % par semaine maximum**
 - Pas de séance au-dessus du tempo la première semaine
-- Les trajets continuent normalement — ils ne comptent pas comme reprise
+- Les trajets continuent normalement — ils ne remettent pas le compteur à zéro
 - Durée : 3 semaines, puis on passe en base
 
 **Pourquoi ces chiffres.** Deux semaines d'arrêt coûtent seulement 4 à 7 % de
@@ -390,131 +390,221 @@ Concrètement, l'app :
 > fait partie des symptômes.
 
 ---
-
-# Partie E — Les règles déterministes
+# Partie E — Les règles
 
 **C'est cette partie que le code implémente.** Le reste du document
 l'explique.
 
-Rappel du cadre posé par `CLAUDE.md` et non rediscuté ici : les seuils sont
-en **bpm**, jamais en watts ni en zones ; aucune règle ne dépend de la FTP ;
-aucune donnée de puissance n'est lue sur les activités électriques.
+> **Reconstruite à partir de zéro.** Les règles esquissées dans `CLAUDE.md`
+> étaient les prémices d'une idée, pas une spécification. L'athlète a demandé
+> de les abandonner plutôt que de les compléter : ce qui suit est **déduit de
+> la partie A**, et n'hérite de rien.
 
-## E.1 Classification des journées
+## E.0 Les cinq principes dont tout découle
 
-| Journée | Condition |
-|---|---|
-| **Légère** | < 10 min cumulées au-dessus de 150 bpm |
-| **Moyenne** | 10 à 30 min au-dessus de 150 bpm |
-| **Chargée** | > 30 min au-dessus de 150 bpm, **ou** tout passage au-dessus de 175 bpm |
-
-> ⚠️ **Un trou que je signale.** Une journée à 3 heures de vélo à 145 bpm
-> sort actuellement en **légère**, alors qu'elle est objectivement fatigante.
-> Le seuil de 150 bpm ignore le volume passé juste en dessous.
->
-> **Proposition à trancher :** ajouter une bascule sur la durée — plus de
-> 2 h 30 d'activité dans la journée, quelle que soit l'intensité, fait passer
-> au minimum en **moyenne**. C'est cohérent avec le A.4 : la charge, ce n'est
-> pas que l'intensité.
-
-**Rappel de calibration.** Les seuils de 150 et 175 bpm **n'ont pas encore
-été validés sur des journées réelles**. Le contrôle prévu (phase 6) est
-simple : un aller-retour électrique doit sortir en légère, un aller-retour
-musculaire en chargée. **Ne pas déplacer ces seuils avant ce contrôle.**
-
-## E.2 Séance manquée
-
-Ordre imposé : **décalée → sinon dégradée → sinon abandonnée.** Jamais
-ajoutée à une autre séance. Aucune dette.
-
-Les détails manquaient. Propositions :
-
-| Question | Proposition | Justification |
+| | Principe | D'où il vient |
 |---|---|---|
-| Décalée de combien ? | **2 jours maximum** | au-delà, elle ne sert plus l'intention de la semaine |
-| Décalée où ? | jamais sur une journée chargée, jamais à côté d'une autre séance de qualité | E.4 |
-| « Dégradée » = quoi ? | **structure gardée, durée réduite d'environ 40 %, étage le plus haut retiré** | conserve l'intention, retire le coût |
-| Abandon après quand ? | **3 jours sans place trouvée** | au-delà on transporte un cadavre |
+| 1 | **La base est acquise et subie.** Les règles n'agissent que sur les séances de qualité — jamais sur les trajets, qu'on ne peut ni déplacer ni supprimer. | A.5 |
+| 2 | **La qualité est rare, donc on la protège.** Une séance bien placée vaut mieux que deux mal placées. | B.5 |
+| 3 | **La récupération est contrainte.** À doute égal, on allège. | A.4 |
+| 4 | **Rien n'est urgent.** Aucune compétition, donc aucune séance indispensable. | contexte |
+| 5 | **Aucune trace de ce qui n'a pas eu lieu.** | contraintes d'interface |
 
-**À trancher, notamment « dégradée ».** Retirer l'étage haut, c'est
-transformer une séance de VO2max en tempo — ce qui change sa nature. L'autre
-option est de garder l'intensité et de couper la durée de moitié : la séance
-reste ce qu'elle est, en plus court. **Je penche pour la seconde** au vu du
-B.5 : ta qualité est rare, la dénaturer coûte plus cher que la raccourcir.
+Le principe 4 mérite d'être dit franchement : **une séance perdue est
+perdue.** Elle ne se rattrape pas, ne se reporte pas indéfiniment, et ne
+laisse rien derrière elle. C'est ce qui distingue cette app d'un plan
+d'entraînement.
 
-## E.3 Arbitrage d'une semaine chargée
+## E.1 Ce que l'app observe
 
-Ordre de retrait : **mobilité → renfo → sortie.**
+Une seule mesure, et un signal.
 
-> **À trancher :** cet ordre me paraît discutable. La mobilité est ce qui
-> coûte le moins et protège le plus quand tout le reste s'accumule ; c'est
-> aussi la seule chose faisable en 10 minutes un soir. **Je proposerais
-> plutôt : renfo → sortie → mobilité**, la mobilité étant la dernière à
-> tomber. Mais c'est ton entraînement et ton ressenti — tranche.
+### La charge du jour
 
-Déclencheur : **à trancher.** Proposition — trois journées chargées non
-planifiées dans les sept derniers jours.
+**Proposition : la somme des charges d'entraînement du jour, telles que
+calculées par intervals.icu** (`icu_training_load`), toutes activités
+confondues.
 
-## E.4 Anti-empilement
+Pourquoi ce choix plutôt que compter les minutes au-dessus d'un seuil de
+fréquence cardiaque, comme l'esquissait `CLAUDE.md` :
 
-Règles existantes, conservées :
+| | Minutes au-dessus de 150 bpm | Charge d'intervals.icu |
+|---|---|---|
+| Calcul maison ? | oui — le projet l'interdit ailleurs | non, elle est fournie |
+| Tient compte de la durée ? | non, une longue sortie à 145 bpm compte pour zéro | oui |
+| Comparable entre vélo, électrique, renfo ? | mal | oui |
+| Dépend de valeurs incertaines ? | du seuil choisi | de la LTHR, actuellement douteuse |
 
-- Pas de renfo jambes sur une journée chargée
-- Jamais deux journées chargées **planifiées** consécutives
+Le premier point est décisif : `CLAUDE.md` pose qu'on ne recalcule jamais la
+charge soi-même. Compter des minutes au-dessus d'un seuil, c'est fabriquer sa
+propre mesure de charge à côté de celle qui existe déjà.
 
-Ajouts issus de la recherche sur l'entraînement concurrent *(établi)* :
+Le deuxième règle gratuitement le trou que j'avais signalé : trois heures à
+145 bpm produisent une charge élevée chez intervals.icu, alors qu'elles
+comptaient pour zéro minute au-dessus de 150.
 
-- **Renfo lourd → 24 à 48 h avant une séance d'endurance dure.** L'inverse
-  aussi : ne pas poser un renfo jambes le lendemain d'une grosse sortie.
-- **Si les deux tombent le même jour :** l'endurance d'abord, **3 h
-  d'écart minimum**. La signalisation musculaire de l'endurance met environ
-  3 h à retomber, celle de la force dure ~18 h.
-- **Bonne nouvelle :** le vélo interfère nettement moins avec la force que
-  la course à pied, parce qu'il n'y a pas de contraction excentrique
-  destructrice. Ton renfo et ton vélo cohabitent mieux qu'ils ne le
-  feraient chez un coureur.
+**Trois bandes — légère, moyenne, chargée — dont les bornes sont à établir en
+phase 6.** Je ne les invente pas ici : la méthode est plus solide qu'un
+chiffre sorti de nulle part.
 
-## E.5 Reprise
+> **Méthode de calibration.** Relever la charge d'une journée à trajets
+> électriques seuls, puis celle d'une journée avec aller-retour musculaire.
+> Placer la frontière légère/moyenne au-dessus de la première, et la frontière
+> moyenne/chargée au-dessous de la seconde. C'est exactement le contrôle déjà
+> prévu en phase 6, exprimé en charge plutôt qu'en minutes.
 
-**14 jours sans séance N1/N2** déclenche le mode reprise : volume réduit,
-**+10 % par semaine maximum, pendant 3 semaines**.
+### Le pic
 
-**Les trajets quotidiens ne remettent pas le compteur à zéro.** C'est
-volontaire et bien fondé : ils entretiennent la base (A.5) mais ne sollicitent
-ni le haut de la filière aérobie, ni les tissus qui se déconditionnent le plus
-vite.
+Indépendamment de la charge totale, **tout passage prolongé à haute fréquence
+cardiaque bascule la journée en « chargée »**. Une charge quotidienne modérée
+peut cacher un effort maximal court, qui coûte cher nerveusement sans peser
+lourd dans la charge.
 
-Ce que la recherche confirme et nuance :
+Seuil et durée minimale **à trancher**. Les 175 bpm de `CLAUDE.md`
+correspondent à 87 % de la FCmax, ce qui est un point de départ raisonnable —
+mais il n'a jamais été validé, et il n'a pas de durée minimale associée, ce
+qui rend un unique battement suffisant pour basculer la journée.
 
-- 2 semaines d'arrêt : **−4 à −7 % de VO2max**. Peu.
-- La force tient **4 à 6 semaines** sans baisse notable.
-- Mais retrouver le niveau prend **plus longtemps que le perdre**.
-- Et le vrai risque n'est pas la perte de forme, c'est que **les tissus
-  conjonctifs se réadaptent plus lentement que les muscles** : les deux
-  premières semaines de retour sont la fenêtre où l'on se blesse.
+## E.2 La question centrale
 
-> **Conclusion :** le seuil de 14 jours et la remontée à +10 % sont bien
-> calibrés. Je ne propose aucun changement.
+Toutes les règles se ramènent à une seule question, posée pour chaque séance
+de qualité planifiée :
+
+> **Aujourd'hui est-il un bon jour pour cette séance ?**
+
+La réponse est **non** si l'une de ces conditions est vraie :
+
+1. **Hier était une journée chargée** (voir E.4 pour le cas du renfo)
+2. **Les deux derniers jours cumulent deux journées au moins moyennes**
+3. **Le TSB est sous le plancher du mode en cours** (partie D)
+4. **Le mode est « prudent » et une séance de qualité a déjà eu lieu cette
+   semaine**
+
+Sinon, la réponse est **oui**, et l'app ne fait rien — c'est le cas le plus
+fréquent, et une app qui ne fait rien quand tout va bien est une app qui
+fonctionne.
+
+> **À trancher :** la condition 2 est la plus discutable. Elle interdit une
+> séance après deux journées moyennes consécutives, ce qui, avec 6-7 trajets
+> par semaine, risque d'arriver souvent. Si le contrôle de la phase 6 montre
+> qu'elle bloque trop, la desserrer à « deux journées chargées ».
+
+## E.3 Quand la réponse est non
+
+Trois issues, dans cet ordre. **Aucune ne produit de dette.**
+
+### 1. Décaler
+
+Chercher, dans les **deux jours suivants**, un jour où la réponse à E.2
+devient oui.
+
+Pourquoi deux et pas plus : au-delà, la séance ne sert plus l'intention de la
+semaine, et elle encombre un calendrier qui devrait rester lisible. **À
+trancher** si tu préfères trois.
+
+### 2. Réduire
+
+Si aucun jour ne convient, proposer une version courte : **durée réduite
+d'environ moitié, intensité inchangée.**
+
+C'est un choix, et voici son argument. L'autre option serait de garder la
+durée et de retirer l'étage le plus intense. Mais ta ressource rare, c'est
+l'intensité (B.5) : ton volume facile est déjà abondant, tes trajets s'en
+chargent. Retirer l'intensité transforme une séance de qualité en un trajet
+de plus. **Raccourcir préserve ce qui manque ; adoucir détruit ce qui est
+rare.**
+
+### 3. Laisser tomber
+
+Si même la version courte ne passe pas, **la séance disparaît**. Pas de
+report, pas de marque, pas de mention. Elle n'a jamais existé.
+
+## E.4 L'espacement
+
+Trois règles de placement, dont deux viennent directement de la recherche sur
+l'entraînement concurrent *(établi)* :
+
+- **Deux séances de qualité ne se suivent jamais.** Un jour d'écart minimum.
+- **Renfo jambes et séance d'endurance dure : 24 à 48 h d'écart**, dans les
+  deux sens. Ni renfo la veille d'une grosse sortie, ni l'inverse.
+- **Si les deux tombent le même jour :** endurance d'abord, **3 h d'écart
+  minimum**. La signalisation de l'endurance met environ 3 h à retomber,
+  celle de la force dure ~18 h.
+
+Et une bonne nouvelle qui vaut d'être connue : **le vélo interfère nettement
+moins avec la force que la course à pied**, faute de contraction excentrique
+destructrice. Ton renfo et ton vélo cohabitent mieux qu'ils ne le feraient
+chez un coureur.
+
+## E.5 La reprise
+
+**Après 14 jours sans séance de qualité**, l'app passe en mode reprise
+pendant 3 semaines : une seule séance de qualité la première semaine, et
+une progression de **+10 % par semaine au maximum**.
+
+**Les trajets ne remettent pas ce compteur à zéro.** Ils entretiennent la base
+mais ne sollicitent ni le haut de la filière aérobie, ni les tissus qui se
+déconditionnent le plus vite.
+
+C'est la seule règle de l'esquisse initiale que je reprends telle quelle,
+parce que la recherche la valide précisément :
+
+- 2 semaines d'arrêt coûtent **4 à 7 % de VO2max** seulement
+- la force tient **4 à 6 semaines** sans baisse notable
+- mais retrouver prend **plus longtemps que perdre**
+- et surtout : **les tissus conjonctifs se réadaptent plus lentement que les
+  muscles**, ce qui fait des deux premières semaines de retour la fenêtre où
+  l'on se blesse
+
+**Le risque n'est donc pas de manquer de forme, c'est de se sentir capable
+avant d'être prêt.** Un seuil de 14 jours et une remontée bornée à +10 % sont
+la réponse adaptée.
+
+## E.6 Ce que l'app ne fait jamais
+
+Ces interdictions sont des règles au même titre que les autres, et elles
+priment sur toutes les précédentes :
+
+- **Jamais de rattrapage.** Une séance perdue n'est jamais ajoutée à une
+  autre, ni compensée ailleurs.
+- **Jamais de dette affichée**, ni de « séance en retard », ni de compteur de
+  jours consécutifs.
+- **Jamais deux journées chargées planifiées d'affilée.**
+- **Jamais de renfo jambes planifié sur une journée chargée.**
+- **Jamais de modification du contenu d'une séance** au-delà de la réduction
+  de durée du E.3 — le contenu appartient à intervals.icu.
 
 ---
 
 # Partie F — Ce qui reste à trancher
 
-Rien de ce qui suit n'est bloquant pour commencer à coder les règles, mais
-chaque point change un comportement de l'app.
+Rien de ce qui suit n'empêche de commencer, mais chaque point change un
+comportement de l'app.
 
 | # | Question | Ma proposition |
 |---|---|---|
-| 1 | Rythme charge/décharge : 3:1 ou 2:1 ? | **2:1**, au vu de la contrainte de sommeil |
-| 2 | Une saisie « nuit difficile » ? | oui, un seul tap, elle décale la journée d'un cran |
-| 3 | Bascule de classification sur la durée ? | oui, > 2 h 30 → au minimum « moyenne » |
-| 4 | « Dégradée » = durée réduite, ou étage retiré ? | **durée réduite**, l'intensité est ce qui est rare |
-| 5 | Ordre d'arbitrage | **renfo → sortie → mobilité**, et non l'inverse |
-| 6 | Déclencheur d'arbitrage | 3 journées chargées non planifiées sur 7 jours |
-| 7 | Retour automatique en prudent : imposé ou suggéré ? | **imposé** pour le 3ᵉ « ambitieux », suggéré ailleurs |
-| 8 | Seuils 150 / 175 bpm | **ne rien changer avant le contrôle de la phase 6** |
+| 1 | Mesure de la charge : minutes au-dessus d'un seuil, ou charge d'intervals.icu ? | **charge d'intervals.icu** — pas de calcul maison, et la durée est prise en compte |
+| 2 | Bornes des trois bandes de charge | **à calibrer en phase 6**, par la méthode du E.1 |
+| 3 | Seuil et durée minimale du pic | 175 bpm est un point de départ ; **il lui faut une durée minimale** |
+| 4 | Condition 2 du E.2 (deux journées moyennes) | garder, **desserrer si elle bloque trop** en phase 6 |
+| 5 | Décaler de 2 ou 3 jours ? | **2** |
+| 6 | « Réduire » : durée de moitié, ou intensité retirée ? | **durée de moitié** — l'intensité est ce qui manque |
+| 7 | Rythme charge/décharge : 3:1 ou 2:1 ? | **2:1**, au vu de la contrainte de sommeil |
+| 8 | Une saisie « nuit difficile » ? | oui, un seul tap, elle décale la journée d'un cran |
+| 9 | Retour automatique en mode prudent : imposé ou suggéré ? | **imposé** pour le 3ᵉ « ambitieux », suggéré ailleurs |
 
----
+## Ce que je n'ai pas décidé à ta place
+
+Deux choses figuraient dans l'esquisse et **n'ont pas été reprises**, faute de
+fondement :
+
+- **L'arbitrage de semaine chargée** (retirer mobilité, puis renfo, puis
+  sortie). Avec une seule ou deux séances de qualité par semaine, il n'y a
+  rien à arbitrer : le E.2 traite déjà chaque séance individuellement. Cette
+  règle supposait un volume que tu n'as pas.
+- **Les niveaux de séance N1 / N2.** Ils apparaissaient sans être définis
+  nulle part. Le document parle de « séances de qualité » sans hiérarchie ;
+  si tu veux des niveaux, il faut d'abord dire ce qu'ils recouvrent.
 
 ## Sources
 
