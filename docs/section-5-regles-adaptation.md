@@ -834,12 +834,10 @@ recalcule autour de son choix (E.14).
 
 ### Ce qui manque encore
 
-**La reprise du E.5 n'est pas détectée.** Reconnaître « quatorze jours sans
-séance de qualité » demande de distinguer une séance d'un trajet dans
-l'historique, ce que l'app ne sait pas encore faire. En attendant, une CTL
-basse produit d'elle-même un plan prudent — de l'endurance et du tempo — ce qui
-donne le bon comportement sans la règle. Le jour où la détection existera, elle
-imposera en plus le plafond de +10 % par semaine.
+**La reprise du E.5 est détectée depuis le E.15**, qui sait distinguer une
+séance d'un trajet dans l'historique. Le plafond de +10 % par semaine
+s'applique donc, et le E.16 le tient en ne proposant qu'un cran de plus à la
+fois.
 
 ## E.11 Le test FTP
 
@@ -1003,6 +1001,166 @@ dit**, avec le geste pour revenir en arrière. Elle ne va pas repêcher une
 famille refusée pour avoir quelque chose à montrer : ce serait redemander ce
 qu'on vient de lui refuser.
 
+## E.15 La séance d'après
+
+Demandé le 6 septembre 2026, comme deuxième des cinq idées. C'est la pièce qui
+manquait à tout le reste : **l'app savait ce qu'elle avait proposé, elle ne
+savait pas ce qui avait été fait.**
+
+Trois choses en dépendent — la reprise du E.5, restée non détectée depuis le
+début ; les niveaux du E.16, qui montent quand une séance est tenue ; et le
+simple fait de pouvoir dire à l'athlète ce qu'il a fait plutôt que ce qu'il
+avait prévu.
+
+### Retrouver la séance dans ce qui a été fait
+
+Trois moyens, dans cet ordre, et le premier qui répond gagne.
+
+1. **Le lien d'intervals.icu.** Une activité porte `paired_event_id` quand elle
+   a été démarrée depuis la séance planifiée. C'est intervals.icu qui apparie,
+   pas Makigawa : on relaie, on ne devine pas.
+2. **Le même jour, la même nature.** Une séance de vélo prévue mardi et un
+   `Ride` de mardi sont la même chose. S'il y en a plusieurs, celle dont la
+   charge est la plus proche.
+3. **Rien.** Aucune activité ce jour-là qui puisse être cette séance.
+
+**Un `EBikeRide` n'apparie jamais.** C'est la règle critique du projet : un
+trajet électrique porte une charge, mais ce n'est pas une séance, et l'y voir
+ferait passer un aller-retour pour un sweet spot tenu.
+
+### Ce que la comparaison dit
+
+Les deux charges viennent d'intervals.icu — celle qu'il a calculée depuis la
+structure prévue, celle qu'il a mesurée sur l'activité. Makigawa n'en calcule
+aucune, elle les met côte à côte.
+
+| Réalisé | Verdict |
+|---|---|
+| 85 % ou plus du prévu | **tenue** |
+| 50 à 85 % | **allégée** |
+| moins de 50 %, ou rien | **absente** |
+
+Quatre-vingt-cinq pour cent parce qu'une séance faite à ce niveau-là **est** la
+séance : il y manque un retour au calme ou une répétition, pas le travail. En
+dessous de la moitié, c'en est une autre.
+
+### Ce que l'athlète en voit
+
+**Ce qu'il a fait, jamais ce qu'il a manqué.** L'app liste les séances tenues
+et allégées ; les absentes ne s'affichent nulle part. C'est la contrainte
+d'interface prise au mot : une séance abandonnée disparaît, elle ne laisse pas
+de trace rouge, et un compteur d'assiduité serait exactement la trace rouge que
+le projet s'interdit.
+
+Les absentes ne sont pas perdues pour autant : elles servent en interne, à ne
+pas faire monter un niveau qu'on n'a pas gagné.
+
+### La reprise, enfin détectable
+
+Le E.5 attendait ceci depuis le début. Le compteur repart à zéro à chaque
+**activité de qualité réalisée** — niveau 2 ou plus sur l'échelle du E.1, d'une
+nature qui sollicite la filière aérobie.
+
+**Les trajets ne le remettent pas à zéro**, comme le E.5 l'exige. L'électrique
+est écarté par son type ; le musculaire l'est par son nom, `Hard Commute`, qui
+est celui que l'athlète leur donne lui-même dans Garmin. C'est le seul point
+faible de la détection, et il est assumé : un trajet musculaire non reconnu
+remet le compteur à zéro, donc l'app ne passe pas en reprise. Elle en propose
+alors autant que d'habitude — l'échelle de forme du E.10 continue, elle, de
+tenir le plafond.
+
+Au-delà de quatorze jours, la semaine **passe en prudent** — soit exactement
+« une seule séance de qualité la première semaine ». Le mode se relâche de
+lui-même dès qu'une séance de qualité est faite, puisque le compteur repart à
+zéro ; le plafond de **+10 % par semaine** est alors tenu par le E.16, qui ne
+propose qu'un cran de plus à la fois.
+
+C'est le comportement que le E.5 demande, sans inventer une machine à états de
+trois semaines dont rien ne dirait où elle en est. Et le mode forcé est celui
+qu'affiche l'en-tête : le troisième garde-fou après le A.3 et le E.12, calculé
+au même endroit qu'eux, de sorte que l'app ne puisse pas annoncer un mode et en
+appliquer un autre.
+
+## E.16 Les niveaux par zone
+
+Demandé le 6 septembre 2026, première des cinq idées, empruntée aux
+*Progression Levels* de TrainerRoad. C'est la vraie réponse à *« propose-moi
+des séances pour m'améliorer »* : jusqu'ici l'app choisissait sur la CTL
+seule, ce qui est grossier — la forme dit ce que le corps encaisse en général,
+pas ce qu'il tient dans une zone donnée.
+
+### Une zone, pas une famille
+
+Les familles du E.9 se regroupent en six zones. Deux familles d'une même zone
+partagent leur niveau, parce qu'elles construisent la même chose : tenir un
+30/15 prouve quelque chose sur le 30/30.
+
+| Zone | Familles |
+|---|---|
+| endurance | endurance |
+| tempo | tempo |
+| sweet spot | sweet spot, sweet spot continu |
+| seuil | seuil |
+| VO2 max | 30/30, 30/15 |
+| anaérobie | navette lactate |
+
+### D'où vient le niveau
+
+**Il ne se stocke pas, il se lit.** Le niveau d'une zone est celui de la plus
+grosse séance de cette zone que l'athlète a **tenue** ces six dernières
+semaines (E.15). Rien n'est compté à part, rien ne dérive, rien n'est à migrer
+le jour où le code change.
+
+Ce qui mesure une séance est son **temps de travail** : les secondes passées
+dans les blocs d'effort, récupérations et échauffement exclus. C'est ce que
+Makigawa a le droit de compter — c'est de l'organisation, pas de la
+physiologie. Les intensités, elles, restent celles des familles, relevées chez
+l'athlète, et la FTP qui les résout reste celle d'intervals.icu.
+
+Dix échelons par zone, parce que les zones ne se travaillent pas aux mêmes
+durées : dix minutes de VO2 max sont beaucoup, dix minutes d'endurance ne sont
+rien.
+
+### Ce que le niveau décide
+
+**La séance proposée vise un cran au-dessus de ce qui a été tenu.** Un cran,
+pas deux : c'est la définition même d'une progression, et c'est aussi la seule
+façon de rester sous le plafond de +10 % par semaine du E.5.
+
+Trois choses le bornent, dans cet ordre :
+
+1. **L'échelle de forme du E.10** décide des zones ouvertes. Un niveau élevé en
+   VO2 max ne rouvre pas le VO2 max si la CTL est basse.
+2. **La reprise du E.5**, quand elle s'applique, ramène au niveau tenu sans le
+   cran supplémentaire. On reprend là où on s'était arrêté, on ne progresse pas
+   le premier jour.
+3. **Un plafond de temps**, parce que la contrainte de l'athlète n'est pas sa
+   forme mais son agenda : deux enfants en bas âge. Aucune séance proposée ne
+   dépasse soixante-quinze minutes, quel que soit le niveau atteint.
+
+### Ce qui fait descendre un niveau
+
+**Rien, sauf le temps.** Une séance manquée ne retire pas de niveau — ce serait
+la trace rouge que le projet s'interdit. Un niveau retombe seulement parce que
+la séance qui le portait sort de la fenêtre de six semaines, ce qui est
+exactement la façon dont on perd une adaptation.
+
+Six semaines, parce que la recherche de la partie A donne cet ordre de
+grandeur : la force tient quatre à six semaines sans baisse notable, et le
+VO2max se dégrade plus vite mais partiellement.
+
+### Ce que les niveaux ne voient pas
+
+**Les séances dont la famille n'est pas reconnaissable.** Le niveau est
+attribué par le nom de la séance, celui que Makigawa écrit elle-même. Une
+séance venue de la bibliothèque du coach, posée par l'app mais nommée
+autrement, compte comme une séance tenue au sens du E.15 — donc pour la reprise
+— mais ne fait monter aucun niveau.
+
+C'est une sous-estimation, jamais une sur-estimation : l'app propose alors plus
+doux que ce que l'athlète peut tenir. Le sens le moins risqué, comme pour le
+pic du E.1.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1036,6 +1194,8 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 17 | Effet du démenti de nuit | **force le mode prudent pour la journée**, rien de plus (E.12) |
 | 18 | Trajets et souplesse | **se posent d'avance**, sans structure ; la souplesse au niveau 0 (E.13) |
 | 19 | Refuser une proposition | **deux gestes** — écarter la famille, ou repousser le jour ; le plan est recalculé en entier (E.14) |
+| 20 | Savoir ce qui a été fait | **le lien d'intervals.icu d'abord**, le jour et la nature ensuite ; 85 % du prévu vaut tenue (E.15) |
+| 21 | Progresser | **un niveau par zone**, lu sur le temps de travail tenu en six semaines, et la séance suivante vise un cran au-dessus (E.16) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

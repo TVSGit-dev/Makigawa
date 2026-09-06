@@ -31,6 +31,15 @@ export type Activity = {
   startDateLocal: string | null
   /** Charge, telle que calculée par intervals.icu. Jamais recalculée ici. */
   trainingLoad: number | null
+  /**
+   * La séance planifiée que cette activité réalise, quand intervals.icu les a
+   * appariées (E.15).
+   *
+   * C'est le seul côté du lien que l'API expose : l'activité porte
+   * `paired_event_id`, l'événement ne porte rien de symétrique. On relaie
+   * l'appariement d'intervals.icu, on n'en invente pas.
+   */
+  pairedEventId: string | null
   raw: Record<string, unknown>
 }
 
@@ -247,6 +256,7 @@ function toActivity(raw: Record<string, unknown>): Activity {
     type: text(raw.type),
     startDateLocal: text(raw.start_date_local),
     trainingLoad: count(raw.icu_training_load),
+    pairedEventId: text(raw.paired_event_id),
     raw,
   }
 }
