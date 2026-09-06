@@ -515,6 +515,20 @@ p {
   font-size: 0.8125rem;
 }
 
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  background: var(--bg);
+  border-radius: 0.75rem;
+}
+
+.empty-head {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
 .settings {
   border: 1px solid var(--border);
   border-radius: 1rem;
