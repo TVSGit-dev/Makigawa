@@ -196,6 +196,9 @@ exposer les données — hors de proportion pour un usage personnel.
   qui est le point dur — l'en-tête `Authorization` force ce contrôle. À
   reconstater tout de même au moment de l'écriture : créer ou modifier un
   événement emploie d'autres méthodes HTTP, donc un contrôle distinct.
+  **Reconstaté le 6 septembre : l'écriture passe aussi.** `POST`, `PUT` et
+  `DELETE` franchissent le contrôle préalable. L'architecture sans serveur
+  tient de bout en bout.
 
 ## Priorités fonctionnelles
 
@@ -212,13 +215,29 @@ contenu, pas du code, et elle ne bloque rien.
 
 ## Ordre de développement
 
-1. API intervals.icu **en lecture seule** d'abord : lister les activités,
-   lire le calendrier.
-2. Écriture ensuite : créer, modifier, supprimer un événement de test.
-3. Règles d'adaptation, avec tests unitaires sur des journées réelles.
-4. Interface en dernier.
+1. ~~API intervals.icu **en lecture seule** d'abord : lister les activités,
+   lire le calendrier.~~ **Fait.**
+2. ~~Écriture ensuite : créer, modifier, supprimer un événement de test.~~
+   **Fait**, et l'échafaudage de test retiré le 6 septembre : l'app écrit
+   maintenant pour de vrai.
+3. ~~Règles d'adaptation, avec tests unitaires sur des journées réelles.~~
+   **Fait**, dans `src/rules/`.
+4. ~~Interface en dernier.~~ **Fait** le 6 septembre.
 
-Ne pas commencer l'interface avant que les règles soient testées.
+Les quatre étapes sont franchies. La suite se joue en phase 6 : observer les
+règles sur des semaines réelles, et corriger les bornes plutôt que le code.
+
+### Ce que l'app ne mesure pas encore
+
+**Le pic à 175 bpm n'est pas mesuré.** Le E.1 fait basculer une journée en
+chargée dès deux minutes cumulées au-dessus de 175 bpm ; le connaître demande
+la courbe de fréquence cardiaque de chaque activité, que l'app ne rapatrie
+pas. Le déduire des zones d'intervals.icu est exclu — les règles comparent des
+bpm bruts, jamais un nom de zone.
+
+`peakSeconds` vaut donc zéro, et une journée pèse par sa charge seule. C'est
+une sous-estimation, jamais une sur-estimation : l'app peut proposer une
+séance là où le pic l'aurait retenue, elle n'en retirera jamais une à tort.
 
 ## État de la mise en place
 
@@ -234,6 +253,9 @@ Ne pas commencer l'interface avant que les règles soient testées.
 - [x] Zwift connecté — doublon avec Garmin à surveiller à la première séance
 - [ ] Test FTP fait
 - [x] Clé API générée, connexion établie depuis le téléphone
+- [x] Écriture dans le calendrier confirmée depuis le navigateur — le
+      contrôle CORS des méthodes d'écriture passe, l'app reste sans serveur
+- [x] Interface construite : lecture de forme, propositions, confirmation
 
 ## Conventions
 

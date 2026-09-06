@@ -203,8 +203,11 @@ le code coûte beaucoup plus cher.
       supprimer. L'app porte un test d'écriture qui enchaîne les trois et
       vérifie la disparition ; il pose une **note** et non une séance, pour
       qu'un ménage raté ne fausse aucune charge.
-- [ ] Seulement ensuite : implémenter les règles de la section 5.
-- [ ] Interface PWA en dernier.
+- [x] Seulement ensuite : implémenter les règles de la section 5. **Fait**,
+      dans `src/rules/`, avec 92 tests.
+- [x] Interface PWA en dernier. **Faite le 6 septembre** : forme du jour,
+      curseur d'intention, propositions séance par séance avec leur raison,
+      et confirmation avant toute écriture.
 
 ---
 

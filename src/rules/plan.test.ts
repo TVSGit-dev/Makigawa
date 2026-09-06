@@ -79,11 +79,13 @@ describe('le planning de trois semaines', () => {
   })
 
   it('respecte le quota de deux journées chargées par semaine', () => {
-    for (const [start, end] of [
+    const weeks: [string, string][] = [
       ['2026-09-07', '2026-09-13'],
       ['2026-09-14', '2026-09-20'],
       ['2026-09-21', '2026-09-27'],
-    ]) {
+    ]
+
+    for (const [start, end] of weeks) {
       const days = [...new Set(PLAN.map((entry) => entry.date))]
         .filter((date) => date >= start && date <= end)
         .filter((date) => weighDay(undefined, date, sessions) === 'chargee')
