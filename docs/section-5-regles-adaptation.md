@@ -145,10 +145,19 @@ d'adaptation.
 variable que tu contrôles. Recommander « dors 9 heures » serait inutile.
 
 > **Conséquence de conception :** l'app doit traiter une mauvaise nuit comme
-> **de la charge**, pas comme un détail. Concrètement, c'est le seul endroit
-> où j'introduirais une saisie manuelle — un bouton « nuit difficile » qui
-> décale la journée d'un cran vers « chargée ». **Retenu**, à un seul tap :
-> c'est le seul endroit où la saisie manuelle vaut son coût.
+> **de la charge**, pas comme un détail. **Retenu**, à un seul tap.
+>
+> **Précision du 6 septembre.** La montre de l'athlète enregistre ses nuits, et
+> intervals.icu en dispose déjà : il n'y a donc rien à saisir à l'aveugle. Mais
+> les deux mesures divergent — un score de sommeil peut annoncer une excellente
+> nuit là où deux réveils l'ont hachée, parce qu'il compte des durées et des
+> phases, pas des interruptions.
+>
+> La saisie n'est donc pas un « bouton nuit difficile » mais un **démenti** :
+> l'app affiche ce que la montre a mesuré, et un tap le contredit. C'est plus
+> juste — le ressenti est un marqueur reconnu de surcharge (A.3), et il ne se
+> déduit pas d'un score. C'est aussi moins coûteux : rien à saisir les jours
+> où les deux s'accordent, c'est-à-dire la plupart.
 
 ## A.5 Le cas particulier : ta charge est en grande partie subie
 
@@ -695,7 +704,7 @@ spécification, pas une proposition.
 | 5 | Décalage d'une séance | **2 jours** au maximum |
 | 6 | « Réduire » | **durée de moitié, intensité inchangée** |
 | 7 | Rythme charge/décharge | **2:1** |
-| 8 | Saisie « nuit difficile » | **oui**, un seul tap |
+| 8 | Saisie « nuit difficile » | **oui**, un seul tap, en démenti du score de la montre |
 | 9 | Retours automatiques | **imposés** pour le 3ᵉ « ambitieux », suggérés ailleurs |
 
 Trois précisions s'y sont ajoutées le même jour :
