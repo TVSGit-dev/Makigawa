@@ -15,8 +15,10 @@ le site web.
 - Pas de multi-utilisateur, pas de comptes, pas de monétisation.
 - Pas d'analyse fine de puissance.
 - Pas de modèle prédictif. Les règles d'adaptation sont déterministes.
-- **Pas d'éditeur de séance.** Le contenu des séances se crée dans
-  intervals.icu, qui a déjà l'outil pour ça.
+- **Pas d'éditeur de séance à la main.** L'athlète ne compose pas une séance
+  bloc par bloc dans Makigawa : intervals.icu a déjà l'outil pour ça.
+  Makigawa, elle, **assemble** des séances à partir de motifs — voir la
+  frontière ci-dessous, révisée le 6 septembre 2026.
 
 ## Répartition des rôles
 
@@ -32,6 +34,54 @@ d'intervals.icu.
 Les séances sont **créées et stockées dans intervals.icu**, jamais définies
 dans Makigawa. L'app lit ce calendrier, applique les règles d'adaptation et
 réécrit les événements. Elle décide du moment, pas du contenu.
+
+### La frontière, telle que l'athlète l'a formulée
+
+> **Tous les chiffres viennent d'intervals.icu, l'organisation vient de
+> Makigawa.** — 6 septembre 2026
+
+C'est la formulation qui fait foi, et elle remplace « les séances sont
+créées et stockées dans intervals.icu, jamais définies dans Makigawa ».
+Makigawa **compose** désormais des séances. Ce qui n'a pas bougé, c'est
+d'où viennent les nombres.
+
+| Ce qui vient d'intervals.icu | Ce qui vient de Makigawa |
+|---|---|
+| La FTP, les zones, la LTHR, la FCmax | Le choix de la famille de séance |
+| Les intensités, écrites en **% de FTP** et jamais en watts | Combien de blocs, combien de répétitions |
+| La charge, calculée depuis la structure | La longueur de l'échauffement |
+| La forme, la fatigue, la fraîcheur | Le jour, et la progression d'une semaine à l'autre |
+
+Deux garde-fous en découlent, tenus par des tests :
+
+- **Aucune intensité n'est jamais écrite en watts.** Une cible en pourcentage
+  est résolue par la FTP d'intervals.icu, donc elle suit le test FTP ; une
+  cible en watts la figerait.
+- **Aucune charge n'est envoyée** pour une séance structurée. intervals.icu la
+  calcule depuis les blocs. La seule exception est la sortie ouverte, qui n'a
+  pas de blocs — sa charge visée est tout ce qui la définit.
+
+Les motifs eux-mêmes sont **relevés sur les séances réelles de l'athlète**,
+dans `src/workouts/families.ts` : sweet spot en over-under, seuil en
+over-under, 30/30, 30/15, navette lactate. Deux familles y ont été ajoutées,
+endurance et tempo, parce qu'un catalogue qui ne contient que du seuil et
+au-dessus est inutilisable une semaine de décharge.
+
+**Les quatre styles de l'athlète**, relevés le 6 septembre, organisent
+l'interface :
+
+1. **Sortie longue** — dehors, sans structure, une charge visée.
+2. **Séance Zwift** — 30 à 75 min, composée par Makigawa, pour tout donner.
+3. **Zwift libre** — sur le home-trainer, sans consigne, une charge visée.
+4. **Trajets** — 17 km et 200 m D+ entre Stockel et Wavre, aller et retour.
+   Ils ne se posent pas : ils arrivent de Garmin. Leur charge compte toujours.
+
+**La sortie ouverte est la seule séance sans structure que Makigawa crée** —
+décision du 6 septembre 2026, spécifiée en E.8. C'est une séance extérieure sans structure,
+qui ne porte qu'une charge visée. La frontière tient parce qu'**une sortie
+ouverte n'a pas de contenu** : ni bloc, ni zone, ni ordre. L'app pose une
+intention, elle ne compose pas une séance. Dès qu'il faut de la structure, elle
+vient d'intervals.icu comme le reste.
 
 **Poser une séance est du ressort de Makigawa** — décision du 6 septembre 2026.
 intervals.icu range les séances dans une bibliothèque, sans date ; l'app la lit

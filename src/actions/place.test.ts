@@ -54,19 +54,32 @@ describe('la séance envisagée', () => {
 })
 
 describe('les bons jours', () => {
+  it('examine une séance sans charge sur tout le reste', () => {
+    // Une séance que Makigawa vient de composer n'a pas encore de charge :
+    // intervals.icu la calculera. Les autres règles s'appliquent quand même.
+    const voisine: PlannedSession = { id: 'e9', date: '2026-09-11', load: 90, kind: 'endurance' }
+    const verdicts = verdictsFor(
+      { load: null, kind: 'endurance' },
+      '2026-09-10',
+      2,
+      context({ planned: [voisine] }),
+    )
+    expect(verdicts[0]?.refusal?.code).toBe('lendemain-charge')
+  })
+
   it('donne un verdict par jour, à partir d’aujourd’hui', () => {
-    const verdicts = verdictsFor(workout(), '2026-09-10', 3, context())
+    const verdicts = verdictsFor(asPlanned(workout(), '2026-09-10'), '2026-09-10', 3, context())
     expect(verdicts.map((v) => v.date)).toEqual(['2026-09-10', '2026-09-11', '2026-09-12'])
   })
 
   it('dit oui quand rien ne s’y oppose', () => {
-    const verdicts = verdictsFor(workout(), '2026-09-10', 3, context())
+    const verdicts = verdictsFor(asPlanned(workout(), '2026-09-10'), '2026-09-10', 3, context())
     expect(verdicts.every((v) => v.refusal === null)).toBe(true)
   })
 
   it('refuse le lendemain d’une journée chargée, et pas les autres', () => {
     const ctx = context({ days: [observed('2026-09-10', 115)] })
-    const verdicts = verdictsFor(workout(), '2026-09-10', 4, ctx)
+    const verdicts = verdictsFor(asPlanned(workout(), '2026-09-10'), '2026-09-10', 4, ctx)
 
     expect(verdicts[1]?.refusal?.code).toBe('veille-chargee')
     expect(verdicts[3]?.refusal).toBeNull()
@@ -79,7 +92,7 @@ describe('les bons jours', () => {
       load: 90,
       kind: 'endurance',
     }
-    const verdicts = verdictsFor(workout(), '2026-09-10', 4, context({ planned: [existing] }))
+    const verdicts = verdictsFor(asPlanned(workout(), '2026-09-10'), '2026-09-10', 4, context({ planned: [existing] }))
 
     // Le 12 porte déjà une séance de qualité, le 11 et le 13 la touchent.
     expect(verdicts.find((v) => v.date === '2026-09-12')?.refusal).not.toBeNull()
@@ -90,7 +103,7 @@ describe('les bons jours', () => {
     // Une séance réelle portant la même date doit rester visible du moteur :
     // c'est elle qui doit faire refuser le jour.
     const twin: PlannedSession = { id: 'e1', date: '2026-09-10', load: 90, kind: 'endurance' }
-    const verdicts = verdictsFor(workout(), '2026-09-10', 1, context({ planned: [twin] }))
+    const verdicts = verdictsFor(asPlanned(workout(), '2026-09-10'), '2026-09-10', 1, context({ planned: [twin] }))
     expect(verdicts[0]?.refusal).not.toBeNull()
   })
 })

@@ -14,7 +14,7 @@ import type { Credentials } from '../storage/credentials'
 import { refuse, type Context, type Refusal } from '../rules/decide'
 import { kindOf } from '../rules/context'
 import { shiftDayKey, type DayKey } from '../calendar/dates'
-import type { PlannedSession } from '../rules/types'
+import type { PlannedSession, SessionKind } from '../rules/types'
 
 /**
  * L'identifiant qu'on donne à une séance pas encore posée.
@@ -43,6 +43,21 @@ export type Verdict = {
 }
 
 /**
+ * Une séance qu'on envisage de poser, quelle que soit sa provenance : la
+ * bibliothèque, une sortie ouverte, ou une séance composée par l'app.
+ *
+ * `load` peut manquer — une séance que Makigawa vient de composer n'a pas
+ * encore de charge, puisque c'est intervals.icu qui la calculera. Les jours
+ * restent alors examinés sur tout le reste : la veille chargée, la séance de
+ * qualité voisine, le renfo trop proche. C'est moins qu'un verdict complet,
+ * mais c'est vrai, et ça vaut mieux qu'une charge inventée.
+ */
+export type Candidate = {
+  load: number | null
+  kind: SessionKind
+}
+
+/**
  * Ce que chaque jour à venir vaut pour cette séance.
  *
  * C'est la question du E.2 posée d'avance, sur tous les jours à la fois, au
@@ -50,7 +65,7 @@ export type Verdict = {
  * l'athlète voit les bons jours et choisit.
  */
 export function verdictsFor(
-  workout: LibraryWorkout,
+  candidate: Candidate,
   today: DayKey,
   days: number,
   context: Context,
@@ -59,7 +74,7 @@ export function verdictsFor(
 
   for (let ahead = 0; ahead < days; ahead += 1) {
     const date = shiftDayKey(today, ahead)
-    const planned = asPlanned(workout, date)
+    const planned: PlannedSession = { id: CANDIDATE_ID, date, ...candidate }
     verdicts.push({ date, refusal: refuse(planned, date, context) })
   }
 

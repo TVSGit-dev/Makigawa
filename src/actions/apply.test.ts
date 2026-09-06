@@ -111,9 +111,19 @@ describe('l’écriture que suppose une proposition', () => {
   })
 
   it('renvoie la réduction à l’athlète quand la structure lui échappe', () => {
+    // Une structure que l'app ne sait pas lire reste une structure : sa charge
+    // vient de ses blocs, et la réécrire à la main la figerait.
+    const proposal: Proposal = { action: 'reduire', load: 27.5, because: { code: 'veille-chargee' } }
+    const change = changeFor(event({ description: '3x 5m z4\n- 10m z2' }), proposal)
+    expect(change?.kind).toBe('byHand')
+  })
+
+  it('allège une séance libre par sa charge, faute de blocs à raccourcir', () => {
+    // Le E.8 : sans structure, réduire ne peut vouloir dire que « vise moitié
+    // moins ». Le cas couvert en détail dans open-ride.test.ts.
     const proposal: Proposal = { action: 'reduire', load: 27.5, because: { code: 'veille-chargee' } }
     const change = changeFor(event({ description: 'Sortie libre, 2 h' }), proposal)
-    expect(change?.kind).toBe('byHand')
+    expect(change).toMatchObject({ kind: 'lighten', load: 28 })
   })
 
   it('supprime, sans rien laisser derrière', () => {
