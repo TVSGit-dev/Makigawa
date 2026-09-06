@@ -6,6 +6,7 @@ import { Settings } from './components/Settings'
 import { loadCredentials, type Credentials } from './storage/credentials'
 import { loadIntents, saveIntent, weeksBefore } from './storage/preferences'
 import { forgetNightsBefore, intentAfterNight, toggleDenial } from './storage/night'
+import { intentAfterReprise } from './rules/done'
 import { mondayOf, toDayKey } from './calendar/dates'
 import type { Intent } from './rules/intent'
 import { useDisplayMode } from './pwa/useDisplayMode'
@@ -30,24 +31,32 @@ export default function App() {
   const [intents, setIntents] = useState(() => loadIntents())
   const wanted: Intent = intents[week] ?? 'normal'
 
-  // Deux garde-fous se succèdent : le A.3 borne le mode ambitieux à deux
-  // semaines, et le E.12 fait passer la journée en prudent si la nuit est
-  // démentie. Le second est le plus récent, donc il a le dernier mot.
   const [nights, setNights] = useState(() => forgetNightsBefore(today))
   const nightDenied = nights.has(today)
-  const intent = intentAfterNight(
-    effectiveIntent(wanted, weeksBefore(intents, week)),
-    nightDenied,
-  )
 
   const [readout, setReadout] = useState<Readout>({
     fitness: null,
     fatigue: null,
     sleepScore: null,
     days: [],
+    reprise: false,
+    daysSinceQuality: null,
   })
 
   const handleReadout = useCallback((next: Readout) => setReadout(next), [])
+
+  // Trois garde-fous se succèdent, chacun pouvant durcir le mode sans jamais
+  // le relâcher : le A.3 borne le mode ambitieux à deux semaines, le E.12 fait
+  // passer la journée en prudent si la nuit est démentie, et le E.5 fait de
+  // même après quatorze jours sans séance de qualité.
+  //
+  // Ils se calculent ici, et non dans `Plan`, pour que le mode affiché soit
+  // celui qui tourne : l'en-tête ne peut pas dire « normal » pendant que le
+  // moteur travaille en prudent.
+  const intent = intentAfterReprise(
+    intentAfterNight(effectiveIntent(wanted, weeksBefore(intents, week)), nightDenied),
+    readout.reprise,
+  )
 
   const handleInstall = () => void promptInstall()
 
@@ -89,6 +98,8 @@ export default function App() {
             days={readout.days}
             today={today}
             nightDenied={nightDenied}
+            reprise={readout.reprise}
+            daysSinceQuality={readout.daysSinceQuality}
             sleepScore={readout.sleepScore}
             onIntentChange={chooseIntent}
             onDenyNight={() => setNights(toggleDenial(today))}

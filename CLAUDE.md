@@ -235,6 +235,13 @@ En bref :
 - **Une proposition se refuse**, et le plan se recalcule en entier autour du
   refus : « pas celle-ci » écarte la famille, « plus tard » repousse le jour.
   Ni l'un ni l'autre ne crée de dette, et rien n'en part dans intervals.icu.
+- **L'app relit ce qui a été fait** : elle apparie une séance prévue à
+  l'activité qui l'a réalisée, d'abord par le lien d'intervals.icu. Elle
+  n'affiche que les séances tenues — jamais les manquées, qui ne servent qu'en
+  interne.
+- **Un niveau par zone**, lu sur la plus grosse séance qu'il a tenue dans cette
+  zone en six semaines. La séance suivante vise un cran au-dessus. Rien ne fait
+  descendre un niveau sauf le temps.
 
 Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.
@@ -337,6 +344,11 @@ bpm bruts, jamais un nom de zone.
 `peakSeconds` vaut donc zéro, et une journée pèse par sa charge seule. C'est
 une sous-estimation, jamais une sur-estimation : l'app peut proposer une
 séance là où le pic l'aurait retenue, elle n'en retirera jamais une à tort.
+
+**La reprise, elle, se détecte depuis le 6 septembre** (E.15) : l'app distingue
+une séance d'un trajet dans l'historique, donc le compteur du E.5 fonctionne.
+Il reste un point faible, assumé : un trajet musculaire n'est reconnu que par
+son nom, `Hard Commute`, celui que l'athlète leur donne dans Garmin.
 
 ## État de la mise en place
 

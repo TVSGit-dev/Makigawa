@@ -16,8 +16,9 @@ import { INTENTS } from '../rules/intent'
 import { shiftDayKey, type DayKey } from '../calendar/dates'
 import type { PlannedSession } from '../rules/types'
 import { CANDIDATE_ID } from '../actions/place'
-import { compose, type Workout } from './compose'
+import { type Workout } from './compose'
 import { familyOf, type Family } from './families'
+import { composeAtLevel, nextLevel, zoneOfFamily, type Zone } from './levels'
 
 /** L'horizon sur lequel l'app propose. Le même que le plan. */
 export const HORIZON_DAYS = 14
@@ -76,6 +77,15 @@ export type WeekOptions = {
    * réduire ce que l'app peut proposer.
    */
   notBefore?: DayKey | null
+  /**
+   * Les niveaux atteints zone par zone (E.16), lus sur ce qui a été tenu.
+   *
+   * Absents, tout vaut zéro et l'app propose le premier échelon : c'est le
+   * comportement d'un athlète dont on ne sait encore rien.
+   */
+  levels?: Partial<Record<Zone, number>>
+  /** La reprise du E.5 : on repart au niveau tenu, sans le cran de plus. */
+  reprise?: boolean
 }
 
 /**
@@ -100,6 +110,8 @@ export function planWeek({
   horizon = HORIZON_DAYS,
   refused = [],
   notBefore = null,
+  levels = {},
+  reprise = false,
 }: WeekOptions): Suggestion[] {
   const quota = INTENTS[context.intent].chargedDaysPerWeek
   const available = familiesFor(fitness).filter((family) => !refused.includes(family.key))
@@ -119,9 +131,11 @@ export function planWeek({
     // De la plus exigeante à la plus douce. Au-delà du nombre de familles
     // ouvertes, on redescend en boucle plutôt que de ne rien proposer.
     const family = available[Math.max(0, available.length - 1 - index) % available.length]!
-    // La première séance de la semaine est la plus longue : c'est celle qu'on
-    // fait le plus volontiers quand on est frais.
-    const workout = compose(family, index === 0 ? 45 : 30)
+    // La durée ne vient plus du rang de la séance dans la semaine mais du
+    // niveau tenu dans sa zone : elle vise un cran au-dessus (E.16).
+    const zone = zoneOfFamily(family.key)
+    const level = zone ? (levels[zone] ?? 0) : 0
+    const workout = composeAtLevel(family, nextLevel(level, reprise))
 
     const placed = firstFittingDay({ ...context, planned }, start, horizon, workout, taken)
     if (!placed) continue
@@ -129,7 +143,7 @@ export function planWeek({
     suggestions.push({
       date: placed,
       workout,
-      because: reasonFor(family, index, fitness),
+      because: reasonFor(family, index, fitness, level, reprise),
     })
     planned = [...planned, sessionFor(workout, placed)]
     taken.push(placed)
@@ -184,7 +198,30 @@ function sessionFor(workout: Workout, date: DayKey): PlannedSession {
   return { id: `${CANDIDATE_ID}:${workout.name}`, date, load: null, kind: 'endurance' }
 }
 
-function reasonFor(family: Family, index: number, fitness: number | null): string {
+/**
+ * Pourquoi cette séance-là, ce jour-là.
+ *
+ * Le niveau passe avant le reste dès qu'il y en a un : c'est la réponse
+ * concrète à « pour m'améliorer », et elle est vérifiable — l'athlète peut la
+ * rapprocher de la séance qu'il a tenue la semaine d'avant.
+ */
+function reasonFor(
+  family: Family,
+  index: number,
+  fitness: number | null,
+  level: number,
+  reprise: boolean,
+): string {
+  if (reprise) {
+    return level > 0
+      ? `Deux semaines sans séance de qualité : on repart au niveau ${level}, sans monter.`
+      : `Deux semaines sans séance de qualité : on repart doucement.`
+  }
+
+  if (level > 0) {
+    return `${family.name} niveau ${level} tenu la dernière fois : celle-ci vise le ${level + 1}.`
+  }
+
   if (index === 0) {
     return fitness !== null && fitness < 25
       ? `Ta forme est encore basse : ${family.name.toLowerCase()} construit sans casser.`

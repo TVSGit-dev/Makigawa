@@ -20,6 +20,8 @@ import {
 } from '../api/intervals'
 import { changeFor, writeChange, type Change } from '../actions/apply'
 import { buildContext, isSession, toDayRecords } from '../rules/context'
+import { daysSinceQuality, isReprise, matchCompletions } from '../rules/done'
+import { heldFrom, levelsFrom } from '../workouts/levels'
 import { propose, type Proposal } from '../rules/decide'
 import { weighDay } from '../rules/scale'
 import type { Intent } from '../rules/intent'
@@ -35,8 +37,16 @@ import {
   resetPlanPreferences,
   type PlanPreferences,
 } from '../storage/plan'
-import { addDays, dayKeyOf, formatDay, toDayKey, type DayKey } from '../calendar/dates'
+import {
+  addDays,
+  dayKeyOf,
+  formatDay,
+  shiftDayKey,
+  toDayKey,
+  type DayKey,
+} from '../calendar/dates'
 import { Place } from './Place'
+import { Progress } from './Progress'
 import { Week } from './Week'
 import { planWeek } from '../workouts/week'
 import { SessionCard, type WriteState } from './SessionCard'
@@ -44,8 +54,15 @@ import { weightLabel } from './reasons'
 
 /** Deux semaines devant : l'horizon de planification annoncé par le projet. */
 const AHEAD_DAYS = 14
-/** Deux semaines derrière : de quoi peser les journées qui précèdent. */
-const BEHIND_DAYS = 14
+/**
+ * Six semaines derrière.
+ *
+ * Deux suffisaient à peser les journées passées ; les niveaux du E.16 se
+ * lisent sur six, parce que c'est le temps qu'une adaptation met à se perdre.
+ * Le calendrier est lu aussi loin en arrière, sans quoi il n'y aurait rien à
+ * comparer aux activités.
+ */
+const BEHIND_DAYS = 42
 
 type Data = {
   events: CalendarEvent[]
@@ -66,6 +83,15 @@ export type Readout = {
   fatigue: number | null
   sleepScore: number | null
   days: readonly DayRecord[]
+  /**
+   * La reprise du E.5, remontée plutôt qu'appliquée sur place.
+   *
+   * Elle force le mode prudent, et c'est `App` qui tient le mode : l'appliquer
+   * ici laisserait l'en-tête afficher « normal » pendant que le moteur
+   * travaille en prudent, ce que l'athlète verrait tout de suite.
+   */
+  reprise: boolean
+  daysSinceQuality: number | null
 }
 
 type Props = {
@@ -95,7 +121,7 @@ export function Plan({ credentials, intent, onReadout }: Props) {
 
     const now = new Date()
     const [events, activities, wellness] = await Promise.all([
-      fetchCalendarEvents(credentials, now, addDays(now, AHEAD_DAYS - 1)),
+      fetchCalendarEvents(credentials, addDays(now, -BEHIND_DAYS), addDays(now, AHEAD_DAYS - 1)),
       fetchActivities(credentials, addDays(now, -BEHIND_DAYS), now),
       fetchWellness(credentials, addDays(now, -BEHIND_DAYS), now),
     ])
@@ -142,6 +168,29 @@ export function Plan({ credentials, intent, onReadout }: Props) {
 
   const observed = state.status === 'ok' ? toDayRecords(state.data.activities) : []
 
+  // Ce que sont devenues les séances passées (E.15), et les niveaux qui s'y
+  // lisent (E.16). Calculés avant le décor, parce que la reprise en dépend.
+  const completions = useMemo(() => {
+    if (state.status !== 'ok') return []
+    return matchCompletions({
+      events: state.data.events,
+      activities: state.data.activities,
+      today,
+      since: shiftDayKey(today, -BEHIND_DAYS),
+    })
+  }, [state, today])
+
+  const levels = useMemo(() => levelsFrom(heldFrom(completions)), [completions])
+
+  const sinceQuality = useMemo(
+    () =>
+      state.status === 'ok'
+        ? daysSinceQuality(state.data.activities, today, BEHIND_DAYS)
+        : null,
+    [state, today],
+  )
+  const reprise = isReprise(sinceQuality)
+
   useEffect(() => {
     const latest = wellness
       .filter((day) => day.date !== null && day.date <= today && day.ctl !== null)
@@ -153,17 +202,21 @@ export function Plan({ credentials, intent, onReadout }: Props) {
       fatigue: latest?.atl ?? null,
       sleepScore: night?.sleepScore ?? null,
       days: observed,
+      reprise,
+      daysSinceQuality: sinceQuality,
     })
     // `observed` est reconstruit à chaque rendu ; c'est `wellness` et l'état
     // qui disent quand il a vraiment changé.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wellness, state, today, onReadout])
+  }, [wellness, state, today, reprise, sinceQuality, onReadout])
 
   const context = useMemo(() => {
     if (state.status !== 'ok') return null
     return buildContext({
       today,
-      events: state.data.events,
+      // Seulement l'à-venir : une séance passée ne doit pas entrer dans
+      // l'espacement du E.4 et bloquer les jours qui viennent.
+      events: state.data.events.filter((event) => (dayKeyOf(event.startDateLocal) ?? '') >= today),
       activities: state.data.activities,
       wellness: state.data.wellness,
       intent,
@@ -188,9 +241,11 @@ export function Plan({ credentials, intent, onReadout }: Props) {
             fitness,
             refused: refusedKeys(choices),
             notBefore: choices.notBefore,
+            levels,
+            reprise,
           })
         : [],
-    [context, today, fitness, choices],
+    [context, today, fitness, choices, levels, reprise],
   )
 
   const apply = async (event: CalendarEvent, change: Change) => {
@@ -245,6 +300,7 @@ export function Plan({ credentials, intent, onReadout }: Props) {
   }
 
   return (
+    <>
     <section className="card">
       <div className="card-head">
         <h2>Ta semaine</h2>
@@ -330,6 +386,9 @@ export function Plan({ credentials, intent, onReadout }: Props) {
         </p>
       ) : null}
     </section>
+
+    <Progress levels={levels} completions={completions} today={today} />
+    </>
   )
 }
 

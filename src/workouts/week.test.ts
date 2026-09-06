@@ -3,6 +3,7 @@ import { familiesFor, planWeek } from './week'
 import type { Context } from '../rules/decide'
 import type { DayRecord, PlannedSession } from '../rules/types'
 import { levelOf } from '../rules/scale'
+import { MAX_MINUTES, ZONES, type Zone } from './levels'
 
 const observed = (date: string, load: number): DayRecord => ({
   date,
@@ -55,9 +56,12 @@ describe('le planning proposé', () => {
     expect(semaine[1]?.workout.family.key).toBe('tempo')
   })
 
-  it('fait la première plus longue que les suivantes', () => {
-    const semaine = plan()
-    expect(semaine[0]!.workout.seconds).toBeGreaterThan(semaine[1]!.workout.seconds)
+  it('part du premier échelon tant que rien n’a été tenu', () => {
+    // La durée ne vient plus du rang de la séance dans la semaine mais du
+    // niveau tenu dans sa zone (E.16).
+    for (const suggestion of plan()) {
+      expect(suggestion.because).toMatch(/forme est encore basse|plus court et plus doux/)
+    }
   })
 
   it('n’enchaîne jamais deux séances de qualité', () => {
@@ -193,6 +197,46 @@ describe('refuser, ou repousser (E.14)', () => {
       refused: ['navette'],
     })
     expect(apres[0]?.workout.family.key).toBe('vo2-30-15')
+  })
+})
+
+describe('les niveaux par zone (E.16)', () => {
+  const withLevels = (levels: Partial<Record<Zone, number>>, reprise = false) =>
+    planWeek({ context: context(), today: '2026-09-07', fitness: 17, levels, reprise })
+
+  it('propose plus long quand le niveau est plus haut', () => {
+    const bas = withLevels({ 'sweet-spot': 1 })[0]!
+    const haut = withLevels({ 'sweet-spot': 7 })[0]!
+    expect(haut.workout.family.key).toBe('sweet-spot')
+    expect(haut.workout.seconds).toBeGreaterThan(bas.workout.seconds)
+  })
+
+  it('dit le niveau visé, et qu’il monte d’un cran', () => {
+    expect(withLevels({ 'sweet-spot': 3 })[0]?.because).toContain('niveau 3')
+    expect(withLevels({ 'sweet-spot': 3 })[0]?.because).toContain('vise le 4')
+  })
+
+  it('ne monte pas d’un cran pendant une reprise', () => {
+    // On reprend là où on s'était arrêté (E.5).
+    const reprise = withLevels({ 'sweet-spot': 3 }, true)[0]!
+    const normal = withLevels({ 'sweet-spot': 3 })[0]!
+    expect(reprise.workout.seconds).toBeLessThan(normal.workout.seconds)
+    expect(reprise.because).toContain('sans monter')
+  })
+
+  it('ne fait pas déborder une séance au-delà du plafond de temps', () => {
+    for (const zone of ZONES) {
+      for (const suggestion of withLevels({ [zone]: 10 })) {
+        expect(suggestion.workout.seconds / 60, zone).toBeLessThanOrEqual(MAX_MINUTES + 5)
+      }
+    }
+  })
+
+  it('n’ouvre pas une zone que la forme garde fermée', () => {
+    // Un niveau élevé en VO2 max ne rouvre pas le VO2 max à CTL basse.
+    const familles = withLevels({ vo2: 9 }).map((s) => s.workout.family.key)
+    expect(familles).not.toContain('vo2-30-30')
+    expect(familles).not.toContain('vo2-30-15')
   })
 })
 

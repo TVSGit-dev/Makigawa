@@ -34,6 +34,9 @@ type Props = {
   today: DayKey
   /** La nuit démentie fait passer la journée en prudent (E.12). */
   nightDenied: boolean
+  /** La reprise du E.5 : elle force le mode, comme le démenti de nuit. */
+  reprise: boolean
+  daysSinceQuality: number | null
   sleepScore: number | null
   onIntentChange: (intent: Intent) => void
   onDenyNight: () => void
@@ -47,6 +50,8 @@ export function Freshness({
   days,
   today,
   nightDenied,
+  reprise,
+  daysSinceQuality,
   sleepScore,
   onIntentChange,
   onDenyNight,
@@ -111,7 +116,21 @@ export function Freshness({
 
       <p className="muted small">{DESCRIPTIONS[intent]}</p>
 
-      {forced && !nightDenied ? (
+      {reprise ? (
+        <p className="notice notice-soft">
+          <strong>Tu reprends.</strong>
+          <br />
+          {daysSinceQuality !== null && daysSinceQuality < 42
+            ? `${daysSinceQuality} jours`
+            : 'Plus de deux semaines'}{' '}
+          sans séance de qualité, donc la semaine passe en prudent : une seule séance,
+          au niveau où tu t’étais arrêté. Ce n’est pas la forme qui manque, ce sont les
+          tissus qui se réadaptent plus lentement que les muscles — les deux premières
+          semaines de retour sont celles où l’on se blesse.
+        </p>
+      ) : null}
+
+      {forced && !nightDenied && !reprise ? (
         <p className="notice">
           <strong>Le mode ambitieux passe la main.</strong>
           <br />
