@@ -111,6 +111,91 @@ describe('le planning proposé', () => {
   })
 })
 
+describe('refuser, ou repousser (E.14)', () => {
+  const refuse = (keys: string[], fitness: number | null = 17) =>
+    planWeek({ context: context(), today: '2026-09-07', fitness, refused: keys })
+
+  it('propose autre chose quand une famille est écartée', () => {
+    // « Pas celle-ci » écarte la famille, pas le jour.
+    const avant = plan()
+    expect(avant[0]?.workout.family.key).toBe('sweet-spot')
+
+    const apres = refuse(['sweet-spot'])
+    expect(apres.map((s) => s.workout.family.key)).not.toContain('sweet-spot')
+    expect(apres.length).toBe(avant.length)
+  })
+
+  it('ne repêche jamais une famille refusée', () => {
+    // Redemander ce qu'on vient de refuser serait ne pas avoir entendu.
+    expect(refuse(['endurance', 'tempo', 'sweet-spot'])).toEqual([])
+  })
+
+  it('recule le plan entier derrière un report', () => {
+    const repousse = planWeek({
+      context: context(),
+      today: '2026-09-07',
+      fitness: 17,
+      notBefore: '2026-09-09',
+    })
+    for (const suggestion of repousse) {
+      expect(suggestion.date >= '2026-09-09').toBe(true)
+    }
+    expect(repousse[0]?.date).toBe('2026-09-09')
+  })
+
+  it('replace les suivantes autour de la première repoussée', () => {
+    // L'adaptation du reste : le plan est recalculé, jamais rapiécé.
+    const repousse = planWeek({
+      context: context({ intent: 'ambitieux' }),
+      today: '2026-09-07',
+      fitness: 45,
+      notBefore: '2026-09-10',
+    })
+    const dates = repousse.map((s) => s.date).sort()
+    expect(dates.length).toBeGreaterThan(1)
+    expect(dates[0]).toBe('2026-09-10')
+    for (let i = 1; i < dates.length; i += 1) {
+      const veille = new Date(`${dates[i - 1]}T00:00:00`)
+      const jour = new Date(`${dates[i]}T00:00:00`)
+      expect((jour.getTime() - veille.getTime()) / 86_400_000).toBeGreaterThan(1)
+    }
+  })
+
+  it('ne rogne pas l’horizon en repoussant', () => {
+    // Repousser déplace la fenêtre, il ne la raccourcit pas : sinon
+    // repousser assez loin finirait par ne plus rien proposer.
+    const loin = planWeek({
+      context: context({ intent: 'ambitieux' }),
+      today: '2026-09-07',
+      fitness: 45,
+      notBefore: '2026-09-25',
+    })
+    expect(loin).toHaveLength(3)
+  })
+
+  it('ignore un report déjà passé', () => {
+    const passe = planWeek({
+      context: context(),
+      today: '2026-09-07',
+      fitness: 17,
+      notBefore: '2026-09-01',
+    })
+    expect(passe.map((s) => s.date)).toEqual(plan().map((s) => s.date))
+  })
+
+  it('ne descend pas d’un cran l’exigence de la semaine', () => {
+    // Refuser du seuil parce qu'on n'en a pas envie ne veut pas dire qu'on
+    // est fatigué : l'app prend la famille suivante, pas la plus douce.
+    const apres = planWeek({
+      context: context(),
+      today: '2026-09-07',
+      fitness: 45,
+      refused: ['navette'],
+    })
+    expect(apres[0]?.workout.family.key).toBe('vo2-30-15')
+  })
+})
+
 describe('ce que le planning respecte', () => {
   it('tient le quota de journées chargées du mode', () => {
     const semaine = plan({ intent: 'normal' }, 45)

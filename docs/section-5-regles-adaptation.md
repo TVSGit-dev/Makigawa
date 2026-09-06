@@ -828,7 +828,9 @@ moins plutôt que de proposer mal.
 ### Ce que le planning n'est pas
 
 Un contrat. C'est un point de départ que les règles modifieront jour après
-jour — et rien n'est écrit sans un tap, comme partout ailleurs (E.7).
+jour — et rien n'est écrit sans un tap, comme partout ailleurs (E.7). L'athlète
+peut par ailleurs écarter une proposition ou la repousser, et le plan se
+recalcule autour de son choix (E.14).
 
 ### Ce qui manque encore
 
@@ -938,6 +940,69 @@ n'est jamais une séance de qualité, et elle peut se poser n'importe quel jour,
 y compris le lendemain d'une journée chargée. C'est précisément là qu'elle sert
 le plus.
 
+## E.14 Refuser une proposition, ou la repousser
+
+Demandé le 6 septembre 2026 : *« une possibilité de refuser une proposition de
+planification ou un décalage de la première séance proposée — avec évidemment
+une adaptation du reste. »*
+
+Le E.7 dit que l'app propose et que l'athlète confirme. Mais jusqu'ici **ne pas
+confirmer était le seul refus possible**, et il ne disait rien : le plan
+revenait identique au rafraîchissement suivant. Un refus qui ne change rien
+n'est pas un refus, c'est une insistance — ce que les contraintes d'interface
+interdisent.
+
+### Deux gestes, parce qu'il y a deux axes
+
+Une proposition tient en deux choses, **quoi** et **quand**. Chacune se refuse
+séparément, et confondre les deux rendrait l'app sourde.
+
+- **« Pas celle-ci »** écarte la *famille*, pas le jour. L'app propose autre
+  chose au même endroit. Écarter la séance exacte ne servirait à rien : le
+  planificateur choisit par famille (E.10), il reproposerait le même seuil un
+  jour plus tard, et l'athlète aurait raison de croire qu'on ne l'a pas
+  entendu.
+- **« Plus tard »** repousse le *jour*, pas la séance. Le plan ne commence pas
+  avant le lendemain de la proposition repoussée. Le geste se répète : deux
+  taps repoussent de deux jours.
+
+### L'adaptation du reste
+
+Le plan est **recalculé en entier**, jamais rapiécé. Les séances suivantes sont
+placées par rapport à la première (E.10) ; déplacer celle-ci sans replacer les
+autres produirait deux séances collées, ce que le E.4 interdit. Recalculer
+coûte quelques millisecondes et ne peut pas se contredire.
+
+Le report déplace la fenêtre entière : l'horizon des quatorze jours repart du
+premier jour encore acceptable, de sorte que repousser ne réduit jamais ce
+qu'on peut proposer.
+
+### Ce qu'un refus ne fait pas
+
+- **Il ne crée pas de dette.** La séance écartée ne revient pas « en retard »,
+  et rien n'en garde la trace (E.6).
+- **Il ne dégrade pas la semaine.** L'app propose la famille suivante dans son
+  ordre, pas systématiquement plus douce : refuser du seuil parce qu'on n'en a
+  pas envie ne veut pas dire qu'on est fatigué. La fatigue est déjà lue
+  ailleurs, et elle n'a pas besoin de ce signal-ci.
+- **Il ne part pas dans intervals.icu.** Comme le démenti de nuit (E.12), c'est
+  un ressenti et non une mesure : il vit dans le téléphone et le calendrier
+  n'en porte aucune trace.
+
+### Combien de temps il tient
+
+Un refus vaut pour l'horizon du plan — quatorze jours — puis s'oublie de
+lui-même. Un report s'oublie quand sa date passe. Et les deux se défont d'un
+tap : rien ne s'installe sans qu'on puisse le retirer, exactement comme le
+démenti de nuit.
+
+### Quand il ne reste rien
+
+Si toutes les familles ouvertes sont écartées, l'app **ne propose rien et le
+dit**, avec le geste pour revenir en arrière. Elle ne va pas repêcher une
+famille refusée pour avoir quelque chose à montrer : ce serait redemander ce
+qu'on vient de lui refuser.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -957,7 +1022,7 @@ spécification, pas une proposition.
 | 8 | Saisie « nuit difficile » | **oui**, un seul tap, en démenti du score de la montre |
 | 9 | Retours automatiques | **imposés** pour le 3ᵉ « ambitieux », suggérés ailleurs |
 
-Trois précisions s'y sont ajoutées le même jour :
+Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 
 | # | Question | Décision |
 |---|---|---|
@@ -970,6 +1035,7 @@ Trois précisions s'y sont ajoutées le même jour :
 | 16 | Le test FTP | **un seul jour proposé**, sous quatre conditions plus strictes que le E.2 (E.11) |
 | 17 | Effet du démenti de nuit | **force le mode prudent pour la journée**, rien de plus (E.12) |
 | 18 | Trajets et souplesse | **se posent d'avance**, sans structure ; la souplesse au niveau 0 (E.13) |
+| 19 | Refuser une proposition | **deux gestes** — écarter la famille, ou repousser le jour ; le plan est recalculé en entier (E.14) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

@@ -232,6 +232,9 @@ En bref :
   niveau 3. Les trajets n'en sont jamais, mais leur charge compte toujours.
 - **L'app propose, l'athlète confirme.** Aucune écriture sans un geste de sa
   part — ce qui fait du moteur une fonction pure.
+- **Une proposition se refuse**, et le plan se recalcule en entier autour du
+  refus : « pas celle-ci » écarte la famille, « plus tard » repousse le jour.
+  Ni l'un ni l'autre ne crée de dette, et rien n'en part dans intervals.icu.
 
 Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.

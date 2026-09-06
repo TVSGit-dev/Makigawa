@@ -595,6 +595,41 @@ p {
   margin-top: 0.25rem;
 }
 
+/* Trois gestes sur une proposition : la poser, l'écarter, la repousser (E.14).
+   Aucun n'est mis en avant — refuser est une réponse valable, pas un échec, et
+   un refus qui ne change rien ne serait pas un refus mais de l'insistance. */
+.suggested-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
+.suggested-actions .button {
+  margin-top: 0;
+}
+
+/* Le groupe passe à la ligne d'un bloc quand il ne tient plus, plutôt que de
+   laisser « plus tard » orphelin sous les deux autres. */
+.suggested-refuse {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* Un bouton qui se lit comme du texte. Le retour en arrière doit rester
+   accessible sans se disputer la place avec ce qui est proposé. */
+.link {
+  padding: 0;
+  min-height: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* ---------- poser une séance ---------- */
 
 .place {

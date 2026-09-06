@@ -26,6 +26,15 @@ import type { Intent } from '../rules/intent'
 import type { DayRecord } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
 import { dismiss, fingerprint, forgetOlderThan } from '../storage/preferences'
+import {
+  forgetStalePreferences,
+  hasPlanPreferences,
+  postponePlan,
+  refuseFamily,
+  refusedKeys,
+  resetPlanPreferences,
+  type PlanPreferences,
+} from '../storage/plan'
 import { addDays, dayKeyOf, formatDay, toDayKey, type DayKey } from '../calendar/dates'
 import { Place } from './Place'
 import { Week } from './Week'
@@ -69,11 +78,15 @@ export function Plan({ credentials, intent, onReadout }: Props) {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [writes, setWrites] = useState<Record<string, WriteState>>({})
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set())
+  // Ce que l'athlète a écarté ou repoussé du plan (E.14). Vit dans le
+  // téléphone, ne part jamais dans intervals.icu.
+  const [choices, setChoices] = useState<PlanPreferences>({ refused: {}, notBefore: null })
 
   const today = toDayKey(new Date())
 
   useEffect(() => {
     setDismissed(forgetOlderThan(today))
+    setChoices(forgetStalePreferences(today))
   }, [today])
 
   const load = useCallback(async () => {
@@ -164,9 +177,20 @@ export function Plan({ credentials, intent, onReadout }: Props) {
 
   const planned = days.reduce((total, day) => total + day.items.length, 0)
 
+  // Le plan est recalculé en entier à chaque refus, jamais rapiécé : les
+  // séances suivantes sont placées par rapport à la première (E.14).
   const suggestions = useMemo(
-    () => (context ? planWeek({ context, today, fitness }) : []),
-    [context, today, fitness],
+    () =>
+      context
+        ? planWeek({
+            context,
+            today,
+            fitness,
+            refused: refusedKeys(choices),
+            notBefore: choices.notBefore,
+          })
+        : [],
+    [context, today, fitness, choices],
   )
 
   const apply = async (event: CalendarEvent, change: Change) => {
@@ -235,7 +259,10 @@ export function Plan({ credentials, intent, onReadout }: Props) {
         </p>
       ))}
 
-      {planned === 0 && suggestions.length === 0 ? (
+      {/* Quand l'athlète a écarté ce qui restait, c'est `Week` qui le dit — et
+          il le dit juste. `Empty` invoquerait la fraîcheur ou les jours pris,
+          ce qui serait faux et se contredirait à l'écran. */}
+      {planned === 0 && suggestions.length === 0 && !hasPlanPreferences(choices) ? (
         <Empty read={state.data.events.length} />
       ) : null}
 
@@ -245,7 +272,11 @@ export function Plan({ credentials, intent, onReadout }: Props) {
         fitness={fitness}
         today={today}
         empty={planned === 0}
+        refusing={hasPlanPreferences(choices)}
         onPlaced={() => void load()}
+        onRefuse={(family) => setChoices(refuseFamily(family, today))}
+        onPostpone={(date) => setChoices(postponePlan(date))}
+        onReset={() => setChoices(resetPlanPreferences())}
       />
 
       {days.map((day) => (
