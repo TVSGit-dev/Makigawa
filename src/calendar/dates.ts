@@ -70,6 +70,25 @@ export function shiftDayKey(key: DayKey, days: number): DayKey {
   return date ? toDayKey(addDays(date, days)) : key
 }
 
+/**
+ * Le lundi de la semaine d'une clé. Sert à ranger les choix d'intention
+ * semaine par semaine — `getDay()` place dimanche à 0, d'où le décalage.
+ */
+export function mondayOf(key: DayKey): DayKey {
+  const date = parseDayKey(key)
+  if (!date) return key
+  const weekday = (date.getDay() + 6) % 7
+  return toDayKey(addDays(date, -weekday))
+}
+
+/** « aujourd'hui », « demain », « lundi 8 septembre ». */
+export function formatRelativeDay(key: DayKey, today: DayKey): string {
+  if (key === today) return 'aujourd’hui'
+  if (key === shiftDayKey(today, 1)) return 'demain'
+  if (key === shiftDayKey(today, 2)) return 'après-demain'
+  return formatDay(key)
+}
+
 /** « 45 min », « 1 h », « 1 h 15 ». */
 export function formatDuration(seconds: number): string {
   const minutes = Math.round(seconds / 60)

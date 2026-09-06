@@ -14,11 +14,44 @@ export type ApiOutcome<T> =
   | { kind: 'httpError'; status: number; detail: string }
   | { kind: 'blocked'; detail: string }
 
+/**
+ * Une activité **réalisée**, telle qu'elle est remontée par Garmin ou Zwift.
+ *
+ * Aucune donnée de puissance n'est lue ici, et c'est délibéré : la règle
+ * critique de `CLAUDE.md` exclut la puissance des `EBikeRide` **par principe,
+ * jamais par nom de champ**. Ne rien lire est la seule façon de ne pas laisser
+ * passer un champ à venir. Ce dont les règles ont besoin — la charge et le
+ * type — n'en dépend pas.
+ */
 export type Activity = {
-  id: string
+  id: string | null
   name: string | null
+  /** Ride, VirtualRide, EBikeRide, WeightTraining… */
   type: string | null
-  start_date_local: string | null
+  startDateLocal: string | null
+  /** Charge, telle que calculée par intervals.icu. Jamais recalculée ici. */
+  trainingLoad: number | null
+  raw: Record<string, unknown>
+}
+
+/**
+ * Une journée de « bien-être » : ce qu'intervals.icu tient jour par jour.
+ *
+ * `ctl` et `atl` sont la forme et la fatigue **calculées par intervals.icu**.
+ * Le projet ne les recalcule jamais ; il en déduit seulement la fraîcheur,
+ * qui est leur simple différence.
+ */
+export type Wellness = {
+  date: string | null
+  /** Forme — Chronic Training Load. */
+  ctl: number | null
+  /** Fatigue — Acute Training Load. */
+  atl: number | null
+  /** Score de sommeil de la montre, quand elle en donne un. */
+  sleepScore: number | null
+  /** Durée de sommeil, en secondes. */
+  sleepSeconds: number | null
+  raw: Record<string, unknown>
 }
 
 /** intervals.icu attend une authentification Basic dont l'identifiant est le littéral API_KEY. */
@@ -207,6 +240,76 @@ export async function deleteEvent(
   return request<null>(`/events/${encodeURIComponent(eventId)}`, credentials, { method: 'DELETE' })
 }
 
+function toActivity(raw: Record<string, unknown>): Activity {
+  return {
+    id: text(raw.id),
+    name: text(raw.name),
+    type: text(raw.type),
+    startDateLocal: text(raw.start_date_local),
+    trainingLoad: count(raw.icu_training_load),
+    raw,
+  }
+}
+
+function toWellness(raw: Record<string, unknown>): Wellness {
+  return {
+    date: text(raw.id) ?? text(raw.date),
+    ctl: count(raw.ctl),
+    atl: count(raw.atl),
+    sleepScore: count(raw.sleepScore),
+    sleepSeconds: count(raw.sleepSecs),
+    raw,
+  }
+}
+
+/** Un tableau d'objets, ou l'échec tel quel. Le reste est une réponse illisible. */
+async function fetchList<T>(
+  path: string,
+  credentials: Credentials,
+  map: (raw: Record<string, unknown>) => T,
+  expected: string,
+): Promise<ApiOutcome<T[]>> {
+  const outcome = await request<unknown>(path, credentials)
+  if (outcome.kind !== 'ok') return outcome
+
+  if (!Array.isArray(outcome.data)) {
+    return { kind: 'httpError', status: 200, detail: `Réponse inattendue : ${expected}.` }
+  }
+
+  return {
+    kind: 'ok',
+    data: outcome.data
+      .map(asRecord)
+      .filter((record): record is Record<string, unknown> => record !== null)
+      .map(map),
+  }
+}
+
+/** Les activités réalisées sur une fenêtre de jours. */
+export async function fetchActivities(
+  credentials: Credentials,
+  from: Date,
+  to: Date,
+): Promise<ApiOutcome<Activity[]>> {
+  const query = `?oldest=${isoDate(from)}&newest=${isoDate(to)}`
+  return fetchList(`/activities${query}`, credentials, toActivity, 'un tableau d’activités')
+}
+
+/**
+ * Forme, fatigue et sommeil, jour par jour.
+ *
+ * C'est ici que l'app apprend la fraîcheur du jour, dont dépend une des
+ * quatre conditions du E.2. Elle la lit, elle ne la calcule pas.
+ */
+export async function fetchWellness(
+  credentials: Credentials,
+  from: Date,
+  to: Date,
+): Promise<ApiOutcome<Wellness[]>> {
+  const query = `?oldest=${isoDate(from)}&newest=${isoDate(to)}`
+  return fetchList(`/wellness${query}`, credentials, toWellness, 'un tableau de journées')
+}
+
 /** Fenêtre courte : on veut valider l'accès, pas rapatrier l'historique. */
 export async function fetchRecentActivities(
   credentials: Credentials,
@@ -215,6 +318,5 @@ export async function fetchRecentActivities(
   const newest = new Date()
   const oldest = new Date()
   oldest.setDate(oldest.getDate() - days)
-  const query = `?oldest=${isoDate(oldest)}&newest=${isoDate(newest)}`
-  return request<Activity[]>(`/activities${query}`, credentials)
+  return fetchActivities(credentials, oldest, newest)
 }

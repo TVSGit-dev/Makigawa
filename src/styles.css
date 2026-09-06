@@ -11,6 +11,13 @@
   --bad: #b91c1c;
   --idle: #64748b;
 
+  /* La distinction électrique / musculaire est une priorité déclarée du
+     projet : ce sont deux mondes qui ne se comparent pas. */
+  --electric: #6d3fd4;
+  --muscular: #0b7a55;
+  --indoor: #1d63b8;
+  --force: #9a5b00;
+
   color-scheme: light dark;
 }
 
@@ -27,6 +34,11 @@
     --warn: #fbbf24;
     --bad: #f87171;
     --idle: #94a3b8;
+
+    --electric: #b79bff;
+    --muscular: #3ddc97;
+    --indoor: #74b3ff;
+    --force: #fbbf24;
   }
 }
 
@@ -193,6 +205,16 @@ p {
   border: 1px solid var(--border);
 }
 
+/* Pour l'abandon : un bouton qui agit sans se présenter comme le bon choix.
+   Ni vert ni rouge — laisser tomber une séance est une réponse valable, pas
+   un échec, et l'app ne culpabilise pas. */
+.button-quiet {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--muted);
+  font-weight: 500;
+}
+
 .update {
   position: sticky;
   top: calc(0.5rem + env(safe-area-inset-top));
@@ -294,6 +316,10 @@ p {
 }
 
 .day-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
   font-weight: 600;
   font-size: 0.9375rem;
 }
@@ -301,7 +327,7 @@ p {
 /* toLocaleDateString rend « lundi 7 septembre » tout en minuscules. Seule
    l'initiale se relève : en français les noms de mois restent minuscules,
    ce que `text-transform: capitalize` ne sait pas faire. */
-.day-title::first-letter {
+.day-title > span:first-child::first-letter {
   text-transform: uppercase;
 }
 
@@ -309,32 +335,36 @@ p {
   color: var(--accent);
 }
 
-.event {
+.weight {
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.weight-chargee {
+  color: var(--warn);
+}
+
+/* ---------- une séance ---------- */
+
+.session {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.4rem;
   background: var(--bg);
   border-radius: 0.75rem;
   padding: 0.75rem;
 }
 
-.event-name {
+.session-name {
   font-weight: 500;
 }
 
-.event-meta {
+.session-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
-}
-
-/* La structure d'une séance arrive en texte multiligne dans `description`
-   (« - 5m z2 » par ligne). Sans cela le navigateur la replie en un seul
-   paragraphe et l'enchaînement des blocs devient illisible. */
-.event-steps {
-  color: var(--muted);
-  font-size: 0.8125rem;
-  white-space: pre-line;
 }
 
 .chip {
@@ -347,7 +377,29 @@ p {
   font-variant-numeric: tabular-nums;
 }
 
-.raw summary {
+/* Le type d'activité se lit sans se lire : la couleur porte l'information
+   avant le mot, et le mot la porte quand la couleur ne suffit pas. */
+.chip-electric {
+  color: var(--electric);
+  border-color: currentColor;
+}
+.chip-muscular {
+  color: var(--muscular);
+  border-color: currentColor;
+}
+.chip-indoor {
+  color: var(--indoor);
+  border-color: currentColor;
+}
+.chip-force {
+  color: var(--force);
+  border-color: currentColor;
+}
+
+/* La structure arrive en texte multiligne dans `description` (« - 5m z2 » par
+   ligne). Elle se recopie telle quelle : ni composée, ni découpée, ni
+   traduite. */
+.structure summary {
   color: var(--muted);
   font-size: 0.8125rem;
   cursor: pointer;
@@ -355,16 +407,131 @@ p {
   padding: 0.25rem 0;
 }
 
-.raw pre {
+.structure pre {
   margin: 0.25rem 0 0;
   padding: 0.625rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  /* Le JSON est large : il défile dans son cadre, pas la page entière. */
+  font-size: 0.8125rem;
+  line-height: 1.5;
   overflow-x: auto;
-  max-height: 18rem;
-  overflow-y: auto;
+}
+
+/* ---------- ce que l'app propose ---------- */
+
+.suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem;
+  background: var(--surface);
+  /* Le liseré signale une proposition en attente, sans l'alarmer : ce n'est
+     ni une erreur ni un retard. */
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0.5rem;
+}
+
+.suggestion-head {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.suggestion-why {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.suggestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.applied {
+  margin-top: 0.25rem;
+  color: var(--ok);
+  font-size: 0.8125rem;
+}
+
+/* ---------- l'intention de la semaine ---------- */
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.375rem;
+}
+
+.segment {
+  appearance: none;
+  font: inherit;
+  font-size: 0.875rem;
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.segment-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+.segment:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ---------- divers ---------- */
+
+.value-ok {
+  color: var(--ok);
+}
+.value-warn {
+  color: var(--warn);
+}
+.value-bad {
+  color: var(--bad);
+}
+
+.notice {
+  font-size: 0.8125rem;
+  color: var(--text);
+  background: var(--bg);
+  border-left: 3px solid var(--warn);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+}
+
+.small {
+  font-size: 0.8125rem;
+}
+
+.settings {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.settings > summary {
+  padding: 0.875rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+/* Repliés dans les réglages, les cartes n'ont plus besoin de leur propre
+   cadre : celui du bloc suffit. */
+.settings .card {
+  border: none;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
 }
