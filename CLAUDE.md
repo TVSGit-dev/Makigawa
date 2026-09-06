@@ -131,13 +131,30 @@ que tout événement du calendrier est une chose à faire.
 |---|---|---|
 | Poids | 80 kg | confirmé |
 | FCmax | 202 bpm | relevée par intervals.icu sur l'historique |
-| FTP | 221 W | sous les 240 W estimés (eFTP : 205 W), **non confirmée par test** |
+| FTP | 221 W dans le profil | **Garmin estime 3,0 W/kg au 6 septembre 2026, soit 240 W** — non confirmée par test |
 | LTHR (FC seuil) | 183 bpm | valeur d'intervals.icu, **origine à confirmer** |
 | `T_effort` | 150 bpm (74 % FCmax, 82 % LTHR) | seuil de travail |
 | `T_haut` | 175 bpm (87 % FCmax, 96 % LTHR) | seuil haut |
 
 **Aucune règle métier ne doit dépendre de la FTP.** Les seuils sont en
 bpm, délibérément : la FTP est incertaine, le cardio est mesuré.
+
+**Ce que la courbe Garmin apporte, et ce qu'elle ne règle pas.** Relevée le
+6 septembre 2026 sur douze mois : 2,5 W/kg en septembre 2025, un creux à
+2,25 en novembre, puis une montée régulière jusqu'à **3,0 W/kg**, stable
+depuis juillet. À 80 kg cela fait **240 W**, soit 8 % au-dessus du profil.
+
+Cela lève la contradiction apparente avec les 175 W de meilleure puissance
+de 20 minutes relevés en juin et juillet : ces sorties n'étaient pas des
+tests, donc ce chiffre est un **plancher observé**, pas une estimation. Il ne
+disait rien de ce que l'athlète peut produire en cherchant.
+
+Une réserve subsiste : on ne sait pas si Garmin exclut les trajets
+électriques de son estimation. La règle critique du projet les exclut par
+principe ; rien ne garantit que Garmin fasse pareil. **Le test de la phase 5
+reste ce qui tranche**, et il tranche d'autant plus vite que les séances
+composées sont écrites en pourcentage de FTP : corriger le profil les
+recalibre toutes d'un coup.
 
 **Les zones d'intervals.icu ne portent aucune règle non plus.** La
 classification des journées compare des bpm bruts à 150 et 175, jamais un
