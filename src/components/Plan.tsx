@@ -26,6 +26,7 @@ import type { Intent } from '../rules/intent'
 import type { Credentials } from '../storage/credentials'
 import { dismiss, fingerprint, forgetOlderThan } from '../storage/preferences'
 import { addDays, dayKeyOf, formatDay, toDayKey, type DayKey } from '../calendar/dates'
+import { Place } from './Place'
 import { SessionCard, type WriteState } from './SessionCard'
 import { weightLabel } from './reasons'
 
@@ -133,6 +134,8 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
     return groupByDay(state.data.events, context, today)
   }, [state, context, today])
 
+  const planned = days.reduce((total, day) => total + day.items.length, 0)
+
   const apply = async (event: CalendarEvent, change: Change) => {
     if (!event.id) return
     setWrites((current) => ({ ...current, [event.id!]: { status: 'writing' } }))
@@ -199,6 +202,8 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
         </p>
       ))}
 
+      {planned === 0 ? <Empty read={state.data.events.length} /> : null}
+
       {days.map((day) => (
         <div className={day.date === today ? 'day day-today' : 'day'} key={day.date}>
           <p className="day-title">
@@ -233,11 +238,56 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
         </div>
       ))}
 
-      <p className="muted small">
-        L’app propose, tu confirmes. Rien n’est écrit dans intervals.icu sans un tap de ta
-        part.
-      </p>
+      {context ? (
+        <Place
+          credentials={credentials}
+          context={context}
+          intent={intent}
+          today={today}
+          onPlaced={() => void load()}
+        />
+      ) : null}
+
+      {planned > 0 ? (
+        <p className="muted small">
+          L’app propose, tu confirmes. Rien n’est écrit dans intervals.icu sans un tap de ta
+          part.
+        </p>
+      ) : null}
     </section>
+  )
+}
+
+/**
+ * Ce que l'app affiche quand il n'y a rien à afficher.
+ *
+ * Un écran vide se lit comme une panne. Celui-ci dit ce qui manque, pourquoi
+ * ce n'est pas une erreur, et ce qu'il faut faire — parce qu'une app sans
+ * séances à placer est exactement aussi utile qu'un calendrier vide, et que
+ * ce n'est pas à l'athlète de le deviner.
+ */
+function Empty({ read }: { read: number }) {
+  return (
+    <div className="empty">
+      <p className="empty-head">Ton calendrier n’a rien sur les {AHEAD_DAYS} prochains jours.</p>
+      <p className="muted small">
+        Ce n’est pas une panne : Makigawa décide du <em>quand</em>, mais le <em>quoi</em>{' '}
+        appartient à intervals.icu. Tant qu’aucune séance n’y est posée, elle n’a rien à
+        arbitrer.
+      </p>
+      <p className="muted small">
+        Les séances se créent dans intervals.icu, dans sa bibliothèque, sans date. Une fois
+        qu’elles y sont, <strong>Poser une séance</strong> ci-dessous te dit quels jours
+        conviennent et la place. Le catalogue en donne seize, prêtes à recopier.
+      </p>
+      {read > 0 ? (
+        <p className="muted small">
+          {read} événement{read > 1 ? 's ont' : ' a'} bien été lu{read > 1 ? 's' : ''} sur cette
+          période, mais aucun n’est une séance — ce sont des repères de calendrier, comme un
+          début de saison.
+        </p>
+      ) : null}
+    </div>
   )
 }
 

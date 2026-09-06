@@ -688,6 +688,95 @@ plus.
 pas des actions. Il reste une fonction pure, sans effet de bord — ce qui le
 rend testable, et ce qui laisse à l'interface la charge de demander.
 
+## E.8 La sortie ouverte
+
+Décidée le 6 septembre 2026, à la demande de l'athlète.
+
+Une **sortie ouverte** est une séance sans structure, qui ne porte qu'une
+**charge visée** : « sors, vise 140 ». Elle existe parce que dehors, le
+terrain, la météo et le groupe décident de l'intensité — prescrire des blocs
+de puissance sur une route vallonnée revient à prescrire ce qu'on ne contrôle
+pas.
+
+C'est la seule chose que Makigawa **crée** au lieu de recopier. La frontière
+tient quand même, et pour une raison précise : **une sortie ouverte n'a pas de
+contenu.** Il n'y a ni bloc, ni zone, ni ordre — rien qu'un objectif. L'app ne
+compose donc aucune séance ; elle pose une intention, ce qui est exactement son
+rôle. Le jour où l'athlète veut de la structure, elle vient d'intervals.icu
+comme le reste.
+
+**Les règles la traitent comme n'importe quelle séance.** Sa charge visée est
+sa charge : elle situe la sortie sur l'échelle du E.1, elle décide si c'est une
+séance de qualité, et le E.2 s'y applique mot pour mot. Une sortie ouverte à
+200 peut donc être décalée, et elle est refusée le lendemain d'une journée
+chargée comme le serait un seuil de 45 minutes.
+
+**Une exception à la cascade du E.3** : « réduire » ne peut pas raccourcir une
+structure qui n'existe pas. Sur une sortie ouverte, réduire signifie
+**diviser la charge visée par deux**, ce qui revient au même — rouler moitié
+moins, ou moitié moins fort, l'athlète voit sur place. C'est le seul cas où la
+réduction se lit en charge et non en durée, et c'est cohérent : la sortie
+ouverte est définie par sa charge, pas par ses blocs.
+
+**Les charges proposées sont ancrées sur des relevés réels**, pas sur une
+grille théorique :
+
+| Charge visée | Ce que ça vaut chez l'athlète |
+|---|---|
+| 40 | une heure tranquille |
+| 75 | une heure et demie sans forcer |
+| 115 | l'équivalent d'un aller-retour musculaire |
+| 140 | la sortie de 35 km |
+| 200 | la sortie de 50 km |
+| 270 | au-delà de 60 km |
+
+Ce n'est pas un calcul de charge maison : l'app n'estime rien, elle relaie un
+objectif que l'athlète choisit. La charge **réalisée**, elle, viendra
+d'intervals.icu comme toutes les autres.
+
+## E.9 Composer une séance
+
+Décidée le 6 septembre 2026, à la demande de l'athlète : *« tous les chiffres
+viennent d'intervals.icu, l'organisation vient de Makigawa »*.
+
+L'app assemble des séances à partir de **motifs relevés sur les séances réelles
+de l'athlète** — sweet spot en over-under, seuil en over-under, 30/30, 30/15,
+navette lactate — auxquels s'ajoutent l'endurance et le tempo, absents des
+séances fournies mais indispensables à une semaine de décharge et à la
+répartition d'intensité de la partie B.
+
+**Ce que l'app ne décide pas** : aucune intensité n'est écrite en watts. Toutes
+le sont en pourcentage de FTP, donc c'est la FTP d'intervals.icu qui les
+résout — et le jour où le test de la phase 5 la corrige, **toutes les séances
+composées se recalibrent d'un coup**. Aucune charge n'est envoyée non plus :
+intervals.icu la calcule depuis la structure.
+
+**Ce que l'app décide** : combien de blocs, combien de répétitions, la longueur
+de l'échauffement, et le jour.
+
+Trois règles de forme, tirées des séances de référence :
+
+- **Un bloc de travail ne dépasse pas ce que la famille en fait.** Vingt
+  minutes pour le sweet spot et le seuil, douze pour le 30/30. Sans cette
+  borne, viser la bonne durée totale produisait des monstres — trente minutes
+  d'over-unders d'affilée là où la référence en fait deux fois quinze.
+- **À durée égale, on coupe en blocs.** La récupération entre les blocs est ce
+  qui permet de tenir l'intensité jusqu'au dernier.
+- **L'échauffement entre dans le calcul.** Celui des séances fournies dure
+  treize minutes ; sur une séance de trente, il ne resterait rien. Un
+  échauffement court de sept minutes existe pour ça.
+
+**Une famille n'annonce que les durées qu'elle sait tenir.** La navette lactate
+ne monte pas à soixante-quinze minutes sans qu'on lui invente un volume que les
+séances de référence ne contiennent pas — l'app ne la propose donc pas à cette
+durée. Promettre une durée qu'on ne sait pas remplir serait promettre à faux.
+
+**Une séance composée n'a pas encore de charge** quand on choisit son jour :
+c'est intervals.icu qui la calculera. Les jours sont alors examinés sur tout le
+reste — la veille chargée, la séance de qualité voisine, le renfo trop proche.
+C'est moins qu'un verdict complet, et l'app le dit ; c'est vrai, ce qui vaut
+mieux qu'une charge inventée. Le verdict complet vient à la lecture suivante.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -714,6 +803,8 @@ Trois précisions s'y sont ajoutées le même jour :
 | 10 | Reconnaître une séance de qualité | **par sa charge prévue**, sur une échelle à cinq niveaux (E.1) |
 | 11 | Durée minimale du pic | **2 minutes** cumulées au-dessus de 175 bpm |
 | 12 | Autonomie de l'app | **elle propose, l'athlète confirme** (E.7) |
+| 13 | Sorties extérieures sans structure | **la sortie ouverte** : une charge visée, pas de blocs (E.8) |
+| 14 | Qui compose les séances | **Makigawa les assemble**, sur des motifs relevés chez l'athlète ; les chiffres restent à intervals.icu (E.9) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

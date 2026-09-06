@@ -21,6 +21,8 @@ import type { DayKey } from '../calendar/dates'
 export type Change =
   | { kind: 'move'; to: DayKey; body: Record<string, unknown> }
   | { kind: 'shorten'; description: string; body: Record<string, unknown> }
+  /** La réduction d'une sortie ouverte : sa charge visée, divisée par deux. */
+  | { kind: 'lighten'; load: number; body: Record<string, unknown> }
   | { kind: 'drop' }
   /** Le moteur a tranché, mais l'app ne sait pas l'écrire sans inventer. */
   | { kind: 'byHand'; because: string }
@@ -97,19 +99,56 @@ export function changeFor(event: CalendarEvent, proposal: Proposal): Change | nu
 
     case 'reduire': {
       const description = halveStructure(event.description)
-      if (description === null) {
-        return {
-          kind: 'byHand',
-          because:
-            'La structure de cette séance n’est pas en notation de zones : l’app ne sait pas la raccourcir sans réécrire son contenu, ce qu’elle ne fait jamais.',
-        }
+      if (description !== null) {
+        return { kind: 'shorten', description, body: { description } }
       }
-      return { kind: 'shorten', description, body: { description } }
+
+      // E.8 — sur une sortie ouverte, réduire ne peut pas raccourcir une
+      // structure qui n'existe pas : c'est la charge visée qu'on divise par
+      // deux. Rouler moitié moins ou moitié moins fort revient au même, et
+      // l'athlète voit sur place.
+      const lighter = lightenTarget(event)
+      if (lighter) return lighter
+
+      return {
+        kind: 'byHand',
+        because:
+          'La structure de cette séance n’est pas en notation de zones : l’app ne sait pas la raccourcir sans réécrire son contenu, ce qu’elle ne fait jamais.',
+      }
     }
 
     case 'abandonner':
       return { kind: 'drop' }
   }
+}
+
+/**
+ * Une séance porte-t-elle une structure ?
+ *
+ * Une ligne de bloc (`- 20m z2`) ou une répétition (`3x`) en est une, même si
+ * `halveStructure` ne sait pas la lire. La distinction compte : une séance
+ * structurée tient sa charge de ses blocs — la lui réécrire à la main la
+ * figerait — alors qu'une sortie ouverte n'a que sa charge visée.
+ */
+function looksStructured(description: string | null): boolean {
+  if (!description) return false
+  return description
+    .split('\n')
+    .some((line) => /^\s*-\s*\d/.test(line) || /^\s*\d+\s*x\b/i.test(line.trim()))
+}
+
+/** La sortie ouverte, allégée de moitié — nom compris quand il porte sa charge. */
+function lightenTarget(event: CalendarEvent): Change | null {
+  if (event.trainingLoad === null || looksStructured(event.description)) return null
+
+  const load = Math.round(event.trainingLoad / 2)
+  const body: Record<string, unknown> = { icu_training_load: load }
+
+  // Le nom annonce la charge visée : le laisser tel quel le ferait mentir.
+  const renamed = event.name?.replace(/·\s*\d+\s*$/, `· ${load}`)
+  if (renamed && renamed !== event.name) body.name = renamed
+
+  return { kind: 'lighten', load, body }
 }
 
 /** L'heure d'une date d'événement, `T00:00:00` par défaut. */
@@ -127,6 +166,7 @@ export async function writeChange(
   switch (change.kind) {
     case 'move':
     case 'shorten':
+    case 'lighten':
       return updateEvent(credentials, eventId, change.body)
     case 'drop':
       return deleteEvent(credentials, eventId)

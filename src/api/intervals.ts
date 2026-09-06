@@ -310,6 +310,83 @@ export async function fetchWellness(
   return fetchList(`/wellness${query}`, credentials, toWellness, 'un tableau de journées')
 }
 
+/**
+ * Une séance de la **bibliothèque** d'intervals.icu — définie, mais pas datée.
+ *
+ * C'est la pièce qui manquait à la division du projet. Le contenu d'une
+ * séance se crée et se range dans intervals.icu ; Makigawa la lit et décide
+ * du jour où elle tombe. Elle ne compose rien, elle place.
+ */
+export type LibraryWorkout = {
+  id: string | null
+  name: string | null
+  description: string | null
+  type: string | null
+  movingTime: number | null
+  trainingLoad: number | null
+  /** Le dossier qui la range, quand la bibliothèque en a. */
+  folder: string | null
+  raw: Record<string, unknown>
+}
+
+function toWorkout(raw: Record<string, unknown>, folder: string | null): LibraryWorkout {
+  return {
+    id: text(raw.id),
+    name: text(raw.name),
+    description: text(raw.description),
+    type: text(raw.type),
+    movingTime: count(raw.moving_time),
+    trainingLoad: count(raw.icu_training_load),
+    folder,
+    raw,
+  }
+}
+
+/**
+ * La bibliothèque de séances.
+ *
+ * Deux formes possibles selon le point d'entrée : des dossiers qui portent
+ * chacun leurs séances, ou des séances à plat. La lecture accepte les deux
+ * plutôt que de parier sur l'une — c'est la même prudence que pour le
+ * calendrier, dont la forme réelle s'est constatée à l'usage.
+ */
+export async function fetchWorkoutLibrary(
+  credentials: Credentials,
+): Promise<ApiOutcome<LibraryWorkout[]>> {
+  const outcome = await request<unknown>('/folders', credentials)
+  if (outcome.kind !== 'ok') return outcome
+
+  if (!Array.isArray(outcome.data)) {
+    return {
+      kind: 'httpError',
+      status: 200,
+      detail: 'Réponse inattendue : un tableau de dossiers était attendu.',
+    }
+  }
+
+  const workouts: LibraryWorkout[] = []
+
+  for (const entry of outcome.data) {
+    const record = asRecord(entry)
+    if (!record) continue
+
+    const nested = record.workouts
+    if (Array.isArray(nested)) {
+      // Un dossier, qui porte ses séances.
+      const folder = text(record.name)
+      for (const child of nested) {
+        const workout = asRecord(child)
+        if (workout) workouts.push(toWorkout(workout, folder))
+      }
+    } else if (record.description !== undefined || record.moving_time !== undefined) {
+      // Une séance posée à plat, sans dossier autour.
+      workouts.push(toWorkout(record, null))
+    }
+  }
+
+  return { kind: 'ok', data: workouts }
+}
+
 /** Fenêtre courte : on veut valider l'accès, pas rapatrier l'historique. */
 export async function fetchRecentActivities(
   credentials: Credentials,
