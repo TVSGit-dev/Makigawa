@@ -1,9 +1,8 @@
 # Section 5 — Règles d'adaptation
 
-> **Statut : brouillon de travail, à retravailler.** Ce document est la
-> référence citée par `CLAUDE.md`. Il vit sur sa propre branche
-> (`docs/regles-adaptation`) précisément pour être repris autant de fois
-> qu'il le faudra sans bloquer le code.
+> **Statut : les neuf décisions de la partie F sont arrêtées** (5 septembre
+> 2026). Le document reste sur sa propre branche (`docs/regles-adaptation`)
+> pour être repris autant de fois qu'il le faudra sans bloquer le code.
 >
 > Dernière révision : 5 septembre 2026.
 
@@ -148,8 +147,8 @@ variable que tu contrôles. Recommander « dors 9 heures » serait inutile.
 > **Conséquence de conception :** l'app doit traiter une mauvaise nuit comme
 > **de la charge**, pas comme un détail. Concrètement, c'est le seul endroit
 > où j'introduirais une saisie manuelle — un bouton « nuit difficile » qui
-> décale la journée d'un cran vers « chargée ». C'est **à trancher** (partie
-> F) : ça coûte un tap, et le projet tient à ne pas devenir une corvée.
+> décale la journée d'un cran vers « chargée ». **Retenu**, à un seul tap :
+> c'est le seul endroit où la saisie manuelle vaut son coût.
 
 ## A.5 Le cas particulier : ta charge est en grande partie subie
 
@@ -287,11 +286,11 @@ outils les mieux étayés de l'entraînement. Deux rythmes existent :
 | **3:1** — trois semaines de charge, une allégée | standard, athlètes bien récupérés |
 | **2:1** — deux semaines de charge, une allégée | forte contrainte de vie, récupération limitée, masters |
 
-> **Ma recommandation : 2:1.** Pas parce que tu serais fragile, mais parce
-> que la littérature fait dépendre ce choix de la **capacité de
-> récupération**, et que la tienne est contrainte par deux enfants en bas âge
-> et un sommeil que tu ne pilotes pas. Le 3:1 suppose des semaines de charge
-> pleines et une récupération correcte entre elles. **À trancher.**
+> **Retenu : 2:1.** Pas parce que l'athlète serait fragile, mais parce que la
+> littérature fait dépendre ce choix de la **capacité de récupération**, et
+> que la sienne est contrainte par deux enfants en bas âge et un sommeil qu'il
+> ne pilote pas. Le 3:1 suppose des semaines de charge pleines et une
+> récupération correcte entre elles.
 
 En décharge : **réduire le volume de 40 à 60 %**, garder une ou deux sorties
 courtes avec quelques accélérations brèves pour ne pas s'éteindre.
@@ -382,12 +381,10 @@ Concrètement, l'app :
 - repasse en prudent si le TSB reste sous le plancher plus de 5 jours
 - repasse en prudent après une semaine subie
 
-> **À trancher :** faut-il que ces retours automatiques soient
-> **contraignants** (l'app impose) ou **suggérés** (l'app propose, tu passes
-> outre) ? Je penche pour contraignant sur le seul cas du troisième
-> « ambitieux » — c'est là que le coût d'une erreur est le plus élevé et que
-> le jugement du moment est le moins fiable, puisque la perte de lucidité
-> fait partie des symptômes.
+> **Retenu : contraignant pour le seul troisième « ambitieux » d'affilée**,
+> suggéré partout ailleurs. C'est là que le coût d'une erreur est le plus
+> élevé et que le jugement du moment est le moins fiable, puisque la perte de
+> lucidité fait partie des symptômes.
 
 ---
 # Partie E — Les règles
@@ -484,10 +481,11 @@ Sinon, la réponse est **oui**, et l'app ne fait rien — c'est le cas le plus
 fréquent, et une app qui ne fait rien quand tout va bien est une app qui
 fonctionne.
 
-> **À trancher :** la condition 2 est la plus discutable. Elle interdit une
-> séance après deux journées moyennes consécutives, ce qui, avec 6-7 trajets
-> par semaine, risque d'arriver souvent. Si le contrôle de la phase 6 montre
-> qu'elle bloque trop, la desserrer à « deux journées chargées ».
+> **Retenu avec réserve.** La condition 2 est la plus discutable : elle
+> interdit une séance après deux journées moyennes consécutives, ce qui, avec
+> 6-7 trajets par semaine, risque d'arriver souvent. Si le contrôle de la
+> phase 6 montre qu'elle bloque trop, la desserrer à « deux journées
+> chargées ».
 
 ## E.3 Quand la réponse est non
 
@@ -576,22 +574,26 @@ priment sur toutes les précédentes :
 
 ---
 
-# Partie F — Ce qui reste à trancher
+# Partie F — Les décisions arrêtées
 
-Rien de ce qui suit n'empêche de commencer, mais chaque point change un
-comportement de l'app.
+Les neuf points ont été tranchés le 5 septembre 2026. Ils sont désormais la
+spécification, pas une proposition.
 
-| # | Question | Ma proposition |
+| # | Question | Décision |
 |---|---|---|
-| 1 | Mesure de la charge : minutes au-dessus d'un seuil, ou charge d'intervals.icu ? | **charge d'intervals.icu** — pas de calcul maison, et la durée est prise en compte |
-| 2 | Bornes des trois bandes de charge | **à calibrer en phase 6**, par la méthode du E.1 |
-| 3 | Seuil et durée minimale du pic | 175 bpm est un point de départ ; **il lui faut une durée minimale** |
-| 4 | Condition 2 du E.2 (deux journées moyennes) | garder, **desserrer si elle bloque trop** en phase 6 |
-| 5 | Décaler de 2 ou 3 jours ? | **2** |
-| 6 | « Réduire » : durée de moitié, ou intensité retirée ? | **durée de moitié** — l'intensité est ce qui manque |
-| 7 | Rythme charge/décharge : 3:1 ou 2:1 ? | **2:1**, au vu de la contrainte de sommeil |
-| 8 | Une saisie « nuit difficile » ? | oui, un seul tap, elle décale la journée d'un cran |
-| 9 | Retour automatique en mode prudent : imposé ou suggéré ? | **imposé** pour le 3ᵉ « ambitieux », suggéré ailleurs |
+| 1 | Mesure de la charge | **charge quotidienne d'intervals.icu**, pas un comptage de minutes |
+| 2 | Bornes des trois bandes | **à calibrer en phase 6**, par la méthode du E.1 |
+| 3 | Seuil du pic | **175 bpm**, avec une durée minimale à fixer |
+| 4 | Condition 2 du E.2 | **gardée**, à desserrer si la phase 6 montre qu'elle bloque |
+| 5 | Décalage d'une séance | **2 jours** au maximum |
+| 6 | « Réduire » | **durée de moitié, intensité inchangée** |
+| 7 | Rythme charge/décharge | **2:1** |
+| 8 | Saisie « nuit difficile » | **oui**, un seul tap |
+| 9 | Retours automatiques | **imposés** pour le 3ᵉ « ambitieux », suggérés ailleurs |
+
+Deux d'entre elles restent des **paramètres à mesurer** plutôt que des
+valeurs : les bornes des bandes de charge (2) et la durée minimale du pic (3).
+Elles ne bloquent pas l'écriture du code, qui les prendra en entrée.
 
 ## Ce que je n'ai pas décidé à ta place
 
