@@ -1,10 +1,10 @@
 # Section 5 — Règles d'adaptation
 
-> **Statut : les neuf décisions de la partie F sont arrêtées** (5 septembre
-> 2026). Le document reste sur sa propre branche (`docs/regles-adaptation`)
-> pour être repris autant de fois qu'il le faudra sans bloquer le code.
+> **Statut : spécification complète et implémentée.** Les douze décisions sont
+> arrêtées, et l'échelle de charge est étalonnée sur des journées réelles
+> depuis le 6 septembre 2026. Les règles vivent dans `src/rules/`.
 >
-> Dernière révision : 5 septembre 2026.
+> Dernière révision : 6 septembre 2026.
 
 ---
 
@@ -39,7 +39,7 @@ pourrais ni les contester ni les corriger dans six mois.
 - **Partie D — Le curseur d'intention.** Dépasser ses limites, ou se
   reposer — et comment l'app en tient compte sans devenir dangereuse.
 - **Partie E — Les règles.** Le déterministe, ce que le code exécute.
-- **Partie F — Ce qui reste ouvert.**
+- **Partie F — Les décisions arrêtées.**
 
 ---
 
@@ -448,22 +448,35 @@ activités additionnées. Même unité, même vocabulaire, deux agrégations.
 
 | Niveau | Charge | Ce qu'on y trouve |
 |---|---|---|
-| **0 — Négligeable** | < 15 | mobilité, étirements |
-| **1 — Légère** | 15 à 40 | un trajet en vélo électrique |
-| **2 — Modérée** | 40 à 70 | un aller-retour musculaire, une endurance courte |
-| **3 — Soutenue** | 70 à 110 | une vraie séance de qualité |
-| **4 — Lourde** | > 110 | grosse séance, sortie longue |
+| **0 — Négligeable** | < 20 | mobilité, étirements |
+| **1 — Légère** | 20 à 55 | un aller-retour en vélo électrique |
+| **2 — Modérée** | 55 à 90 | la séance « Chill », une endurance courte |
+| **3 — Soutenue** | 90 à 135 | un aller-retour musculaire |
+| **4 — Lourde** | > 135 | une belle balade, une sortie longue |
 
-**Ces bornes sont provisoires.** Le seul point d'ancrage réel dont on dispose
-est la séance « Chill » relevée le 5 septembre : une heure d'intérieur en z2
-avec quelques incursions plus haut, pour une charge de **69**. Le reste est
-déduit autour. Les valeurs définitives se relèvent en phase 6.
+**Étalonnées le 6 septembre 2026** sur des journées réelles relevées par
+l'athlète :
 
-> **Méthode de calibration.** Relever la charge d'une journée à trajets
-> électriques seuls, puis celle d'une journée avec aller-retour musculaire.
-> La première doit tomber en niveau 1, la seconde en niveau 3. Ajuster les
-> bornes jusqu'à ce que ce soit vrai — c'est le contrôle de la phase 6,
-> exprimé en charge plutôt qu'en minutes.
+| Repère | Charge constatée | Niveau |
+|---|---|---|
+| Aller-retour en vélo électrique | 30 à 40 | 1 |
+| Séance « Chill », une heure d'intérieur | 69 | 2 |
+| Aller-retour musculaire | 110 à 120 | 3 |
+| Belle balade, une seule sortie | 140 | 4 |
+
+Les bornes sont placées à mi-chemin entre ces repères, ce qui laisse une
+quinzaine de points de marge de chaque côté : un trajet électrique un peu
+appuyé reste léger, un aller-retour musculaire un peu doux reste chargé.
+
+Elles restent un **paramètre** et non une constante figée. Le poids ou la LTHR
+changent, les charges d'intervals.icu suivent, et les bornes se redéplacent par
+la même méthode.
+
+> **Ce que l'étalonnage a corrigé.** Les bornes déduites à l'aveugle —
+> 15 / 40 / 70 / 110 — plaçaient l'aller-retour électrique juste sous une
+> borne et l'aller-retour musculaire au sommet de l'échelle, sans aucune
+> marge. Les repères tombaient dans les bonnes catégories, mais par chance
+> plutôt que par construction.
 
 ### Le vélo électrique dans cette échelle
 
@@ -490,11 +503,18 @@ Le niveau d'une séance planifiée décide de ce que les règles lui font :
 | Niveau de la séance | Traitement |
 |---|---|
 | 0 — Négligeable | mobilité : jamais déplacée, jamais bloquante, jamais bloquée |
-| 1-2 — Légère à modérée | déplaçable, mais n'occupe pas le créneau de qualité |
-| 3-4 — Soutenue à lourde | **séance de qualité** : toutes les règles d'espacement s'appliquent |
+| 1 — Légère | un trajet : n'est jamais une séance, sa charge compte quand même |
+| 2 à 4 — Modérée à lourde | **séance de qualité** : toutes les règles d'espacement s'appliquent |
 
 C'est ce qui permet à une séance de mobilité de cohabiter avec n'importe quoi,
 sans jamais déclencher un décalage ni en subir un.
+
+> **Le seuil de qualité d'une séance est un cran plus bas que celui d'une
+> journée chargée**, et l'étalonnage explique pourquoi. Une séance et une
+> journée ne vivent pas dans la même plage : la séance « Chill » pèse 69 quand
+> un aller-retour musculaire en pèse 110 à 120. Aligner les deux seuils ferait
+> qu'une heure d'intérieur structurée ne serait pas une séance de qualité, ce
+> qu'elle est manifestement.
 
 ### La journée, dans la même échelle
 
@@ -506,11 +526,11 @@ appliquée au total du jour :
 |---|---|---|
 | **Légère** | 0 ou 1 | un aller-retour en vélo électrique |
 | **Moyenne** | 2 | électrique plus une mobilité, ou une endurance courte |
-| **Chargée** | 3 ou 4, **ou un pic** | un aller-retour musculaire, une séance de qualité |
+| **Chargée** | 3 ou 4, **ou un pic** | un aller-retour musculaire, une belle balade |
 
-La colonne de droite est ce que la phase 6 doit confirmer. Si un aller-retour
-électrique ne sort pas en journée légère, ce sont les bornes qu'on déplace,
-jamais les règles.
+La colonne de droite est **confirmée par les relevés du 6 septembre**. Si un
+jour elle cessait de l'être, ce sont les bornes qu'on déplacerait — jamais les
+règles.
 
 ### Le pic
 
@@ -586,8 +606,12 @@ Trois règles de placement, dont deux viennent directement de la recherche sur
 l'entraînement concurrent *(établi)* :
 
 - **Deux séances de qualité ne se suivent jamais.** Un jour d'écart minimum.
-- **Renfo jambes et séance d'endurance dure : 24 à 48 h d'écart**, dans les
-  deux sens. Ni renfo la veille d'une grosse sortie, ni l'inverse.
+- **Renfo jambes et séance d'endurance dure : 48 h d'écart**, dans les deux
+  sens. Ni renfo la veille d'une grosse sortie, ni l'inverse. C'est un jour de
+  plus que l'espacement de deux séances de qualité quelconques, et cette
+  différence est ce qui rend la règle utile : à un seul jour d'écart, le
+  contrôle précédent l'intercepterait à chaque fois et elle ne servirait
+  jamais.
 - **Si les deux tombent le même jour :** endurance d'abord, **3 h d'écart
   minimum**. La signalisation de l'endurance met environ 3 h à retomber,
   celle de la force dure ~18 h.
@@ -665,7 +689,7 @@ spécification, pas une proposition.
 | # | Question | Décision |
 |---|---|---|
 | 1 | Mesure de la charge | **charge quotidienne d'intervals.icu**, pas un comptage de minutes |
-| 2 | Bornes des trois bandes | **à calibrer en phase 6**, par la méthode du E.1 |
+| 2 | Bornes des cinq niveaux | **étalonnées le 6 septembre** : 20 / 55 / 90 / 135 |
 | 3 | Seuil du pic | **175 bpm**, avec une durée minimale à fixer |
 | 4 | Condition 2 du E.2 | **gardée**, à desserrer si la phase 6 montre qu'elle bloque |
 | 5 | Décalage d'une séance | **2 jours** au maximum |
@@ -682,9 +706,10 @@ Trois précisions s'y sont ajoutées le même jour :
 | 11 | Durée minimale du pic | **2 minutes** cumulées au-dessus de 175 bpm |
 | 12 | Autonomie de l'app | **elle propose, l'athlète confirme** (E.7) |
 
-Une seule reste un **paramètre à mesurer** plutôt qu'une valeur : les bornes
-des cinq niveaux de charge, qui se relèvent en phase 6. Elles ne bloquent pas
-l'écriture du code, qui les prendra en entrée.
+**Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
+inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles
+restent un paramètre du code et non une constante figée : le jour où le profil
+de l'athlète change, elles se redéplacent sans qu'aucune règle ne bouge.
 
 ## Ce que je n'ai pas décidé à ta place
 

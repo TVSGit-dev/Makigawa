@@ -11,12 +11,22 @@ import type { DayRecord, DayWeight, LoadLevel, PlannedSession } from './types'
 
 /**
  * Les bornes de l'échelle. Chaque borne appartient au niveau supérieur :
- * une charge de 40 est modérée, pas légère.
+ * une charge de 55 est modérée, pas légère.
  *
- * **Provisoires.** Le seul ancrage réel est la séance « Chill » relevée le
- * 5 septembre 2026 — une heure d'intérieur pour une charge de 69 — et le
- * reste est déduit autour. La phase 6 les corrigera sur des journées réelles,
- * d'où leur passage en paramètre plutôt qu'en constante figée.
+ * **Étalonnées sur des journées réelles**, relevées par l'athlète le
+ * 6 septembre 2026 :
+ *
+ * | Journée ou séance | Charge |
+ * |---|---|
+ * | aller-retour en vélo électrique | 30 à 40 |
+ * | séance « Chill », une heure d'intérieur | 69 |
+ * | aller-retour musculaire | 110 à 120 |
+ * | belle balade, une seule sortie | 140 |
+ *
+ * Les bornes sont placées à mi-chemin entre ces repères, ce qui laisse une
+ * quinzaine de points de marge de part et d'autre. Elles restent un paramètre
+ * et non une constante figée : le poids ou la LTHR changent, les charges
+ * suivent.
  */
 export type LoadScale = {
   /** En dessous : niveau 0, négligeable. */
@@ -30,10 +40,10 @@ export type LoadScale = {
 }
 
 export const DEFAULT_SCALE: LoadScale = {
-  light: 15,
-  moderate: 40,
-  sustained: 70,
-  heavy: 110,
+  light: 20,
+  moderate: 55,
+  sustained: 90,
+  heavy: 135,
 }
 
 /** Le seuil de pic, en battements par minute. */
@@ -47,8 +57,19 @@ export const PEAK_BPM = 175
  */
 export const PEAK_MIN_SECONDS = 120
 
-/** À partir de quel niveau une séance est dite « de qualité » (E.1). */
-export const QUALITY_LEVEL: LoadLevel = 3
+/**
+ * À partir de quel niveau une séance est dite « de qualité » (E.1).
+ *
+ * Une séance et une journée ne vivent pas dans la même plage : la séance
+ * « Chill » pèse 69 quand un aller-retour musculaire en pèse 110 à 120. Le
+ * seuil de qualité d'une **séance** est donc plus bas d'un cran que celui
+ * d'une **journée chargée** — sans quoi une heure d'intérieur structurée ne
+ * serait pas une séance de qualité, ce qu'elle est manifestement.
+ */
+export const QUALITY_LEVEL: LoadLevel = 2
+
+/** À partir de quel niveau une **journée** est dite chargée. */
+export const CHARGED_DAY_LEVEL: LoadLevel = 3
 
 export function levelOf(load: number, scale: LoadScale = DEFAULT_SCALE): LoadLevel {
   if (load < scale.light) return 0
@@ -95,7 +116,7 @@ export function weighDay(
   const load = day?.observedLoad ?? plannedLoadOn(date, sessions)
   const level = levelOf(load, scale)
 
-  if (level >= 3) return 'chargee'
-  if (level === 2) return 'moyenne'
+  if (level >= CHARGED_DAY_LEVEL) return 'chargee'
+  if (level === CHARGED_DAY_LEVEL - 1) return 'moyenne'
   return 'legere'
 }

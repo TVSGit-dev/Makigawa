@@ -11,19 +11,20 @@
  */
 
 import { shiftDayKey } from '../calendar/dates'
-import {
-  DEFAULT_SCALE,
-  isQuality,
-  levelOf,
-  QUALITY_LEVEL,
-  weighDay,
-  type LoadScale,
-} from './scale'
+import { DEFAULT_SCALE, isQuality, weighDay, type LoadScale } from './scale'
 import { INTENTS, type Intent } from './intent'
 import type { DayKey, DayRecord, DayWeight, PlannedSession } from './types'
 
 /** Combien de jours l'app cherche une place avant de renoncer (E.3). */
 export const MAX_SHIFT_DAYS = 2
+
+/**
+ * L'écart exigé entre une séance de force et une séance d'endurance (E.4).
+ *
+ * Deux jours, là où deux séances de qualité quelconques n'en demandent qu'un :
+ * l'entraînement concurrent demande 24 à 48 h, pas 24.
+ */
+export const FORCE_ENDURANCE_GAP_DAYS = 2
 
 /** Ce qui fait dire non, et pourquoi. */
 export type Refusal =
@@ -57,11 +58,6 @@ export type Context = {
 }
 
 const WEIGHT_ORDER: Record<DayWeight, number> = { legere: 0, moyenne: 1, chargee: 2 }
-
-/** Une séance qui pèse assez pour interférer avec une autre (E.4). */
-function isSubstantial(session: PlannedSession, scale: LoadScale): boolean {
-  return session.load !== null && levelOf(session.load, scale) >= 2
-}
 
 /**
  * La question centrale du E.2, posée pour un jour donné.
@@ -129,12 +125,21 @@ export function refuse(
     if (isWithin(other.date, date, 1)) return { code: 'qualite-voisine', date: other.date }
   }
 
-  // E.4 — force et endurance demandent 24 à 48 h d'écart, dans les deux sens.
+  // E.4 — force et endurance demandent **24 à 48 h** d'écart, dans les deux
+  // sens. C'est un jour de plus que l'espacement de deux séances de qualité
+  // quelconques, et c'est ce qui empêche cette règle d'être redondante : sans
+  // cette différence, le contrôle précédent l'aurait interceptée à chaque
+  // fois. La signalisation de l'endurance met environ 3 h à retomber, celle de
+  // la force dure ~18 h — d'où l'écart plus large.
   if (session.kind === 'force' || session.kind === 'endurance') {
     const opposite = session.kind === 'force' ? 'endurance' : 'force'
     for (const other of others) {
-      if (other.kind !== opposite || !isSubstantial(other, scale)) continue
-      if (isWithin(other.date, date, 1)) return { code: 'force-trop-proche', date: other.date }
+      // Peser assez pour interférer, c'est peser assez pour être une séance
+      // de qualité : les deux seuils coïncident depuis l'étalonnage.
+      if (other.kind !== opposite || !isQuality(other, scale)) continue
+      if (isWithin(other.date, date, FORCE_ENDURANCE_GAP_DAYS)) {
+        return { code: 'force-trop-proche', date: other.date }
+      }
     }
   }
 
@@ -164,13 +169,17 @@ export function propose(session: PlannedSession, context: Context): Proposal {
     }
   }
 
-  // 2. Réduire — durée de moitié, intensité inchangée. Ta ressource rare est
-  //    l'intensité : raccourcir préserve ce qui manque, adoucir détruit ce qui
-  //    est rare. Une séance ainsi réduite descend sous le seuil de qualité, et
-  //    les règles cessent donc de la gouverner.
-  const halved = (session.load ?? 0) / 2
-  if (levelOf(halved, scale) < QUALITY_LEVEL) {
-    return { action: 'reduire', load: halved, because: refusal }
+  // 2. Réduire — durée de moitié, intensité inchangée. La ressource rare de
+  //    l'athlète est l'intensité : raccourcir préserve ce qui manque, adoucir
+  //    détruit ce qui est rare.
+  //
+  //    La version courte est repassée au même examen, et elle peut le franchir
+  //    de deux façons : en descendant sous le seuil de qualité, les règles
+  //    cessant alors de la gouverner, ou en libérant assez de charge pour que
+  //    la journée redevienne acceptable.
+  const halved: PlannedSession = { ...session, load: (session.load ?? 0) / 2 }
+  if (!isQuality(halved, scale) || !refuse(halved, halved.date, context)) {
+    return { action: 'reduire', load: halved.load ?? 0, because: refusal }
   }
 
   // 3. Laisser tomber. Pas de report, pas de marque, pas de mention.

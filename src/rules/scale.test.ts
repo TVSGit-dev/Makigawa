@@ -27,12 +27,11 @@ const day = (over: Partial<DayRecord> = {}): DayRecord => ({
 describe('levelOf', () => {
   it('classe les charges selon les cinq niveaux', () => {
     expect(levelOf(0)).toBe(0)
-    expect(levelOf(14)).toBe(0)
-    expect(levelOf(25)).toBe(1)
-    expect(levelOf(55)).toBe(2)
-    expect(levelOf(69)).toBe(2) // la séance « Chill », seul ancrage réel
-    expect(levelOf(90)).toBe(3)
-    expect(levelOf(150)).toBe(4)
+    expect(levelOf(18)).toBe(0)
+    expect(levelOf(35)).toBe(1) // un aller-retour électrique
+    expect(levelOf(69)).toBe(2) // la séance « Chill »
+    expect(levelOf(115)).toBe(3) // un aller-retour musculaire
+    expect(levelOf(140)).toBe(4) // une belle balade
   })
 
   it('range chaque borne dans le niveau supérieur', () => {
@@ -42,10 +41,10 @@ describe('levelOf', () => {
     expect(levelOf(DEFAULT_SCALE.heavy)).toBe(4)
   })
 
-  it('suit des bornes personnalisées, la phase 6 devant les corriger', () => {
-    const wider = { light: 20, moderate: 60, sustained: 100, heavy: 160 }
-    expect(levelOf(55, wider)).toBe(1)
-    expect(levelOf(55)).toBe(2)
+  it('suit des bornes personnalisées, le profil de l’athlète pouvant changer', () => {
+    const wider = { light: 25, moderate: 70, sustained: 115, heavy: 170 }
+    expect(levelOf(60, wider)).toBe(1)
+    expect(levelOf(60)).toBe(2)
   })
 })
 
@@ -55,9 +54,13 @@ describe('isQuality', () => {
     expect(isQuality(session({ load: 150 }))).toBe(true)
   })
 
+  it('retient la séance « Chill », une heure d’intérieur structurée', () => {
+    expect(isQuality(session({ load: 69 }))).toBe(true)
+  })
+
   it('écarte ce qui pèse moins', () => {
-    expect(isQuality(session({ load: 69 }))).toBe(false)
-    expect(isQuality(session({ load: 10 }))).toBe(false)
+    expect(isQuality(session({ load: 35 }))).toBe(false) // un trajet électrique
+    expect(isQuality(session({ load: 10 }))).toBe(false) // de la mobilité
   })
 
   it('ne suppose pas ce qu’elle ne sait pas', () => {
@@ -82,18 +85,18 @@ describe('plannedLoadOn', () => {
 
 describe('weighDay', () => {
   it('pèse une journée passée à ce qu’elle a coûté', () => {
-    expect(weighDay(day({ observedLoad: 20 }), '2026-09-10', [])).toBe('legere')
-    expect(weighDay(day({ observedLoad: 55 }), '2026-09-10', [])).toBe('moyenne')
-    expect(weighDay(day({ observedLoad: 95 }), '2026-09-10', [])).toBe('chargee')
+    expect(weighDay(day({ observedLoad: 35 }), '2026-09-10', [])).toBe('legere')
+    expect(weighDay(day({ observedLoad: 69 }), '2026-09-10', [])).toBe('moyenne')
+    expect(weighDay(day({ observedLoad: 115 }), '2026-09-10', [])).toBe('chargee')
   })
 
   it('pèse une journée à venir à ce qu’on y a planifié', () => {
-    const planned = [session({ date: '2026-09-10', load: 95 })]
+    const planned = [session({ date: '2026-09-10', load: 115 })]
     expect(weighDay(undefined, '2026-09-10', planned)).toBe('chargee')
   })
 
   it('préfère le constaté au planifié quand les deux existent', () => {
-    const planned = [session({ date: '2026-09-10', load: 95 })]
+    const planned = [session({ date: '2026-09-10', load: 115 })]
     expect(weighDay(day({ observedLoad: 10 }), '2026-09-10', planned)).toBe('legere')
   })
 
@@ -113,22 +116,39 @@ describe('weighDay', () => {
 })
 
 /**
- * Le contrôle que la phase 6 doit confirmer sur des journées réelles : un
- * aller-retour électrique sort en légère, un aller-retour musculaire en
- * chargée.
+ * Les journées réelles relevées par l'athlète le 6 septembre 2026. Ce sont
+ * elles qui étalonnent l'échelle : si l'une de ces assertions tombe, ce sont
+ * les bornes qu'on déplace — jamais les règles.
  *
- * Les charges employées ici sont **estimées**, faute de relevé. Si ces
- * assertions tombent devant les vrais chiffres, ce sont les bornes de
- * l'échelle qu'on déplace — jamais les règles.
+ * Chaque repère est éprouvé à ses deux extrémités, l'athlète les ayant donnés
+ * en fourchette.
  */
-describe('journées de référence (à confirmer en phase 6)', () => {
+describe('journées de référence, relevées', () => {
   it('un aller-retour en vélo électrique sort en journée légère', () => {
-    const commute = day({ observedLoad: 2 * 15, peakSeconds: 0 })
-    expect(weighDay(commute, '2026-09-10', [])).toBe('legere')
+    for (const load of [30, 40]) {
+      expect(weighDay(day({ observedLoad: load }), '2026-09-10', [])).toBe('legere')
+    }
   })
 
   it('un aller-retour musculaire sort en journée chargée', () => {
-    const commute = day({ observedLoad: 2 * 45, peakSeconds: 0 })
-    expect(weighDay(commute, '2026-09-10', [])).toBe('chargee')
+    for (const load of [110, 120]) {
+      expect(weighDay(day({ observedLoad: load }), '2026-09-10', [])).toBe('chargee')
+    }
+  })
+
+  it('une belle balade suffit à elle seule à charger la journée', () => {
+    expect(weighDay(day({ observedLoad: 140 }), '2026-09-10', [])).toBe('chargee')
+  })
+
+  it('une journée de trajets plus une séance devient chargée', () => {
+    // 35 de trajets et la séance « Chill » à 69 : le cumul bascule.
+    expect(weighDay(day({ observedLoad: 35 + 69 }), '2026-09-10', [])).toBe('chargee')
+  })
+
+  it('laisse une marge de part et d’autre des repères', () => {
+    // Un électrique un peu appuyé reste léger, un musculaire un peu doux
+    // reste chargé : les bornes ne frôlent pas les valeurs relevées.
+    expect(weighDay(day({ observedLoad: 50 }), '2026-09-10', [])).toBe('legere')
+    expect(weighDay(day({ observedLoad: 95 }), '2026-09-10', [])).toBe('chargee')
   })
 })
