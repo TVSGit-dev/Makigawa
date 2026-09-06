@@ -7,8 +7,8 @@ import type { DayRecord, PlannedSession } from './types'
  * contraire, ce qui isole la règle qu'on éprouve.
  */
 const QUALITY = 90
-const LIGHT = 20
-const CHARGED = 95
+const LIGHT = 35 // un aller-retour électrique
+const CHARGED = 115 // un aller-retour musculaire
 
 const quality = (over: Partial<PlannedSession> = {}): PlannedSession => ({
   id: 'seance',
@@ -56,7 +56,7 @@ describe('refuse — la question centrale', () => {
     const session = quality()
     const ctx = context({
       planned: [session],
-      days: [observed('2026-09-09', 55), observed('2026-09-08', 55)],
+      days: [observed('2026-09-09', 69), observed('2026-09-08', 69)],
     })
     expect(refuse(session, session.date, ctx)?.code).toBe('deux-jours-charges')
   })
@@ -97,18 +97,25 @@ describe('refuse — la question centrale', () => {
     expect(refuse(session, session.date, ctx)?.code).toBe('lendemain-charge')
   })
 
-  it('refuse un renfo collé à une endurance, dans les deux sens', () => {
-    // Espacées de deux jours, aucune ne rend l'autre journée chargée : seule
-    // la règle d'entraînement concurrent peut les séparer.
-    const renfo = quality({ id: 'renfo', date: '2026-09-10', load: 50, kind: 'force' })
-    const endurance = quality({ id: 'endu', date: '2026-09-11', load: 50 })
+  it('refuse un renfo trop proche d’une endurance, dans les deux sens', () => {
+    // Deux jours d'écart : l'espacement des séances de qualité, qui n'exige
+    // qu'un jour, ne les sépare plus. Seul l'entraînement concurrent le fait.
+    const renfo = quality({ id: 'renfo', date: '2026-09-10', load: 60, kind: 'force' })
+    const endurance = quality({ id: 'endu', date: '2026-09-12', load: 60 })
     const ctx = context({ planned: [renfo, endurance] })
     expect(refuse(renfo, renfo.date, ctx)?.code).toBe('force-trop-proche')
     expect(refuse(endurance, endurance.date, ctx)?.code).toBe('force-trop-proche')
   })
 
+  it('accepte un renfo à trois jours d’une endurance', () => {
+    const renfo = quality({ id: 'renfo', date: '2026-09-10', load: 60, kind: 'force' })
+    const endurance = quality({ id: 'endu', date: '2026-09-13', load: 60 })
+    const ctx = context({ planned: [renfo, endurance] })
+    expect(refuse(renfo, renfo.date, ctx)).toBeNull()
+  })
+
   it('laisse une mobilité cohabiter avec un renfo', () => {
-    const renfo = quality({ id: 'renfo', load: 50, kind: 'force' })
+    const renfo = quality({ id: 'renfo', load: 60, kind: 'force' })
     const mobilite = quality({ id: 'mob', date: '2026-09-11', load: 10, kind: 'endurance' })
     const ctx = context({ planned: [renfo, mobilite] })
     expect(refuse(renfo, renfo.date, ctx)).toBeNull()
@@ -177,8 +184,10 @@ describe('propose — la cascade', () => {
     expect(propose(session, ctx)).toMatchObject({ action: 'reduire', load: 45 })
   })
 
-  it('abandonne quand même la moitié reste une séance de qualité', () => {
-    const session = quality({ load: 240 })
+  it('abandonne quand la moitié reste refusée', () => {
+    // 140, une belle balade : réduite elle pèse encore 70, toujours une
+    // séance de qualité, et le TSB la refuse toujours.
+    const session = quality({ load: 140 })
     const ctx = context({ planned: [session], tsb: -50 })
     expect(propose(session, ctx).action).toBe('abandonner')
   })
@@ -199,7 +208,7 @@ describe('les interdictions', () => {
   it('ne propose jamais autre chose que garder, décaler, réduire ou abandonner', () => {
     const actions = new Set<string>()
     for (const tsb of [0, -25, -50]) {
-      for (const load of [10, 50, 90, 240]) {
+      for (const load of [10, 35, 90, 140]) {
         for (const yesterday of [LIGHT, CHARGED]) {
           const session = quality({ load })
           const ctx = context({
