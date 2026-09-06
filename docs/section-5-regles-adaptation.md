@@ -440,15 +440,77 @@ Le deuxième règle gratuitement le trou que j'avais signalé : trois heures à
 145 bpm produisent une charge élevée chez intervals.icu, alors qu'elles
 comptaient pour zéro minute au-dessus de 150.
 
-**Trois bandes — légère, moyenne, chargée — dont les bornes sont à établir en
-phase 6.** Je ne les invente pas ici : la méthode est plus solide qu'un
-chiffre sorti de nulle part.
+### L'échelle de charge
+
+Une seule échelle à cinq niveaux, qui sert **deux fois** : pour situer une
+séance prise isolément, et pour situer une journée entière une fois ses
+activités additionnées. Même unité, même vocabulaire, deux agrégations.
+
+| Niveau | Charge | Ce qu'on y trouve |
+|---|---|---|
+| **0 — Négligeable** | < 15 | mobilité, étirements |
+| **1 — Légère** | 15 à 40 | un trajet en vélo électrique |
+| **2 — Modérée** | 40 à 70 | un aller-retour musculaire, une endurance courte |
+| **3 — Soutenue** | 70 à 110 | une vraie séance de qualité |
+| **4 — Lourde** | > 110 | grosse séance, sortie longue |
+
+**Ces bornes sont provisoires.** Le seul point d'ancrage réel dont on dispose
+est la séance « Chill » relevée le 5 septembre : une heure d'intérieur en z2
+avec quelques incursions plus haut, pour une charge de **69**. Le reste est
+déduit autour. Les valeurs définitives se relèvent en phase 6.
 
 > **Méthode de calibration.** Relever la charge d'une journée à trajets
 > électriques seuls, puis celle d'une journée avec aller-retour musculaire.
-> Placer la frontière légère/moyenne au-dessus de la première, et la frontière
-> moyenne/chargée au-dessous de la seconde. C'est exactement le contrôle déjà
-> prévu en phase 6, exprimé en charge plutôt qu'en minutes.
+> La première doit tomber en niveau 1, la seconde en niveau 3. Ajuster les
+> bornes jusqu'à ce que ce soit vrai — c'est le contrôle de la phase 6,
+> exprimé en charge plutôt qu'en minutes.
+
+### Le vélo électrique dans cette échelle
+
+L'athlète situe le vélo électrique du côté de la mobilité, et c'est juste au
+niveau d'un trajet : chacun pèse peu, niveau 1 au plus.
+
+Mais ce n'est pas contradictoire avec le A.5, qui pose que ces trajets portent
+60 à 100 % de la charge hebdomadaire. **Chaque trajet est léger ; c'est leur
+accumulation qui fait le volume.** Six à sept trajets par semaine, à 25 ou 30
+de charge chacun, pèsent plus lourd que deux séances structurées.
+
+Deux conséquences à ne pas confondre :
+
+- **Un trajet n'est jamais une séance.** Makigawa ne le planifie pas, ne le
+  déplace pas, ne le supprime pas. Il n'entre dans aucune règle d'espacement.
+- **Sa charge compte toujours.** Elle s'additionne dans la journée et pèse
+  donc sur la décision du E.2. L'ignorer reviendrait à ignorer l'essentiel de
+  ce que l'athlète encaisse.
+
+### Ce qui compte comme séance de qualité
+
+Le niveau d'une séance planifiée décide de ce que les règles lui font :
+
+| Niveau de la séance | Traitement |
+|---|---|
+| 0 — Négligeable | mobilité : jamais déplacée, jamais bloquante, jamais bloquée |
+| 1-2 — Légère à modérée | déplaçable, mais n'occupe pas le créneau de qualité |
+| 3-4 — Soutenue à lourde | **séance de qualité** : toutes les règles d'espacement s'appliquent |
+
+C'est ce qui permet à une séance de mobilité de cohabiter avec n'importe quoi,
+sans jamais déclencher un décalage ni en subir un.
+
+### La journée, dans la même échelle
+
+Le reste du document parle de journées légères, moyennes et chargées. Ce ne
+sont pas d'autres catégories, seulement des regroupements de la même échelle
+appliquée au total du jour :
+
+| Journée | Niveau du total | Exemple attendu |
+|---|---|---|
+| **Légère** | 0 ou 1 | un aller-retour en vélo électrique |
+| **Moyenne** | 2 | électrique plus une mobilité, ou une endurance courte |
+| **Chargée** | 3 ou 4, **ou un pic** | un aller-retour musculaire, une séance de qualité |
+
+La colonne de droite est ce que la phase 6 doit confirmer. Si un aller-retour
+électrique ne sort pas en journée légère, ce sont les bornes qu'on déplace,
+jamais les règles.
 
 ### Le pic
 
@@ -457,10 +519,11 @@ cardiaque bascule la journée en « chargée »**. Une charge quotidienne modér
 peut cacher un effort maximal court, qui coûte cher nerveusement sans peser
 lourd dans la charge.
 
-Seuil et durée minimale **à trancher**. Les 175 bpm de `CLAUDE.md`
-correspondent à 87 % de la FCmax, ce qui est un point de départ raisonnable —
-mais il n'a jamais été validé, et il n'a pas de durée minimale associée, ce
-qui rend un unique battement suffisant pour basculer la journée.
+**Retenu : 2 minutes cumulées au-dessus de 175 bpm.** Les 175 bpm
+correspondent à 87 % de la FCmax. La durée minimale est ce qui manquait :
+sans elle, un unique battement suffisait à basculer la journée, et un sprint
+de trente secondes pour attraper un feu aurait le même poids qu'un effort
+maximal. Deux minutes soutenues à ce niveau sont un vrai effort.
 
 ## E.2 La question centrale
 
@@ -572,6 +635,26 @@ priment sur toutes les précédentes :
 - **Jamais de modification du contenu d'une séance** au-delà de la réduction
   de durée du E.3 — le contenu appartient à intervals.icu.
 
+## E.7 L'app propose, l'athlète confirme
+
+**Aucune écriture dans le calendrier intervals.icu ne se fait sans un geste
+de l'athlète.** L'app calcule sa décision, l'affiche avec sa raison, et
+attend. Un tap l'applique, un autre la refuse.
+
+C'est un choix contre la « replanification automatique » que visait
+initialement `CLAUDE.md`, et il se justifie de deux façons.
+
+D'abord la confiance : les règles n'ont jamais tourné sur des données réelles,
+leurs bornes sont provisoires, et un calendrier modifié en silence par une
+règle mal calibrée est difficile à démêler après coup. Ensuite la réversibilité :
+passer de « propose » à « agit seul » quand la confiance sera établie est un
+changement mineur ; revenir en arrière après une mauvaise surprise coûte bien
+plus.
+
+**Conséquence pour le code :** le moteur de règles produit des *propositions*,
+pas des actions. Il reste une fonction pure, sans effet de bord — ce qui le
+rend testable, et ce qui laisse à l'interface la charge de demander.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -591,9 +674,17 @@ spécification, pas une proposition.
 | 8 | Saisie « nuit difficile » | **oui**, un seul tap |
 | 9 | Retours automatiques | **imposés** pour le 3ᵉ « ambitieux », suggérés ailleurs |
 
-Deux d'entre elles restent des **paramètres à mesurer** plutôt que des
-valeurs : les bornes des bandes de charge (2) et la durée minimale du pic (3).
-Elles ne bloquent pas l'écriture du code, qui les prendra en entrée.
+Trois précisions s'y sont ajoutées le même jour :
+
+| # | Question | Décision |
+|---|---|---|
+| 10 | Reconnaître une séance de qualité | **par sa charge prévue**, sur une échelle à cinq niveaux (E.1) |
+| 11 | Durée minimale du pic | **2 minutes** cumulées au-dessus de 175 bpm |
+| 12 | Autonomie de l'app | **elle propose, l'athlète confirme** (E.7) |
+
+Une seule reste un **paramètre à mesurer** plutôt qu'une valeur : les bornes
+des cinq niveaux de charge, qui se relèvent en phase 6. Elles ne bloquent pas
+l'écriture du code, qui les prendra en entrée.
 
 ## Ce que je n'ai pas décidé à ta place
 
