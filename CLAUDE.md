@@ -33,6 +33,13 @@ Les séances sont **créées et stockées dans intervals.icu**, jamais définies
 dans Makigawa. L'app lit ce calendrier, applique les règles d'adaptation et
 réécrit les événements. Elle décide du moment, pas du contenu.
 
+**Poser une séance est du ressort de Makigawa** — décision du 6 septembre 2026.
+intervals.icu range les séances dans une bibliothèque, sans date ; l'app la lit
+et propose les jours qui conviennent, puis recopie la séance choisie sur le
+jour choisi. La structure est recopiée telle quelle. C'est la même frontière
+qu'ailleurs : le contenu vient d'intervals.icu, le moment vient de Makigawa —
+et poser d'avance vaut mieux que refuser après coup.
+
 Deux conséquences immédiates : aucun éditeur de séance à construire, et la
 bibliothèque peut se remplir à la main dès maintenant, sans attendre une
 ligne de code.

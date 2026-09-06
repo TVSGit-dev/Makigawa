@@ -529,6 +529,82 @@ p {
   font-size: 0.9375rem;
 }
 
+/* ---------- poser une séance ---------- */
+
+.place {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.place-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.place-title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+/* Une ligne de choix : toute la largeur est tactile, parce qu'on choisit au
+   pouce et qu'une cible étroite se rate. */
+.choice {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.choice:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* Le jour qui convient se distingue par sa bordure, pas par un fond vert :
+   les autres jours restent des choix possibles, pas des interdictions. */
+.choice-fits {
+  border-color: var(--accent);
+}
+
+.choice-name {
+  font-weight: 500;
+}
+
+.choice-name::first-letter {
+  text-transform: uppercase;
+}
+
+.choice-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.choice-why {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .settings {
   border: 1px solid var(--border);
   border-radius: 1rem;

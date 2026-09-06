@@ -26,6 +26,7 @@ import type { Intent } from '../rules/intent'
 import type { Credentials } from '../storage/credentials'
 import { dismiss, fingerprint, forgetOlderThan } from '../storage/preferences'
 import { addDays, dayKeyOf, formatDay, toDayKey, type DayKey } from '../calendar/dates'
+import { Place } from './Place'
 import { SessionCard, type WriteState } from './SessionCard'
 import { weightLabel } from './reasons'
 
@@ -237,6 +238,16 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
         </div>
       ))}
 
+      {context ? (
+        <Place
+          credentials={credentials}
+          context={context}
+          intent={intent}
+          today={today}
+          onPlaced={() => void load()}
+        />
+      ) : null}
+
       {planned > 0 ? (
         <p className="muted small">
           L’app propose, tu confirmes. Rien n’est écrit dans intervals.icu sans un tap de ta
@@ -265,8 +276,9 @@ function Empty({ read }: { read: number }) {
         arbitrer.
       </p>
       <p className="muted small">
-        Les séances se créent dans intervals.icu — dans sa bibliothèque, sans date, puis on
-        les pose sur un jour. Le catalogue en donne seize, prêtes à recopier.
+        Les séances se créent dans intervals.icu, dans sa bibliothèque, sans date. Une fois
+        qu’elles y sont, <strong>Poser une séance</strong> ci-dessous te dit quels jours
+        conviennent et la place. Le catalogue en donne seize, prêtes à recopier.
       </p>
       {read > 0 ? (
         <p className="muted small">
