@@ -27,6 +27,8 @@ import type { Credentials } from '../storage/credentials'
 import { dismiss, fingerprint, forgetOlderThan } from '../storage/preferences'
 import { addDays, dayKeyOf, formatDay, toDayKey, type DayKey } from '../calendar/dates'
 import { Place } from './Place'
+import { Week } from './Week'
+import { planWeek } from '../workouts/week'
 import { SessionCard, type WriteState } from './SessionCard'
 import { weightLabel } from './reasons'
 
@@ -110,6 +112,12 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
   // La forme remonte vers App, qui la donne à l'en-tête : une seule lecture
   // du réseau sert les deux écrans.
   const wellness = state.status === 'ok' ? state.data.wellness : []
+  const fitness =
+    wellness
+      .filter((day) => day.date !== null && day.date <= today && day.ctl !== null)
+      .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
+      .at(-1)?.ctl ?? null
+
   useEffect(() => {
     const latest = wellness
       .filter((day) => day.date !== null && day.date <= today && day.ctl !== null)
@@ -135,6 +143,11 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
   }, [state, context, today])
 
   const planned = days.reduce((total, day) => total + day.items.length, 0)
+
+  const suggestions = useMemo(
+    () => (context ? planWeek({ context, today, fitness }) : []),
+    [context, today, fitness],
+  )
 
   const apply = async (event: CalendarEvent, change: Change) => {
     if (!event.id) return
@@ -202,7 +215,18 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
         </p>
       ))}
 
-      {planned === 0 ? <Empty read={state.data.events.length} /> : null}
+      {planned === 0 && suggestions.length === 0 ? (
+        <Empty read={state.data.events.length} />
+      ) : null}
+
+      <Week
+        credentials={credentials}
+        suggestions={suggestions}
+        fitness={fitness}
+        today={today}
+        empty={planned === 0}
+        onPlaced={() => void load()}
+      />
 
       {days.map((day) => (
         <div className={day.date === today ? 'day day-today' : 'day'} key={day.date}>
@@ -269,16 +293,11 @@ export function Plan({ credentials, intent, onFitnessChange }: Props) {
 function Empty({ read }: { read: number }) {
   return (
     <div className="empty">
-      <p className="empty-head">Ton calendrier n’a rien sur les {AHEAD_DAYS} prochains jours.</p>
+      <p className="empty-head">Rien de prévu sur les {AHEAD_DAYS} prochains jours.</p>
       <p className="muted small">
-        Ce n’est pas une panne : Makigawa décide du <em>quand</em>, mais le <em>quoi</em>{' '}
-        appartient à intervals.icu. Tant qu’aucune séance n’y est posée, elle n’a rien à
-        arbitrer.
-      </p>
-      <p className="muted small">
-        Les séances se créent dans intervals.icu, dans sa bibliothèque, sans date. Une fois
-        qu’elles y sont, <strong>Poser une séance</strong> ci-dessous te dit quels jours
-        conviennent et la place. Le catalogue en donne seize, prêtes à recopier.
+        D’habitude elle te propose un plan d’elle-même. Là, elle n’a rien trouvé qui tienne
+        — soit la fraîcheur est trop basse, soit les jours à venir sont déjà pris.{' '}
+        <strong>Poser une séance</strong> ci-dessous passe outre si tu y tiens.
       </p>
       {read > 0 ? (
         <p className="muted small">

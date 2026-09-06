@@ -157,10 +157,16 @@ function duration(seconds: number): string {
   return seconds % 60 === 0 ? `${seconds / 60}m` : `${seconds}s`
 }
 
+/**
+ * Le nom d'une séance, à la façon dont l'athlète les nomme déjà : « 2 × 15 min
+ * Sweet spot », et non « 2 × 5 ». Ce qui compte pour reconnaître une séance
+ * d'un coup d'œil est la longueur du bloc, pas le nombre de répétitions
+ * dedans.
+ */
 function nameOf(family: Family, sets: number, reps: number): string {
-  if (family.key === 'endurance') return `${family.name} ${Math.round((sets * 600) / 60)}`
-  if (reps === 1) return `${family.name} ${sets} × ${Math.round(family.pattern[0]!.seconds / 60)}m`
-  return `${family.name} ${sets} × ${reps}`
+  const minutes = Math.round(blockSeconds(family, reps) / 60)
+  if (family.key === 'endurance') return `${family.name} ${sets * minutes} min`
+  return `${family.name} ${sets} × ${minutes} min`
 }
 
 /** L'événement de calendrier que devient une séance composée. */

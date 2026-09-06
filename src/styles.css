@@ -529,6 +529,52 @@ p {
   font-size: 0.9375rem;
 }
 
+/* ---------- ce que l'app propose pour la semaine ---------- */
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.suggested {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border-radius: 0.75rem;
+  /* Le liseré dit « proposition en attente », sans alarmer. */
+  border-left: 3px solid var(--accent);
+}
+
+.suggested-day {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--accent);
+}
+
+.suggested-day::first-letter {
+  text-transform: uppercase;
+}
+
+.suggested-name {
+  font-weight: 500;
+}
+
+.suggested-why {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.suggested .button {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
 /* ---------- poser une séance ---------- */
 
 .place {

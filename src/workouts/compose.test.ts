@@ -114,8 +114,9 @@ describe('composer une séance', () => {
   })
 
   it('nomme une séance par ce qu’elle contient', () => {
-    expect(build(sweetSpot, 2, 5).name).toBe('Sweet spot 2 × 5')
-    expect(build(endurance, 3, 1).name).toBe('Endurance 30')
+    // La convention de l'athlète : « 2 x 15m Sweet Spot », pas « 2 × 5 ».
+    expect(build(sweetSpot, 2, 5).name).toBe('Sweet spot 2 × 15 min')
+    expect(build(endurance, 3, 1).name).toBe('Endurance 30 min')
   })
 })
 
