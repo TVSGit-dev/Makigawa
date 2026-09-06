@@ -139,22 +139,28 @@ sortie ; les comparer entre eux n'a pas de sens.
 
 ## Règles d'adaptation
 
-Spécifiées dans `docs/section-5-regles-adaptation.md`. Résumé :
+**Spécifiées dans `docs/section-5-regles-adaptation.md`**, qui fait foi. Le
+résumé qui figurait ici décrivait une esquisse abandonnée le 5 septembre 2026 —
+notamment une classification en minutes au-dessus de 150 bpm, et un arbitrage
+de semaine chargée qui supposait un volume de séances que l'athlète n'a pas.
+Implémentées dans `src/rules/`.
 
-- **Classification des journées** par temps cumulé au-dessus de 150 bpm :
-  légère (< 10 min), moyenne (10-30 min), chargée (> 30 min ou tout
-  passage > 175 bpm).
-- **Séance manquée** : décalée, sinon dégradée, sinon abandonnée.
-  Jamais ajoutée à une autre séance. Pas de dette.
-- **Arbitrage** semaine chargée : on retire mobilité, puis renfo,
-  puis sortie.
-- **Anti-empilement** : pas de renfo jambes sur une journée chargée.
-  Jamais deux journées chargées consécutives planifiées.
-- **Reprise** : 14 jours sans séance N1/N2 → volume réduit, +10 %/semaine
-  max pendant 3 semaines. Les trajets quotidiens ne remettent pas le
-  compteur à zéro.
+En bref :
 
-Ne pas modifier ces règles sans le signaler explicitement.
+- **Une échelle de charge à cinq niveaux**, en charges d'intervals.icu, qui
+  situe aussi bien une séance seule qu'une journée entière. Ses bornes sont
+  provisoires et se relèvent en phase 6.
+- **Une question unique**, posée séance par séance : aujourd'hui est-il un bon
+  jour pour celle-ci ? Quatre conditions y répondent non.
+- **Trois issues quand c'est non** : décaler de deux jours au plus, sinon
+  réduire de moitié, sinon laisser tomber. Aucune ne produit de dette.
+- **Les règles n'agissent que sur les séances de qualité**, à partir du
+  niveau 3. Les trajets n'en sont jamais, mais leur charge compte toujours.
+- **L'app propose, l'athlète confirme.** Aucune écriture sans un geste de sa
+  part — ce qui fait du moteur une fonction pure.
+
+Ne pas modifier ces règles sans le signaler explicitement, et modifier le
+document avant le code.
 
 ## Contraintes d'interface
 
