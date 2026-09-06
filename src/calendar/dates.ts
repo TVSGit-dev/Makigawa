@@ -39,16 +39,35 @@ export function dayKeyOf(startDateLocal: string | null): DayKey | null {
   return match ? match[0] : null
 }
 
+/**
+ * La date locale que désigne une clé, à minuit. `null` si la clé est
+ * illisible.
+ *
+ * Passe par les composantes plutôt que par `new Date(cle)` : cette dernière
+ * lirait `2026-09-08` comme minuit UTC, soit la veille dans les fuseaux
+ * négatifs.
+ */
+export function parseDayKey(key: DayKey): Date | null {
+  const match = DAY_KEY.exec(key)
+  if (!match) return null
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+}
+
 /** « lundi 8 septembre ». Renvoie la clé brute si elle est illisible. */
 export function formatDay(key: DayKey): string {
-  const match = DAY_KEY.exec(key)
-  if (!match) return key
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  const date = parseDayKey(key)
+  if (!date) return key
   return date.toLocaleDateString('fr-BE', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   })
+}
+
+/** La clé du jour situé `days` jours après `key`. */
+export function shiftDayKey(key: DayKey, days: number): DayKey {
+  const date = parseDayKey(key)
+  return date ? toDayKey(addDays(date, days)) : key
 }
 
 /** « 45 min », « 1 h », « 1 h 15 ». */
