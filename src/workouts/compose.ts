@@ -56,7 +56,7 @@ export function build(family: Family, sets: number, reps: number, long = true): 
     for (let rep = 0; rep < reps; rep += 1) blocks.push(...family.pattern)
     // Pas de récupération après le dernier bloc : le retour au calme la fait.
     if (set < sets - 1 && family.between > 0) {
-      blocks.push({ seconds: family.between, percent: 65 })
+      blocks.push({ seconds: family.between, percent: family.betweenPercent })
     }
   }
 
@@ -150,7 +150,30 @@ export function durationsFor(family: Family): number[] {
  * aussi celle que la réduction de moitié du E.3 sait raccourcir.
  */
 export function toNotation(workout: Workout): string {
-  return workout.blocks.map((block) => `- ${duration(block.seconds)} ${block.percent}%`).join('\n')
+  return merge(workout.blocks)
+    .map((block) => `- ${duration(block.seconds)} ${block.percent}%`)
+    .join('\n')
+}
+
+/**
+ * Les blocs voisins de même intensité n'en font qu'un.
+ *
+ * Un bloc continu de vingt minutes est construit à partir de quatre unités de
+ * cinq — c'est ce qui permet de faire varier sa longueur — mais il s'écrit
+ * `- 20m 90%`, comme le coach de l'athlète l'écrit. La séance est la même ;
+ * elle se lit mieux.
+ */
+function merge(blocks: readonly Block[]): Block[] {
+  const merged: Block[] = []
+  for (const block of blocks) {
+    const last = merged[merged.length - 1]
+    if (last && last.percent === block.percent) {
+      merged[merged.length - 1] = { ...last, seconds: last.seconds + block.seconds }
+    } else {
+      merged.push({ ...block })
+    }
+  }
+  return merged
 }
 
 function duration(seconds: number): string {

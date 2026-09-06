@@ -839,6 +839,39 @@ basse produit d'elle-même un plan prudent — de l'endurance et du tempo — ce
 donne le bon comportement sans la règle. Le jour où la détection existera, elle
 imposera en plus le plafond de +10 % par semaine.
 
+## E.11 Le test FTP
+
+Décidé le 6 septembre 2026. Le protocole est celui de l'athlète lui-même — son
+fichier « 20 Minute FTP Test » — et Makigawa n'y touche pas. Ce qu'elle apporte
+est, comme toujours, le **quand**.
+
+**Un test exige plus qu'une séance de qualité.** Passé sur des jambes lourdes,
+il ne mesure pas la FTP : il mesure la fatigue, et il rend un chiffre trop bas
+que l'athlète traînera ensuite dans toutes ses séances, puisque toutes sont
+écrites en pourcentage de cette FTP. Une mauvaise mesure ne coûte pas une
+séance, elle coûte un cycle.
+
+Quatre conditions s'ajoutent donc au E.2 :
+
+0. **Le jour lui-même doit être léger.** Les règles ordinaires laissent passer
+   une séance de qualité sur une journée qui porte déjà du travail ; pour un
+   test, c'est disqualifiant.
+1. **La fraîcheur doit être positive.** Pas seulement au-dessus du plancher du
+   mode : au-dessus de zéro. C'est la seule règle du projet qui exige mieux que
+   « pas trop fatigué ».
+2. **Les deux jours précédents doivent être légers.** Les trajets ne comptent
+   pas — ils n'entament pas ce qu'un test sollicite.
+3. **Rien de chargé le lendemain non plus.** Un test est un effort maximal ; le
+   poser la veille d'une grosse journée gâche les deux.
+
+**L'app ne propose donc pas quatorze jours, elle en propose un** — le premier
+qui remplit tout cela. Quand aucun ne convient, elle le dit et explique
+laquelle des quatre conditions manque, plutôt que de laisser chercher.
+
+**Le test n'entre pas dans le planning automatique du E.10.** Il se demande.
+Un plan qui glisserait un test maximal entre deux séances serait un plan qui
+n'a pas compris ce qu'est un test.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -868,6 +901,7 @@ Trois précisions s'y sont ajoutées le même jour :
 | 13 | Sorties extérieures sans structure | **la sortie ouverte** : une charge visée, pas de blocs (E.8) |
 | 14 | Qui compose les séances | **Makigawa les assemble**, sur des motifs relevés chez l'athlète ; les chiffres restent à intervals.icu (E.9) |
 | 15 | Qui fait le planning | **Makigawa le propose**, selon la forme et la fatigue ; l'athlète accepte (E.10) |
+| 16 | Le test FTP | **un seul jour proposé**, sous trois conditions plus strictes que le E.2 (E.11) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

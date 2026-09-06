@@ -11,6 +11,7 @@
 
 import { formatRelativeDay } from '../calendar/dates'
 import type { Proposal, Refusal } from '../rules/decide'
+import type { TestRefusal } from '../workouts/ftp-test'
 import type { Intent } from '../rules/intent'
 import type { DayKey } from '../calendar/dates'
 
@@ -125,6 +126,29 @@ export function activityTone(type: string | null): string {
   if (type === 'VirtualRide') return 'chip-indoor'
   if (type === 'WeightTraining') return 'chip-force'
   return 'chip-other'
+}
+
+/**
+ * Pourquoi aucun jour ne convient pour un test (E.11).
+ *
+ * Dire laquelle des quatre conditions manque, plutôt que de laisser chercher :
+ * un test raté coûte un cycle, pas une séance.
+ */
+export function explainTest(refusal: TestRefusal): string {
+  switch (refusal.code) {
+    case 'fraicheur-negative':
+      return `Ta fraîcheur est à ${Math.round(refusal.tsb)}. Pour un test il la faut positive — c’est la seule chose du projet qui exige mieux que « pas trop fatigué ».`
+    case 'jour-deja-charge':
+      return 'Chacun des jours à venir porte déjà du travail.'
+    case 'veille-pas-legere':
+      return 'Il faut deux journées légères avant, et la veille ne l’est jamais sur cette période.'
+    case 'avant-veille-pas-legere':
+      return 'Il faut deux journées légères avant, et l’avant-veille ne l’est jamais sur cette période.'
+    case 'lendemain-charge':
+      return 'Un test la veille d’une grosse journée gâche les deux.'
+    case 'regle-ordinaire':
+      return 'Les règles habituelles s’y opposent déjà — une séance de qualité trop proche, ou le quota de la semaine.'
+  }
 }
 
 const WEIGHTS: Record<string, string> = {

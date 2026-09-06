@@ -124,7 +124,24 @@ describe('la structure écrite', () => {
   it('donne une ligne par bloc, en notation d’intervals.icu', () => {
     const lignes = toNotation(build(sweetSpot, 2, 5)).split('\n')
     expect(lignes[0]).toBe('- 5m 45%')
-    expect(lignes).toHaveLength(build(sweetSpot, 2, 5).blocks.length)
+    expect(lignes[6]).toBe('- 90s 95%')
+  })
+
+  it('fusionne les blocs voisins de même intensité', () => {
+    // Un bloc continu de vingt minutes est construit à partir de quatre unités
+    // de cinq, mais il s'écrit « - 20m 90% », comme le coach de l'athlète
+    // l'écrit. La séance est la même ; elle se lit mieux.
+    const continu = familyOf('sweet-spot-continu')!
+    const notation = toNotation(build(continu, 2, 4))
+    expect(notation).toContain('- 20m 90%')
+    expect(notation).not.toContain('- 5m 90%\n- 5m 90%')
+  })
+
+  it('descend à 40 % entre deux blocs longs, comme les séances de référence', () => {
+    const continu = familyOf('sweet-spot-continu')!
+    expect(toNotation(build(continu, 2, 4))).toContain('- 5m 40%')
+    // Les over-unders, eux, récupèrent à 65 %.
+    expect(toNotation(build(sweetSpot, 2, 5))).toContain('- 4m 65%')
   })
 
   it('écrit les secondes en secondes, les minutes en minutes', () => {

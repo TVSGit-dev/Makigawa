@@ -38,11 +38,12 @@ import {
   type Workout,
 } from '../workouts/compose'
 import { FAMILIES, type Family } from '../workouts/families'
+import { firstTestDay, ftpTest } from '../workouts/ftp-test'
 import type { Context } from '../rules/decide'
 import type { Intent } from '../rules/intent'
 import type { Credentials } from '../storage/credentials'
 import { formatDuration, formatRelativeDay, type DayKey } from '../calendar/dates'
-import { activityLabel, activityTone, explain } from './reasons'
+import { activityLabel, activityTone, explain, explainTest } from './reasons'
 
 /** Le même horizon que le plan : ce que l'app sait regarder. */
 const AHEAD_DAYS = 14
@@ -60,6 +61,7 @@ type Step =
   | { at: 'duree'; family: Family }
   | { at: 'charges'; where: Where }
   | { at: 'bibliotheque'; workouts: LibraryWorkout[] }
+  | { at: 'test' }
   | { at: 'jours'; plan: Plan }
   | { at: 'chargement' }
   | { at: 'erreur'; detail: string }
@@ -154,6 +156,11 @@ export function Place({ credentials, context, intent, today, onPlaced }: Props) 
           onPick={() => setStep({ at: 'charges', where: 'zwift' })}
         />
         <Choice
+          name="Test FTP"
+          why="Vingt minutes à fond, pour que toutes les autres séances soient justes."
+          onPick={() => setStep({ at: 'test' })}
+        />
+        <Choice
           name="Depuis ta bibliothèque"
           why="Les séances que tu as créées dans intervals.icu."
           onPick={() => void openLibrary()}
@@ -219,6 +226,47 @@ export function Place({ credentials, context, intent, today, onPlaced }: Props) 
             }
           />
         ))}
+      </Panel>
+    )
+  }
+
+  if (step.at === 'test') {
+    const workout = ftpTest()
+    const day = firstTestDay(today, AHEAD_DAYS, context)
+
+    return (
+      <Panel title="Test FTP" onBack={() => setStep({ at: 'styles' })}>
+        <p className="muted small">
+          Un test passé sur des jambes lourdes ne mesure pas ta FTP, il mesure ta fatigue —
+          et comme toutes tes séances sont écrites en pourcentage de cette FTP, un mauvais
+          chiffre coûte un cycle. L’app ne te propose donc qu’un jour, pas quatorze.
+        </p>
+
+        <details className="structure">
+          <summary>La structure — {formatDuration(workout.seconds)}</summary>
+          <pre>{toNotation(workout)}</pre>
+        </details>
+
+        {writing.status === 'failed' ? <p className="error small">{writing.detail}</p> : null}
+
+        {'date' in day ? (
+          <button
+            className="choice choice-fits"
+            onClick={() => void place({ kind: 'composee', workout }, day.date)}
+            disabled={writing.status === 'writing'}
+          >
+            <span className="choice-name">{formatRelativeDay(day.date, today)}</span>
+            <span className="choice-why">
+              {writing.status === 'writing' ? 'En cours…' : 'Le premier jour qui remplit les quatre conditions'}
+            </span>
+          </button>
+        ) : (
+          <p className="notice small">
+            <strong>Aucun jour ne convient sur les {AHEAD_DAYS} prochains.</strong>
+            <br />
+            {explainTest(day.refusal)}
+          </p>
+        )}
       </Panel>
     )
   }

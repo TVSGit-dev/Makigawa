@@ -40,6 +40,15 @@ export type Family = {
   /** Récupération entre deux blocs, en secondes. */
   between: number
   /**
+   * L'intensité de cette récupération, en % de FTP.
+   *
+   * Elle n'est pas la même partout : les over-unders récupèrent à 65 %, mais
+   * les blocs continus de trente minutes descendent à 40 % — relevé tel quel
+   * sur les douze séances du coach. Plus le bloc est long, plus la coupure
+   * doit être franche.
+   */
+  betweenPercent: number
+  /**
    * La longueur maximale d'un bloc de travail, en secondes.
    *
    * Relevée sur les séances fournies, où le plus long bloc continu fait vingt
@@ -116,6 +125,7 @@ export const FAMILIES: readonly Family[] = [
     reps: [1],
     sets: [1, 2, 3, 4, 5, 6],
     between: 0,
+    betweenPercent: 65,
     maxBlock: 3600,
     openers: false,
   },
@@ -127,6 +137,7 @@ export const FAMILIES: readonly Family[] = [
     reps: [1],
     sets: [1, 2, 3, 4],
     between: 240,
+    betweenPercent: 65,
     maxBlock: 600,
     openers: false,
   },
@@ -142,7 +153,26 @@ export const FAMILIES: readonly Family[] = [
     reps: [4, 5, 6, 7],
     sets: [1, 2, 3],
     between: 240,
+    betweenPercent: 65,
     maxBlock: 1200,
+    openers: false,
+  },
+  {
+    key: 'sweet-spot-continu',
+    name: 'Sweet spot continu',
+    purpose:
+      'Un bloc long tenu à 90 %, sans à-coups. Moins spectaculaire que l’over-under, plus payant sur la durée.',
+    // Le motif du coach de l'athlète : cinq minutes à 90 %, répétées pour
+    // faire des blocs de dix à cinquante minutes. Ses douze séances vont de
+    // 2 × 20 min à 4 × 30 min.
+    pattern: [{ seconds: 300, percent: 90 }],
+    reps: [2, 3, 4, 5, 6],
+    sets: [2, 3, 4],
+    between: 300,
+    // Sa récupération à lui : 40 %, franche. Un bloc de vingt minutes à 90 %
+    // ne se récupère pas en roulant encore à 65 %.
+    betweenPercent: 40,
+    maxBlock: 3000,
     openers: false,
   },
   {
@@ -157,6 +187,7 @@ export const FAMILIES: readonly Family[] = [
     reps: [3, 4, 6, 8],
     sets: [1, 2, 3],
     between: 300,
+    betweenPercent: 65,
     maxBlock: 1200,
     openers: false,
   },
@@ -172,6 +203,7 @@ export const FAMILIES: readonly Family[] = [
     reps: [6, 8, 10, 12],
     sets: [1, 2, 3],
     between: 180,
+    betweenPercent: 65,
     maxBlock: 720,
     openers: true,
   },
@@ -186,6 +218,7 @@ export const FAMILIES: readonly Family[] = [
     reps: [8, 10, 12],
     sets: [1, 2, 3],
     between: 240,
+    betweenPercent: 65,
     maxBlock: 540,
     openers: true,
   },
@@ -202,6 +235,7 @@ export const FAMILIES: readonly Family[] = [
     reps: [1],
     sets: [2, 3, 5, 6],
     between: 180,
+    betweenPercent: 65,
     maxBlock: 180,
     openers: true,
   },
