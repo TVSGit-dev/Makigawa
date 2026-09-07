@@ -135,6 +135,11 @@ export const LEVELS = 10
  * travaillent pas aux mêmes durées : dix minutes de VO2 max sont beaucoup, dix
  * minutes d'endurance ne sont rien.
  *
+ * Les échelons sont régulièrement espacés, et pas seulement pour la forme :
+ * une décharge (E.18) cherche l'échelon le plus proche de la moitié du travail
+ * tenu, et une échelle irrégulière la ferait tomber hors de la fourchette de
+ * −40 à −60 % du C.4.
+ *
  * **Le sommet de chaque échelle est ce qui tient en soixante-quinze minutes**,
  * pas ce que l'athlète peut encaisser. Sa contrainte n'est pas sa forme, c'est
  * son agenda — deux enfants en bas âge. Les blocs de 4 × 30 min de son coach
@@ -144,7 +149,7 @@ export const LADDERS: Record<Zone, readonly number[]> = {
   endurance: [1200, 1500, 1800, 2100, 2400, 2700, 3000, 3300, 3600, 4000],
   tempo: [600, 780, 960, 1140, 1320, 1500, 1680, 1860, 1980, 2040],
   'sweet-spot': [720, 900, 1140, 1380, 1620, 1860, 2100, 2340, 2580, 2760],
-  seuil: [450, 700, 900, 1150, 1350, 1600, 1800, 2100, 2400, 2700],
+  seuil: [450, 650, 900, 1150, 1400, 1650, 1900, 2150, 2400, 2700],
   vo2: [240, 300, 360, 420, 480, 600, 720, 840, 960, 1080],
   anaerobie: [80, 100, 120, 140, 160, 180, 200, 220, 230, 240],
 }
@@ -207,6 +212,30 @@ export function levelsFrom(held: readonly Held[]): Record<Zone, number> {
  */
 export function nextLevel(level: number, reprise = false): number {
   return Math.min(LEVELS, Math.max(1, reprise ? level : level + 1))
+}
+
+/**
+ * Le niveau que vise une semaine de décharge (E.18).
+ *
+ * L'échelon dont le temps de travail est le plus proche de **la moitié** de
+ * celui tenu — le C.4 demande −40 à −60 %, et c'est le même arbitrage que le
+ * « réduire » du E.3 : durée de moitié, intensité inchangée.
+ *
+ * Le premier échelon est un plancher. En partant du niveau 2, la moitié tombe
+ * sous lui et la baisse réelle est plus douce que la fourchette — on ne peut
+ * pas descendre en dessous de la plus petite séance qui existe.
+ */
+export function unloadLevel(zone: Zone, level: number): number {
+  if (level <= 1) return 1
+
+  const ladder = LADDERS[zone]
+  const target = ladder[level - 1]! / 2
+
+  let best = 1
+  for (let rung = 2; rung <= level; rung += 1) {
+    if (Math.abs(ladder[rung - 1]! - target) < Math.abs(ladder[best - 1]! - target)) best = rung
+  }
+  return best
 }
 
 /**

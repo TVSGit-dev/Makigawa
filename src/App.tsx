@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { ConnectionCheck } from './components/ConnectionCheck'
 import { effectiveIntent, Freshness } from './components/Freshness'
 import { Plan, type Readout } from './components/Plan'
@@ -7,6 +7,8 @@ import { loadCredentials, type Credentials } from './storage/credentials'
 import { loadIntents, saveIntent, weeksBefore } from './storage/preferences'
 import { forgetNightsBefore, intentAfterNight, toggleDenial } from './storage/night'
 import { intentAfterReprise } from './rules/done'
+import { intentAfterUnload } from './rules/decharge'
+import { answerUnload, forgetOldUnloads, unloadedWeeks } from './storage/decharge'
 import { mondayOf, toDayKey } from './calendar/dates'
 import type { Intent } from './rules/intent'
 import { useDisplayMode } from './pwa/useDisplayMode'
@@ -34,6 +36,14 @@ export default function App() {
   const [nights, setNights] = useState(() => forgetNightsBefore(today))
   const nightDenied = nights.has(today)
 
+  // La décharge du E.18 : proposée par le moteur, décidée par l'athlète, et
+  // gardée une semaine entière. Elle vit ici parce que c'est le mode qu'elle
+  // change, et que le mode vit ici.
+  const [unloads, setUnloads] = useState(() => forgetOldUnloads(today))
+  const unloadChoice = unloads[week] ?? null
+  const unloading = unloadChoice === 'acceptee'
+  const unloaded = useMemo(() => unloadedWeeks(unloads), [unloads])
+
   const [readout, setReadout] = useState<Readout>({
     fitness: null,
     fatigue: null,
@@ -41,21 +51,26 @@ export default function App() {
     days: [],
     reprise: false,
     daysSinceQuality: null,
+    unloadSuggested: false,
   })
 
   const handleReadout = useCallback((next: Readout) => setReadout(next), [])
 
-  // Trois garde-fous se succèdent, chacun pouvant durcir le mode sans jamais
+  // Quatre garde-fous se succèdent, chacun pouvant durcir le mode sans jamais
   // le relâcher : le A.3 borne le mode ambitieux à deux semaines, le E.12 fait
-  // passer la journée en prudent si la nuit est démentie, et le E.5 fait de
-  // même après quatorze jours sans séance de qualité.
+  // passer la journée en prudent si la nuit est démentie, le E.5 fait de même
+  // après quatorze jours sans séance de qualité, et le E.18 quand l'athlète
+  // accepte une décharge.
   //
   // Ils se calculent ici, et non dans `Plan`, pour que le mode affiché soit
   // celui qui tourne : l'en-tête ne peut pas dire « normal » pendant que le
   // moteur travaille en prudent.
-  const intent = intentAfterReprise(
-    intentAfterNight(effectiveIntent(wanted, weeksBefore(intents, week)), nightDenied),
-    readout.reprise,
+  const intent = intentAfterUnload(
+    intentAfterReprise(
+      intentAfterNight(effectiveIntent(wanted, weeksBefore(intents, week)), nightDenied),
+      readout.reprise,
+    ),
+    unloading,
   )
 
   const handleInstall = () => void promptInstall()
@@ -90,22 +105,34 @@ export default function App() {
 
       {credentials ? (
         <>
-          <Freshness
-            fitness={readout.fitness}
-            fatigue={readout.fatigue}
+          {/* `Plan` ouvre sur « Aujourd'hui », puis laisse passer la carte de
+              forme avant « Ta semaine » : ce qui se décide maintenant d'abord,
+              le contexte ensuite, le calendrier après. */}
+          <Plan
+            credentials={credentials}
             intent={intent}
-            wanted={wanted}
-            days={readout.days}
-            today={today}
-            nightDenied={nightDenied}
-            reprise={readout.reprise}
-            daysSinceQuality={readout.daysSinceQuality}
-            sleepScore={readout.sleepScore}
-            onIntentChange={chooseIntent}
-            onDenyNight={() => setNights(toggleDenial(today))}
-          />
-
-          <Plan credentials={credentials} intent={intent} onReadout={handleReadout} />
+            unloading={unloading}
+            unloadedWeeks={unloaded}
+            onReadout={handleReadout}
+          >
+            <Freshness
+              fitness={readout.fitness}
+              fatigue={readout.fatigue}
+              intent={intent}
+              wanted={wanted}
+              days={readout.days}
+              today={today}
+              nightDenied={nightDenied}
+              reprise={readout.reprise}
+              daysSinceQuality={readout.daysSinceQuality}
+              unloading={unloading}
+              unloadOffered={readout.unloadSuggested && unloadChoice === null}
+              onAnswerUnload={(choice) => setUnloads(answerUnload(week, choice))}
+              sleepScore={readout.sleepScore}
+              onIntentChange={chooseIntent}
+              onDenyNight={() => setNights(toggleDenial(today))}
+            />
+          </Plan>
 
           <Settings
             credentials={credentials}

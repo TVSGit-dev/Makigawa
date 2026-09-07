@@ -242,6 +242,13 @@ En bref :
 - **Un niveau par zone**, lu sur la plus grosse séance qu'il a tenue dans cette
   zone en six semaines. La séance suivante vise un cran au-dessus. Rien ne fait
   descendre un niveau sauf le temps.
+- **Le trajet du jour se décide avec les mêmes règles.** « Tes jambes ou la
+  batterie ? » est le E.2 posé sur trois réponses relevées — aller-retour
+  musculaire, un seul, ou électrique. L'app recommande la plus exigeante que la
+  question centrale accepte ; elle n'interdit rien.
+- **Le cycle 2:1 se propose enfin.** Après deux semaines qui ont porté une
+  séance tenue, l'app propose d'alléger : une seule séance, moitié moins de
+  travail, la même intensité. Rien de retiré ne compte comme manqué.
 
 Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.
@@ -254,6 +261,12 @@ couleurs : une app d'entraînement n'a pas besoin d'un feu tricolore. Une seule
 exception, tenue par le projet lui-même : **la distinction électrique /
 musculaire**, où le gris dit « ce ne sont pas tes jambes » et le rose dit
 « si ».
+
+**L'app s'ouvre sur aujourd'hui** — décision du 6 septembre 2026. Deux
+questions en haut de l'écran, dans l'ordre où elles se posent : le trajet
+d'abord, six à sept fois par semaine, la séance ensuite. Le reste — la forme,
+la semaine, les niveaux — passe dessous. Une app qu'on ouvre en marchant vers
+le vélo doit répondre avant qu'on ait fait défiler.
 
 L'application doit être **tolérante, pas culpabilisante**. C'est une
 contrainte technique, pas une intention :

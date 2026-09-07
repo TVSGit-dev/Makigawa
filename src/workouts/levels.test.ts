@@ -9,6 +9,7 @@ import {
   levelsFrom,
   MAX_MINUTES,
   nextLevel,
+  unloadLevel,
   workSeconds,
   zoneOfFamily,
   zoneOfName,
@@ -156,6 +157,37 @@ describe('ce qui compte comme tenu', () => {
   it('ignore une séance sans structure lisible', () => {
     const sansBlocs = event({ name: 'Sweet spot', description: 'à sentir' })
     expect(heldFrom([completion({ event: sansBlocs })])).toEqual([])
+  })
+})
+
+describe('le niveau d’une semaine de décharge (E.18)', () => {
+  it('vise à peu près la moitié du travail tenu', () => {
+    // Le C.4 demande −40 à −60 %.
+    for (const zone of ZONES) {
+      for (let level = 4; level <= LEVELS; level += 1) {
+        const allege = unloadLevel(zone, level)
+        const part = LADDERS[zone][allege - 1]! / LADDERS[zone][level - 1]!
+        expect(part, `${zone} niveau ${level}`).toBeGreaterThanOrEqual(0.4)
+        expect(part, `${zone} niveau ${level}`).toBeLessThanOrEqual(0.6)
+      }
+    }
+  })
+
+  it('ne descend jamais sous le premier échelon', () => {
+    // On ne peut pas aller en dessous de la plus petite séance qui existe.
+    expect(unloadLevel('seuil', 1)).toBe(1)
+    expect(unloadLevel('seuil', 0)).toBe(1)
+    expect(unloadLevel('seuil', 2)).toBe(1)
+  })
+
+  it('allège toujours, jamais l’inverse', () => {
+    for (const zone of ZONES) {
+      for (let level = 1; level <= LEVELS; level += 1) {
+        expect(unloadLevel(zone, level), `${zone} ${level}`).toBeLessThanOrEqual(
+          Math.max(1, level),
+        )
+      }
+    }
   })
 })
 

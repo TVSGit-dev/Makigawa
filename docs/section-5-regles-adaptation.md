@@ -1161,6 +1161,105 @@ C'est une sous-estimation, jamais une sur-estimation : l'app propose alors plus
 doux que ce que l'athlète peut tenir. Le sens le moins risqué, comme pour le
 pic du E.1.
 
+## E.17 Le compagnon de trajet
+
+Demandé le 6 septembre 2026, troisième des cinq idées. L'athlète fait six à
+sept trajets par semaine et ils portent **60 à 100 % de sa charge
+hebdomadaire** : c'est, de loin, la décision qu'il prend le plus souvent. Elle
+se prenait sans l'app.
+
+### La question, telle qu'elle se pose vraiment
+
+Ce n'est pas *« est-ce que j'y vais ? »* — il y va de toute façon. C'est **tes
+jambes, ou la batterie ?** Et la réponse a des conséquences réelles : un
+aller-retour musculaire pèse 115, soit une journée chargée au sens du E.1 ; le
+même trajet en électrique en pèse 35, et n'est jamais une séance.
+
+Trois réponses, de la plus exigeante à la plus économe :
+
+| Réponse | Charge | Niveau |
+|---|---|---|
+| Aller-retour musculaire | ~115 | 3 — journée chargée |
+| Un seul des deux musculaire | ~58 | 2 — séance de qualité |
+| Électrique | ~35 | 1 — jamais une séance |
+
+Ce sont les relevés de l'athlète (E.13), pas des estimations.
+
+### Comment l'app répond
+
+**Avec le E.2, mot pour mot.** Elle propose la réponse la plus exigeante que la
+question centrale accepte pour aujourd'hui : d'abord l'aller-retour, puis un
+seul, puis l'électrique — qui passe toujours, puisqu'il n'est jamais une séance
+de qualité.
+
+Aucune règle nouvelle n'est écrite ici. Un trajet musculaire *est* une séance
+de qualité dès qu'il atteint le niveau 2, donc les quatre conditions du E.2 s'y
+appliquent déjà : la fraîcheur, la veille chargée, le voisinage d'une autre
+séance, le quota de la semaine. C'est le même moteur, posé sur une autre
+question.
+
+### Ce qu'elle ne fait pas
+
+- **Elle n'interdit rien.** Les trois réponses restent posables d'un tap ;
+  l'app dit laquelle elle recommande et pourquoi, pas laquelle est permise.
+- **Elle ne suppose pas les jours de travail.** Le bloc s'affiche du lundi au
+  vendredi parce que ce sont des trajets domicile-travail ; le week-end, poser
+  un trajet reste possible par le menu ordinaire. C'est un choix d'affichage,
+  pas une règle sur la vie de l'athlète.
+- **Elle ne culpabilise pas la batterie.** Prendre l'électrique un jour où le
+  E.2 dit non est le bon choix, pas un renoncement — et c'est exactement ce que
+  la règle critique du projet dit depuis le début : ces trajets portent la
+  charge, ils ne sont pas l'entraînement.
+
+## E.18 La semaine de décharge
+
+Demandé le 6 septembre 2026, quatrième des cinq idées. Le rythme 2:1 est
+arrêté depuis le 5 septembre (C.0, décision 7) et décrit en C.4 — mais **l'app
+ne l'a jamais proposé**. Une règle spécifiée que rien n'applique n'est pas une
+règle.
+
+### Ce qui compte comme semaine de charge
+
+**Une semaine qui a porté au moins une séance de qualité tenue** (E.15). Deux
+d'affilée, et la troisième est proposée en décharge.
+
+Ce n'est pas le tonnage qui compte, ce sont les semaines d'entraînement. Le
+tonnage dirait n'importe quoi ici : les trajets portent 60 à 100 % de la charge
+hebdomadaire de l'athlète, donc une semaine où il n'a fait que rouler au
+travail pèserait autant qu'une semaine de travail dur. Et avec un quota d'une à
+deux séances de qualité par semaine, une semaine qui en a porté une **est** une
+semaine de charge pour lui.
+
+**Une semaine de décharge acceptée ne compte jamais comme semaine de charge**,
+même si une séance y a été tenue. Sans quoi le cycle se mordrait la queue dès
+la première décharge.
+
+### Ce que la décharge change
+
+Le C.4 dit : volume de qualité **−40 à −60 %**, une sortie courte gardée avec
+un peu d'intensité, et les trajets qui continuent.
+
+En termes de l'app :
+
+- **Une seule séance de qualité** — le quota du mode prudent.
+- **Moitié moins de travail**, à intensité inchangée : la séance proposée vise
+  l'échelon du E.16 le plus proche de la moitié du temps de travail tenu. C'est
+  le même arbitrage que le « réduire » du E.3, décision 6.
+- **L'intensité ne baisse pas.** C'est ce qui remplace les « accélérations
+  brèves » du C.4 : garder la famille et son motif suffit à ne pas s'éteindre,
+  et cela évite d'inventer une séance qui n'existe nulle part.
+- **Les trajets continuent.** On ne peut pas les arrêter, et ce n'est pas grave.
+
+### Elle se propose, elle ne s'impose pas
+
+Comme tout le reste (E.7). Un tap l'accepte pour la semaine en cours, un autre
+l'écarte — et l'écarter ne la fait pas reposer le lendemain. Les deux vivent
+dans le téléphone, jamais dans intervals.icu.
+
+**Aucune séance retirée par une décharge ne compte comme manquée.** Le C.4 en
+faisait déjà une règle d'interface autant que d'entraînement : une décharge est
+une décision, pas un échec, et l'app ne la présente jamais comme une dette.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1196,6 +1295,8 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 19 | Refuser une proposition | **deux gestes** — écarter la famille, ou repousser le jour ; le plan est recalculé en entier (E.14) |
 | 20 | Savoir ce qui a été fait | **le lien d'intervals.icu d'abord**, le jour et la nature ensuite ; 85 % du prévu vaut tenue (E.15) |
 | 21 | Progresser | **un niveau par zone**, lu sur le temps de travail tenu en six semaines, et la séance suivante vise un cran au-dessus (E.16) |
+| 22 | Le choix du trajet | **le E.2 y répond**, sur trois réponses relevées : aller-retour musculaire, un seul, ou électrique (E.17) |
+| 23 | Déclencher la décharge | **deux semaines qui ont porté une séance tenue**, et la troisième est proposée en décharge (E.18) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

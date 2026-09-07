@@ -8,6 +8,7 @@
 
 import { useState } from 'react'
 import { allowedIntent, INTENTS, MAX_AMBITIOUS_WEEKS, type Intent } from '../rules/intent'
+import type { UnloadChoice } from '../storage/decharge'
 import { levelOf } from '../rules/scale'
 import { shiftDayKey, type DayKey } from '../calendar/dates'
 import type { DayRecord } from '../rules/types'
@@ -37,6 +38,11 @@ type Props = {
   /** La reprise du E.5 : elle force le mode, comme le démenti de nuit. */
   reprise: boolean
   daysSinceQuality: number | null
+  /** La décharge du E.18, acceptée pour cette semaine. */
+  unloading: boolean
+  /** Le cycle 2:1 en propose une, et l'athlète n'a pas encore répondu. */
+  unloadOffered: boolean
+  onAnswerUnload: (choice: UnloadChoice | null) => void
   sleepScore: number | null
   onIntentChange: (intent: Intent) => void
   onDenyNight: () => void
@@ -52,6 +58,9 @@ export function Freshness({
   nightDenied,
   reprise,
   daysSinceQuality,
+  unloading,
+  unloadOffered,
+  onAnswerUnload,
   sleepScore,
   onIntentChange,
   onDenyNight,
@@ -116,7 +125,41 @@ export function Freshness({
 
       <p className="muted small">{DESCRIPTIONS[intent]}</p>
 
-      {reprise ? (
+      {unloadOffered ? (
+        <div className="offer">
+          <p className="offer-title">Tu as chargé deux semaines. On allège ?</p>
+          <p className="muted small">
+            Une semaine sur trois, moitié moins de travail à la même intensité. Ce n’est pas
+            une pause : c’est là que l’adaptation se fait. Rien de retiré ne compte comme
+            manqué.
+          </p>
+          <div className="offer-actions">
+            <button className="button button-small" onClick={() => onAnswerUnload('acceptee')}>
+              D’accord, on allège
+            </button>
+            <button
+              className="button button-small button-quiet"
+              onClick={() => onAnswerUnload('ecartee')}
+            >
+              Pas cette semaine
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {unloading ? (
+        <p className="notice notice-soft">
+          <strong>Semaine de décharge.</strong>
+          <br />
+          Une seule séance, moitié moins de travail, la même intensité. Les trajets
+          continuent — on ne peut pas les arrêter, et ce n’est pas grave.{' '}
+          <button className="link" onClick={() => onAnswerUnload(null)}>
+            Finalement non
+          </button>
+        </p>
+      ) : null}
+
+      {reprise && !unloading ? (
         <p className="notice notice-soft">
           <strong>Tu reprends.</strong>
           <br />
@@ -130,7 +173,7 @@ export function Freshness({
         </p>
       ) : null}
 
-      {forced && !nightDenied && !reprise ? (
+      {forced && !nightDenied && !reprise && !unloading ? (
         <p className="notice">
           <strong>Le mode ambitieux passe la main.</strong>
           <br />
