@@ -1486,6 +1486,72 @@ motif départage le sweet spot du seuil, qui se ressemblent en intensité. C'est
 moins sûr qu'un nom, donc c'est un recours et non la règle — le nom garde la
 priorité.
 
+## E.22 Reconnaître la séance qu'elle a proposée
+
+Défaut trouvé le 7 septembre 2026, et c'est le E.19 qui l'a créé.
+
+Depuis que l'app n'écrit plus, ses propositions n'existent nulle part dans
+intervals.icu. Or l'appariement du E.15 compare les **événements du
+calendrier** aux activités : sans événement, rien à apparier. Conséquence
+mesurée sur un cas réel — l'athlète fait exactement la séance proposée, Zwift
+la verse dans intervals.icu, et l'app n'en voit rien.
+
+Deux systèmes entiers étaient donc inertes :
+
+- **les niveaux par zone (E.16)**, qui ne pouvaient plus jamais monter ;
+- **le cycle 2:1 (E.18)**, qui compte les semaines ayant porté une séance
+  tenue, et n'en aurait jamais compté aucune.
+
+La reprise du E.5, elle, n'était pas touchée : elle lit les activités
+directement.
+
+### Se souvenir de ce qu'on a proposé
+
+L'app garde ses propositions dans le téléphone — le jour, la famille, la zone,
+la durée et le temps de travail. Six semaines, comme la fenêtre des niveaux.
+
+Ce n'est pas une écriture au sens du E.19 : rien ne part vers intervals.icu, et
+la mémoire ne sert qu'à se relire.
+
+### Reconnaître qu'elle a été faite
+
+Une proposition est **tenue** quand, le jour où elle était proposée, une
+activité réunit trois conditions :
+
+1. elle sollicite la filière aérobie et **n'est pas un trajet** ;
+2. elle a duré au moins **85 %** du temps proposé — le même seuil que le E.15,
+   appliqué à la durée ;
+3. sa charge atteint le **niveau de qualité** du E.1.
+
+Deux durées et une charge, toutes trois mesurées par la montre ou par
+intervals.icu. Aucune n'est estimée par l'app — la règle du projet tient.
+
+### La réserve, dite franchement
+
+**C'est la première fois que l'app peut sur-estimer.** Une sortie libre d'une
+heure, le jour où un sweet spot de quarante minutes était proposé, sera comptée
+comme ce sweet spot, et fera monter le niveau de sweet spot.
+
+Trois choses bornent le mal, et c'est ce qui rend la règle acceptable :
+
+- le niveau ne monte que **d'un cran** (E.16) ;
+- le plafond de montée du E.20 retient la progression si la forme grimpe déjà ;
+- un niveau **retombe** si la séance qui le portait sort des six semaines, donc
+  une attribution isolée s'efface d'elle-même.
+
+L'alternative était de ne rien faire monter du tout, ce qui est faux à coup
+sûr. Une erreur bornée et réversible vaut mieux qu'une certitude fausse.
+
+### Le raccourci qui ferme la boucle autrement
+
+Un bouton copie la structure d'une séance proposée dans le presse-papier,
+prête à coller dans l'éditeur d'intervals.icu. C'est l'athlète qui écrit, pas
+l'app : le E.19 tient.
+
+Une séance ainsi posée devient un vrai événement du calendrier, donc le E.15
+l'apparie comme n'importe quelle autre — sans aucune des réserves ci-dessus.
+C'est le chemin le plus sûr, et l'app le laisse à portée de pouce.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1527,6 +1593,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 25 | La vitesse de montée | **+10 % de forme par semaine**, lu sur la CTL ; au plafond, le plan tient son niveau (E.20) |
 | 26 | Les trajets dans le plan | **l'athlète les marque d'avance**, électrique ou musculaire ; l'app n'en recommande plus aucun (E.17, révisé) |
 | 27 | Le pic et le journal | **le pic se mesure** sur la courbe cardiaque ; l'app note ses propres refus, jamais les séances manquées (E.21) |
+| 28 | Reconnaître une séance proposée | **par le jour et la durée** — 85 % du temps proposé et une charge de qualité ; seule sur-estimation acceptée du projet, et elle est bornée (E.22) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

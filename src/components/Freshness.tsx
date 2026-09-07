@@ -76,6 +76,22 @@ export function Freshness({
     <section className="card">
       <h2>Où tu en es</h2>
 
+      {/* Un seul chiffre en grand, et deux satellites. La fraîcheur est celui
+          qui décide — c'est elle que le E.2 consulte, et c'est à elle qu'on
+          répond « je peux y aller ? ». La lire de loin, sans chercher, vaut
+          mieux que trois nombres à égalité qu'il faut comparer. */}
+      <button
+        className={`hero ${freshnessTone(freshness, intent)}`}
+        onClick={() => toggle('freshness')}
+        aria-expanded={open === 'freshness'}
+      >
+        <span className="hero-number">
+          {freshness === null ? '—' : `${freshness > 0 ? '+' : ''}${Math.round(freshness)}`}
+        </span>
+        <span className="hero-label">Fraîcheur</span>
+        <span className="hero-read">{readFreshness(freshness, INTENTS[intent].tsbFloor)}</span>
+      </button>
+
       <div className="readout">
         <Value
           label="Forme"
@@ -89,22 +105,13 @@ export function Freshness({
           open={open === 'fatigue'}
           onToggle={() => toggle('fatigue')}
         />
-        <Value
-          label="Fraîcheur"
-          value={freshness}
-          signed
-          tone={freshnessTone(freshness, intent)}
-          open={open === 'freshness'}
-          onToggle={() => toggle('freshness')}
-        />
       </div>
 
       {open ? <Explain which={open} days={days} today={today} intent={intent} /> : null}
 
       {open === null ? (
         <p className="muted small">
-          Les trois chiffres viennent d’intervals.icu. Tape l’un d’eux pour voir d’où il
-          sort.
+          Les trois chiffres viennent d’intervals.icu. Tape l’un d’eux pour voir d’où il sort.
         </p>
       ) : null}
 
@@ -199,6 +206,22 @@ export function Freshness({
       ) : null}
     </section>
   )
+}
+
+/**
+ * La fraîcheur en une phrase.
+ *
+ * Le chiffre seul ne veut rien dire à qui ne le pratique pas tous les jours.
+ * La phrase dit ce qu'il implique — et elle est calée sur le plancher du mode,
+ * donc elle change avec lui.
+ */
+function readFreshness(freshness: number | null, floor: number): string {
+  if (freshness === null) return 'intervals.icu ne l’a pas encore donnée'
+  if (freshness < floor) return 'sous le plancher : pas de séance de qualité aujourd’hui'
+  if (freshness < floor / 2) return 'tu creuses — encore de la marge, mais pas beaucoup'
+  if (freshness < 0) return 'tu creuses un peu, ce qui est le but d’une semaine de charge'
+  if (freshness < 10) return 'tu es à l’équilibre'
+  return 'tu es frais — c’est le moment d’en faire quelque chose'
 }
 
 /**

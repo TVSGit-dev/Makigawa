@@ -11,7 +11,6 @@
  */
 
 import { mondayOf, shiftDayKey, type DayKey } from '../calendar/dates'
-import type { Completion } from './done'
 import type { Intent } from './intent'
 
 /** Deux semaines de charge, puis une allégée. */
@@ -26,15 +25,21 @@ export const LOADING_WEEKS = 2
  * hebdomadaire de l'athlète, donc une semaine passée à seulement rouler au
  * travail pèserait autant qu'une semaine de travail dur.
  */
-export function heldInWeek(completions: readonly Completion[], week: DayKey): boolean {
+export function heldInWeek(days: readonly DayKey[], week: DayKey): boolean {
   const end = shiftDayKey(week, 7)
-  return completions.some(
-    (one) => one.outcome === 'tenue' && one.date >= week && one.date < end,
-  )
+  return days.some((date) => date >= week && date < end)
 }
 
 export type UnloadOptions = {
-  completions: readonly Completion[]
+  /**
+   * Les jours qui ont porté une séance tenue.
+   *
+   * Des jours plutôt que des `Completion` : depuis le E.22, une séance tenue
+   * peut venir du calendrier **ou** d'une proposition que l'app reconnaît.
+   * Le cycle 2:1 compte les semaines d'entraînement, peu importe par quel
+   * chemin l'app l'a su.
+   */
+  held: readonly DayKey[]
   today: DayKey
   /** Les lundis des semaines déjà passées en décharge. */
   unloaded: ReadonlySet<DayKey>
@@ -49,14 +54,14 @@ export type UnloadOptions = {
  * porté : proposer d'alléger un mercredi où deux séances sont déjà faites
  * n'allègerait rien.
  */
-export function shouldUnload({ completions, today, unloaded }: UnloadOptions): boolean {
+export function shouldUnload({ held, today, unloaded }: UnloadOptions): boolean {
   const week = mondayOf(today)
-  if (heldInWeek(completions, week)) return false
+  if (heldInWeek(held, week)) return false
 
   for (let back = 1; back <= LOADING_WEEKS; back += 1) {
     const previous = shiftDayKey(week, -7 * back)
     if (unloaded.has(previous)) return false
-    if (!heldInWeek(completions, previous)) return false
+    if (!heldInWeek(held, previous)) return false
   }
 
   return true

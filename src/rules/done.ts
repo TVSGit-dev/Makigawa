@@ -154,6 +154,60 @@ function nearestOnDay(
   )[0]
 }
 
+/**
+ * Une proposition tenue, reconnue sans passer par le calendrier (E.22).
+ *
+ * Trois conditions, et les trois nombres sont mesurés — deux durées et une
+ * charge. L'app n'en estime aucun : la règle du projet tient.
+ *
+ * 1. l'activité sollicite la filière aérobie et **n'est pas un trajet** ;
+ * 2. elle a duré au moins 85 % du temps proposé — le seuil du E.15, appliqué
+ *    à la durée faute d'une charge prévue à comparer ;
+ * 3. sa charge atteint le niveau de qualité du E.1.
+ *
+ * **C'est la seule sur-estimation que le projet accepte** : une sortie libre
+ * d'une heure comptera pour le sweet spot de quarante minutes proposé ce
+ * jour-là. Le mal est borné — un cran, sous le plafond du E.20, et qui
+ * s'efface au bout de six semaines. Ne rien faire monter du tout était faux à
+ * coup sûr.
+ */
+export function realises(
+  proposal: { date: DayKey; seconds: number },
+  activity: Activity,
+  scale: LoadScale = DEFAULT_SCALE,
+): boolean {
+  if (dayKeyOf(activity.startDateLocal) !== proposal.date) return false
+  if (!isQualityActivity(activity, scale)) return false
+  if (activity.movingTime === null) return false
+  return activity.movingTime >= proposal.seconds * HELD_RATIO
+}
+
+/**
+ * Les propositions que les activités du jour ont réalisées.
+ *
+ * Une activité n'en réalise qu'une : sans cela, une sortie ferait monter deux
+ * niveaux d'un coup.
+ */
+export function heldProposals<T extends { date: DayKey; seconds: number }>(
+  proposals: readonly T[],
+  activities: readonly Activity[],
+  scale: LoadScale = DEFAULT_SCALE,
+): T[] {
+  const used = new Set<Activity>()
+  const held: T[] = []
+
+  for (const proposal of proposals) {
+    const match = activities.find(
+      (activity) => !used.has(activity) && realises(proposal, activity, scale),
+    )
+    if (!match) continue
+    used.add(match)
+    held.push(proposal)
+  }
+
+  return held
+}
+
 /* ---------- la reprise du E.5 ---------- */
 
 /** Au-delà de tant de jours sans séance de qualité, l'app repart doucement. */

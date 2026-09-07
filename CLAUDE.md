@@ -248,6 +248,11 @@ En bref :
   l'activité qui l'a réalisée, d'abord par le lien d'intervals.icu. Elle
   n'affiche que les séances tenues — jamais les manquées, qui ne servent qu'en
   interne.
+- **Elle se souvient de ce qu'elle a proposé**, faute de pouvoir l'écrire
+  (E.22). Une proposition est tenue quand une activité du même jour a duré au
+  moins 85 % du temps proposé et pèse une charge de qualité. C'est la **seule
+  sur-estimation** que le projet accepte, et elle est bornée : un cran, sous le
+  plafond du E.20, effacé au bout de six semaines.
 - **Un niveau par zone**, lu sur la plus grosse séance qu'il a tenue dans cette
   zone en six semaines. La séance suivante vise un cran au-dessus. Rien ne fait
   descendre un niveau sauf le temps.
@@ -268,6 +273,17 @@ Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.
 
 ## Contraintes d'interface
+
+**Un seul chiffre en grand : la fraîcheur.** Révisé le 7 septembre 2026, après
+avoir regardé comment Whoop présente son score de récupération — un nombre
+lisible à bout de bras, sa lecture en une phrase, et le reste plus petit en
+dessous. Trois nombres à égalité obligent à comparer ; un seul répond. La forme
+et la fatigue restent, en satellites.
+
+**Le poids d'une journée est une jauge, pas un mot.** Quatorze lignes disant
+« légère » sont quatorze fois du bruit ; la profondeur du rose le dit d'un coup
+d'œil. Le mot ne reste que pour la journée chargée, la seule dont on veuille
+être averti.
 
 **La palette est grise, rose et noire** — choix de l'athlète, 6 septembre 2026.
 La sévérité s'exprime par la profondeur du rose plutôt que par de nouvelles
