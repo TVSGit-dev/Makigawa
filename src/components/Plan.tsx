@@ -8,7 +8,7 @@
  * proposition.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   fetchActivities,
   fetchCalendarEvents,
@@ -21,11 +21,12 @@ import {
 import { changeFor, writeChange, type Change } from '../actions/apply'
 import { buildContext, isSession, toDayRecords } from '../rules/context'
 import { daysSinceQuality, isReprise, matchCompletions } from '../rules/done'
+import { shouldUnload } from '../rules/decharge'
 import { heldFrom, levelsFrom } from '../workouts/levels'
 import { propose, type Proposal } from '../rules/decide'
 import { weighDay } from '../rules/scale'
 import type { Intent } from '../rules/intent'
-import type { DayRecord } from '../rules/types'
+import type { DayRecord, DayWeight } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
 import { dismiss, fingerprint, forgetOlderThan } from '../storage/preferences'
 import {
@@ -47,6 +48,7 @@ import {
 } from '../calendar/dates'
 import { Place } from './Place'
 import { Progress } from './Progress'
+import { Today } from './Today'
 import { Week } from './Week'
 import { planWeek } from '../workouts/week'
 import { SessionCard, type WriteState } from './SessionCard'
@@ -92,15 +94,36 @@ export type Readout = {
    */
   reprise: boolean
   daysSinceQuality: number | null
+  /** Le cycle 2:1 arrive à sa troisième semaine (E.18). */
+  unloadSuggested: boolean
 }
 
 type Props = {
   credentials: Credentials
   intent: Intent
+  /** La décharge acceptée pour cette semaine, décidée par `App` (E.18). */
+  unloading: boolean
+  /** Les semaines déjà passées en décharge : le cycle les saute. */
+  unloadedWeeks: ReadonlySet<DayKey>
   onReadout: (readout: Readout) => void
+  /**
+   * Ce qui se glisse entre « Aujourd'hui » et « Ta semaine ».
+   *
+   * `App` y met la carte de forme : elle a besoin de données que `Plan` lit,
+   * et `Plan` a besoin d'ouvrir l'écran. Le passer en enfant règle les deux
+   * sans faire descendre une carte entière en propriétés.
+   */
+  children?: ReactNode
 }
 
-export function Plan({ credentials, intent, onReadout }: Props) {
+export function Plan({
+  credentials,
+  intent,
+  unloading,
+  unloadedWeeks,
+  onReadout,
+  children,
+}: Props) {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [writes, setWrites] = useState<Record<string, WriteState>>({})
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set())
@@ -191,6 +214,11 @@ export function Plan({ credentials, intent, onReadout }: Props) {
   )
   const reprise = isReprise(sinceQuality)
 
+  const unloadSuggested = useMemo(
+    () => shouldUnload({ completions, today, unloaded: unloadedWeeks }),
+    [completions, today, unloadedWeeks],
+  )
+
   useEffect(() => {
     const latest = wellness
       .filter((day) => day.date !== null && day.date <= today && day.ctl !== null)
@@ -204,24 +232,34 @@ export function Plan({ credentials, intent, onReadout }: Props) {
       days: observed,
       reprise,
       daysSinceQuality: sinceQuality,
+      unloadSuggested,
     })
     // `observed` est reconstruit à chaque rendu ; c'est `wellness` et l'état
     // qui disent quand il a vraiment changé.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wellness, state, today, reprise, sinceQuality, onReadout])
+  }, [wellness, state, today, reprise, sinceQuality, unloadSuggested, onReadout])
+
+  // Seulement l'à-venir : une séance passée ne doit pas entrer dans
+  // l'espacement du E.4 et bloquer les jours qui viennent. Le calendrier est lu
+  // six semaines en arrière pour le E.15, mais le moteur n'en veut rien.
+  const upcoming = useMemo(
+    () =>
+      state.status === 'ok'
+        ? state.data.events.filter((event) => (dayKeyOf(event.startDateLocal) ?? '') >= today)
+        : [],
+    [state, today],
+  )
 
   const context = useMemo(() => {
     if (state.status !== 'ok') return null
     return buildContext({
       today,
-      // Seulement l'à-venir : une séance passée ne doit pas entrer dans
-      // l'espacement du E.4 et bloquer les jours qui viennent.
-      events: state.data.events.filter((event) => (dayKeyOf(event.startDateLocal) ?? '') >= today),
+      events: upcoming,
       activities: state.data.activities,
       wellness: state.data.wellness,
       intent,
     })
-  }, [state, today, intent])
+  }, [state, today, intent, upcoming])
 
   const days = useMemo(() => {
     if (state.status !== 'ok' || !context) return []
@@ -243,9 +281,10 @@ export function Plan({ credentials, intent, onReadout }: Props) {
             notBefore: choices.notBefore,
             levels,
             reprise,
+            decharge: unloading,
           })
         : [],
-    [context, today, fitness, choices, levels, reprise],
+    [context, today, fitness, choices, levels, reprise, unloading],
   )
 
   const apply = async (event: CalendarEvent, change: Change) => {
@@ -274,33 +313,55 @@ export function Plan({ credentials, intent, onReadout }: Props) {
 
   if (state.status === 'loading') {
     return (
-      <section className="card">
-        <h2>Ta semaine</h2>
-        <p className="muted">Lecture d’intervals.icu…</p>
-      </section>
+      <>
+        {children}
+        <section className="card">
+          <h2>Ta semaine</h2>
+          <p className="muted">Lecture d’intervals.icu…</p>
+        </section>
+      </>
     )
   }
 
   if (state.status === 'error') {
     return (
-      <section className="card">
-        <div className="card-head">
-          <h2>Ta semaine</h2>
-          <button className="button button-small button-ghost" onClick={() => void load()}>
-            Réessayer
-          </button>
-        </div>
-        <p className="error">
-          <strong>{state.title}</strong>
-          <br />
-          {state.detail}
-        </p>
-      </section>
+      <>
+        {children}
+        <section className="card">
+          <div className="card-head">
+            <h2>Ta semaine</h2>
+            <button className="button button-small button-ghost" onClick={() => void load()}>
+              Réessayer
+            </button>
+          </div>
+          <p className="error">
+            <strong>{state.title}</strong>
+            <br />
+            {state.detail}
+          </p>
+        </section>
+      </>
     )
   }
 
+  const todayDay = days.find((day) => day.date === today)
+
   return (
     <>
+    {context ? (
+      <Today
+        credentials={credentials}
+        today={today}
+        weight={(todayDay?.weight ?? 'legere') as DayWeight}
+        context={context}
+        planned={todayDay?.items ?? []}
+        suggestion={suggestions.find((one) => one.date === today) ?? null}
+        onPlaced={() => void load()}
+      />
+    ) : null}
+
+    {children}
+
     <section className="card">
       <div className="card-head">
         <h2>Ta semaine</h2>
@@ -319,7 +380,7 @@ export function Plan({ credentials, intent, onReadout }: Props) {
           il le dit juste. `Empty` invoquerait la fraîcheur ou les jours pris,
           ce qui serait faux et se contredirait à l'écran. */}
       {planned === 0 && suggestions.length === 0 && !hasPlanPreferences(choices) ? (
-        <Empty read={state.data.events.length} />
+        <Empty read={upcoming.length} />
       ) : null}
 
       <Week
@@ -335,7 +396,9 @@ export function Plan({ credentials, intent, onReadout }: Props) {
         onReset={() => setChoices(resetPlanPreferences())}
       />
 
-      {days.map((day) => (
+      {days
+        .filter((day) => day.date !== today || day.items.length > 0)
+        .map((day) => (
         <div className={day.date === today ? 'day day-today' : 'day'} key={day.date}>
           <p className="day-title">
             <span>{day.date === today ? 'Aujourd’hui' : formatDay(day.date)}</span>
@@ -451,6 +514,8 @@ function groupByDay(
     else byDay.set(date, [{ event, proposal }])
   }
 
+  // « Aujourd'hui » est toujours dans la liste, même vide, parce que le poids
+  // de la journée s'y lit — sauf quand la carte du haut le dit déjà.
   return [...new Set([today, ...byDay.keys()])].sort().map((date) => ({
     date,
     weight: weighDay(

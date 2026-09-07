@@ -18,7 +18,7 @@ import type { PlannedSession } from '../rules/types'
 import { CANDIDATE_ID } from '../actions/place'
 import { type Workout } from './compose'
 import { familyOf, type Family } from './families'
-import { composeAtLevel, nextLevel, zoneOfFamily, type Zone } from './levels'
+import { composeAtLevel, nextLevel, unloadLevel, zoneOfFamily, type Zone } from './levels'
 
 /** L'horizon sur lequel l'app propose. Le même que le plan. */
 export const HORIZON_DAYS = 14
@@ -86,6 +86,8 @@ export type WeekOptions = {
   levels?: Partial<Record<Zone, number>>
   /** La reprise du E.5 : on repart au niveau tenu, sans le cran de plus. */
   reprise?: boolean
+  /** La décharge du E.18 : moitié moins de travail, intensité inchangée. */
+  decharge?: boolean
 }
 
 /**
@@ -112,6 +114,7 @@ export function planWeek({
   notBefore = null,
   levels = {},
   reprise = false,
+  decharge = false,
 }: WeekOptions): Suggestion[] {
   const quota = INTENTS[context.intent].chargedDaysPerWeek
   const available = familiesFor(fitness).filter((family) => !refused.includes(family.key))
@@ -135,7 +138,9 @@ export function planWeek({
     // niveau tenu dans sa zone : elle vise un cran au-dessus (E.16).
     const zone = zoneOfFamily(family.key)
     const level = zone ? (levels[zone] ?? 0) : 0
-    const workout = composeAtLevel(family, nextLevel(level, reprise))
+    const target =
+      decharge && zone ? unloadLevel(zone, level) : nextLevel(level, reprise)
+    const workout = composeAtLevel(family, target)
 
     const placed = firstFittingDay({ ...context, planned }, start, horizon, workout, taken)
     if (!placed) continue
@@ -143,7 +148,7 @@ export function planWeek({
     suggestions.push({
       date: placed,
       workout,
-      because: reasonFor(family, index, fitness, level, reprise),
+      because: reasonFor(family, index, fitness, level, reprise, decharge),
     })
     planned = [...planned, sessionFor(workout, placed)]
     taken.push(placed)
@@ -211,7 +216,14 @@ function reasonFor(
   fitness: number | null,
   level: number,
   reprise: boolean,
+  decharge: boolean,
 ): string {
+  if (decharge) {
+    return level > 0
+      ? `Semaine de décharge : la moitié du travail du niveau ${level}, à la même intensité.`
+      : `Semaine de décharge : court, et sans forcer.`
+  }
+
   if (reprise) {
     return level > 0
       ? `Deux semaines sans séance de qualité : on repart au niveau ${level}, sans monter.`

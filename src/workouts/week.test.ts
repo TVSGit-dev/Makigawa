@@ -240,6 +240,43 @@ describe('les niveaux par zone (E.16)', () => {
   })
 })
 
+describe('la semaine de décharge (E.18)', () => {
+  const decharge = (levels: Partial<Record<Zone, number>>) =>
+    planWeek({
+      context: context({ intent: 'prudent' }),
+      today: '2026-09-07',
+      fitness: 17,
+      levels,
+      decharge: true,
+    })
+
+  const charge = (levels: Partial<Record<Zone, number>>) =>
+    planWeek({ context: context({ intent: 'prudent' }), today: '2026-09-07', fitness: 17, levels })
+
+  it('propose moins de travail que la semaine de charge', () => {
+    const allegee = decharge({ 'sweet-spot': 8 })[0]!
+    const pleine = charge({ 'sweet-spot': 8 })[0]!
+    expect(allegee.workout.seconds).toBeLessThan(pleine.workout.seconds)
+  })
+
+  it('garde la même famille, donc la même intensité', () => {
+    // Le C.4 : on allège le volume, on garde de quoi ne pas s'éteindre.
+    const allegee = decharge({ 'sweet-spot': 8 })[0]!
+    expect(allegee.workout.family.key).toBe(charge({ 'sweet-spot': 8 })[0]!.workout.family.key)
+    expect(Math.max(...allegee.workout.blocks.map((b) => b.percent))).toBe(
+      Math.max(...charge({ 'sweet-spot': 8 })[0]!.workout.blocks.map((b) => b.percent)),
+    )
+  })
+
+  it('le dit', () => {
+    expect(decharge({ 'sweet-spot': 8 })[0]?.because).toContain('décharge')
+  })
+
+  it('n’en propose qu’une, comme le mode prudent', () => {
+    expect(decharge({ 'sweet-spot': 8 })).toHaveLength(1)
+  })
+})
+
 describe('ce que le planning respecte', () => {
   it('tient le quota de journées chargées du mode', () => {
     const semaine = plan({ intent: 'normal' }, 45)
