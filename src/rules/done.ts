@@ -13,7 +13,7 @@
 
 import type { Activity, CalendarEvent } from '../api/intervals'
 import { dayKeyOf, type DayKey } from '../calendar/dates'
-import { isCommute, isSession, kindOf } from './context'
+import { isSession, kindOf, looksLikeCommute as isCommuteNamed } from './context'
 import { DEFAULT_SCALE, levelOf, QUALITY_LEVEL, type LoadScale } from './scale'
 import type { Intent } from './intent'
 
@@ -42,22 +42,9 @@ export type Completion = {
 export const HELD_RATIO = 0.85
 export const LIGHTENED_RATIO = 0.5
 
-/**
- * Ce qui marque un trajet dans le nom d'une activité.
- *
- * Les noms sont ceux que l'athlète leur donne lui-même dans Garmin, d'où
- * viennent d'ailleurs les libellés du E.13. C'est le seul moyen de distinguer
- * un `Hard Commute` d'une vraie sortie : les deux sont des `Ride` avec un
- * capteur de puissance, et rien d'autre ne les sépare.
- *
- * L'électrique, lui, est écarté par son type — par principe, jamais par nom.
- */
-const COMMUTE_MARKS = ['commute', 'trajet', 'domicile-travail']
-
+/** Un trajet, reconnu par son type ou par le nom que l'athlète lui donne. */
 export function looksLikeCommute(activity: Activity): boolean {
-  if (isCommute(activity.type)) return true
-  const name = activity.name?.toLowerCase() ?? ''
-  return COMMUTE_MARKS.some((mark) => name.includes(mark))
+  return isCommuteNamed(activity.type, activity.name)
 }
 
 /**

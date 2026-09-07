@@ -14,7 +14,11 @@ import { join } from 'node:path'
 
 const UI = join(process.cwd(), 'src', 'components')
 
-const WRITES = ['createEvent', 'updateEvent', 'writeChange', 'placeOpenRide', 'placeMobility']
+/**
+ * Les fonctions d'écriture de l'API. La liste doit rester celle des fonctions
+ * qui existent : chercher des fantômes ne garde rien.
+ */
+const WRITES = ['createEvent', 'updateEvent']
 
 function uiFiles(): string[] {
   return readdirSync(UI)

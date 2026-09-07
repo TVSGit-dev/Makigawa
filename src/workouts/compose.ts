@@ -201,17 +201,3 @@ function nameOf(family: Family, sets: number, reps: number, seconds: number): st
   const minutes = Math.round(blockSeconds(family, reps) / 60)
   return `${family.name} ${sets} × ${minutes} min`
 }
-
-/** L'événement de calendrier que devient une séance composée. */
-export function eventFor(workout: Workout, date: string): Record<string, unknown> {
-  return {
-    category: 'WORKOUT',
-    start_date_local: `${date}T00:00:00`,
-    name: workout.name,
-    type: 'VirtualRide',
-    moving_time: workout.seconds,
-    description: toNotation(workout),
-    // Aucune charge n'est envoyée : intervals.icu la calcule depuis la
-    // structure, et une charge écrite à la main serait figée.
-  }
-}

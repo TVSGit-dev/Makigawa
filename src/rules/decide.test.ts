@@ -236,6 +236,42 @@ describe('les interdictions', () => {
  * de veille et de lendemain interceptent la plupart des voisinages avant
  * elles.
  */
+describe('la journée déjà chargée (E.2, condition 5)', () => {
+  it('refuse une séance sur une journée qu’un trajet a déjà chargée', () => {
+    // Un aller-retour musculaire pèse 115. Y ajouter un sweet spot ferait une
+    // journée plus lourde que tout ce que l'athlète a jamais fait.
+    const trajet: PlannedSession = {
+      id: 'trajet',
+      date: '2026-09-10',
+      load: 115,
+      kind: 'autre',
+      commute: true,
+    }
+    const seance = quality({ date: '2026-09-10' })
+    const ctx = context({ planned: [seance, trajet] })
+    expect(refuse(seance, seance.date, ctx)?.code).toBe('jour-deja-charge')
+  })
+
+  it('ne se refuse pas elle-même', () => {
+    // La séance évaluée est retirée du calcul : sans cela, toute séance de
+    // qualité rendrait sa propre journée chargée et se bloquerait.
+    const seule = quality({ date: '2026-09-10', load: 140 })
+    expect(refuse(seule, seule.date, context({ planned: [seule] }))).toBeNull()
+  })
+
+  it('laisse passer sur une journée qu’un trajet électrique porte seule', () => {
+    const trajet: PlannedSession = {
+      id: 'trajet',
+      date: '2026-09-10',
+      load: 35,
+      kind: 'autre',
+      commute: true,
+    }
+    const seance = quality({ date: '2026-09-10' })
+    expect(refuse(seance, seance.date, context({ planned: [seance, trajet] }))).toBeNull()
+  })
+})
+
 describe('les règles que les autres pourraient masquer', () => {
   it('refuse deux séances de qualité le même jour', () => {
     const session = quality()

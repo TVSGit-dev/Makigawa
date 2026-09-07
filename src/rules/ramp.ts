@@ -27,6 +27,18 @@ export const RAMP_SHARE = 0.1
 /** Sur combien de jours la vitesse se mesure. */
 export const RAMP_DAYS = 7
 
+/**
+ * L'écart toléré entre les deux relevés, en jours.
+ *
+ * Le relevé du jour n'existe pas toujours encore le matin, et celui d'il y a
+ * sept jours peut manquer : prendre le plus proche disponible est le bon
+ * réflexe. Mais sans borne, un trou de trois semaines dans l'historique
+ * donnait « six points par semaine » pour six points en vingt jours — un
+ * chiffre faux, et assez haut pour bloquer la progression à tort.
+ */
+const RAMP_MIN_GAP = 4
+const RAMP_MAX_GAP = 10
+
 export type Ramp = {
   /** La forme d'aujourd'hui, telle qu'intervals.icu la donne. */
   fitness: number
@@ -58,13 +70,24 @@ function fitnessAt(wellness: readonly Wellness[], date: DayKey): { date: DayKey;
 export function rampOf(wellness: readonly Wellness[], today: DayKey): Ramp | null {
   const now = fitnessAt(wellness, today)
   const before = fitnessAt(wellness, shiftDayKey(today, -RAMP_DAYS))
-  if (!now || !before || now.date === before.date) return null
+  if (!now || !before) return null
+
+  const gap = daysBetween(before.date, now.date)
+  if (gap < RAMP_MIN_GAP || gap > RAMP_MAX_GAP) return null
 
   return {
     fitness: now.ctl,
-    rate: now.ctl - before.ctl,
+    // Ramenée à sept jours : l'écart réel fait quatre à dix jours, et
+    // annoncer « par semaine » un chiffre qui ne l'est pas serait mentir.
+    rate: ((now.ctl - before.ctl) * RAMP_DAYS) / gap,
     cap: now.ctl * RAMP_SHARE,
   }
+}
+
+function daysBetween(from: DayKey, to: DayKey): number {
+  const start = new Date(`${from}T00:00:00`).getTime()
+  const end = new Date(`${to}T00:00:00`).getTime()
+  return Math.round((end - start) / 86_400_000)
 }
 
 /**
@@ -76,5 +99,8 @@ export function rampOf(wellness: readonly Wellness[], today: DayKey): Ramp | nul
  * déjà.
  */
 export function holdsLevel(ramp: Ramp | null): boolean {
-  return ramp !== null && ramp.rate >= ramp.cap
+  // Un plafond nul ne retient rien : à forme nulle, le pourcentage n'a plus de
+  // sens, et sans cette garde un athlète parti de zéro resterait au premier
+  // échelon pour toujours.
+  return ramp !== null && ramp.cap > 0 && ramp.rate >= ramp.cap
 }

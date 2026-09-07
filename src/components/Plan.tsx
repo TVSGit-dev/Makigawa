@@ -1,11 +1,14 @@
 /**
- * L'écran principal : ce qui est prévu, et ce que l'app en pense.
+ * L'écran principal : le plan des deux prochaines semaines.
+ *
+ * Il lit intervals.icu — le calendrier, les activités que Garmin y verse, la
+ * forme et la fatigue — et n'y écrit rien, sauf supprimer (E.19). Le plan vit
+ * ici, et se recalcule à chaque lecture.
  *
  * Il n'affiche jamais le passé. Ce n'est pas une simplification mais une
  * contrainte du projet : une journée révolue affichée dans un plan devient un
  * reproche, et une séance qu'on a laissée tomber n'a pas à laisser de trace.
- * Le passé sert au moteur — il ne s'affiche que dans la raison d'une
- * proposition.
+ * Le passé sert au moteur, et ne se montre que dans « Ce que tu construis ».
  */
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
@@ -41,6 +44,7 @@ import {
 import {
   addDays,
   dayKeyOf,
+  formatDuration,
   formatRelativeDay,
   shiftDayKey,
   toDayKey,
@@ -51,7 +55,9 @@ import { Week, type CalendarDay } from './Week'
 import { asPlannedCommute } from '../actions/commute'
 import { commuteOn, cycleCommute, forgetOldCommutes, type CommuteMarks } from '../storage/commutes'
 import { planWeek } from '../workouts/week'
-import { firstTestDay, FTP_TEST_NAME } from '../workouts/ftp-test'
+import { firstTestDay, ftpTest, FTP_TEST_NAME } from '../workouts/ftp-test'
+import { toNotation } from '../workouts/compose'
+import { Profile } from './Profile'
 import { type DeleteState } from './SessionCard'
 import { explainTest } from './reasons'
 
@@ -446,15 +452,29 @@ export function Plan({
  */
 function TestDay({ today, context }: { today: DayKey; context: ReturnType<typeof buildContext> }) {
   const found = firstTestDay(today, AHEAD_DAYS, context)
+  const protocole = ftpTest()
 
   return (
-    <p className="muted small">
-      <strong>{FTP_TEST_NAME}</strong>
-      <br />
-      {'date' in found
-        ? `Il tiendrait ${formatRelativeDay(found.date, today)}. À toi de le lancer depuis intervals.icu.`
-        : explainTest(found.refusal)}
-    </p>
+    <div className="now">
+      <p className="now-label">Le test qui manque</p>
+      <p className="muted small">
+        <strong>{FTP_TEST_NAME}</strong>
+        <br />
+        {'date' in found
+          ? `Il tiendrait ${formatRelativeDay(found.date, today)}.`
+          : explainTest(found.refusal)}{' '}
+        Ta FTP est à 221 W dans le profil et Garmin en estime 240 : le jour où tu la
+        corriges, toutes les séances proposées se recalibrent d’un coup, puisqu’elles sont
+        écrites en pourcentage.
+      </p>
+
+      <Profile blocks={protocole.blocks} />
+
+      <details className="structure">
+        <summary>Le protocole — {formatDuration(protocole.seconds)}</summary>
+        <pre>{toNotation(protocole)}</pre>
+      </details>
+    </div>
   )
 }
 
@@ -471,9 +491,10 @@ function Empty({ read }: { read: number }) {
     <div className="empty">
       <p className="empty-head">Rien de prévu sur les {AHEAD_DAYS} prochains jours.</p>
       <p className="muted small">
-        D’habitude elle te propose un plan d’elle-même. Là, elle n’a rien trouvé qui tienne
-        — soit la fraîcheur est trop basse, soit les jours à venir sont déjà pris.{' '}
-        <strong>Poser une séance</strong> ci-dessous passe outre si tu y tiens.
+        D’habitude elle te propose un plan d’elle-même. Là, elle n’a rien trouvé qui tienne —
+        soit la fraîcheur est trop basse, soit les jours à venir sont déjà pris, soit tes
+        trajets suffisent à charger la semaine. Elle en propose moins plutôt que de proposer
+        mal.
       </p>
       {read > 0 ? (
         <p className="muted small">

@@ -8,16 +8,11 @@
  * du renforcement des fessiers et du tronc.
  *
  * C'est la seule chose du catalogue **sans puissance, sans zone et sans
- * intensité**. Sa charge visée est volontairement basse — niveau 0 : elle ne
- * bloque rien, n'est jamais une séance de qualité, et se pose n'importe quel
- * jour. Y compris le lendemain d'une journée chargée, où elle sert le plus.
+ * intensité** — donc rien qu'une routine à faire, pas un événement à
+ * planifier. Depuis le E.19 l'app ne la pose plus nulle part : elle la montre,
+ * ce qui suffit.
  */
 
-import { createEvent, type ApiOutcome } from '../api/intervals'
-import type { Credentials } from '../storage/credentials'
-import type { DayKey } from '../calendar/dates'
-import type { PlannedSession } from '../rules/types'
-import { CANDIDATE_ID } from '../actions/place'
 
 export type Movement = {
   name: string
@@ -117,17 +112,6 @@ export const STRENGTH: readonly Movement[] = [
   },
 ]
 
-/**
- * La charge visée, volontairement basse.
- *
- * En dessous du premier échelon du E.1, donc de niveau 0 : la séance ne pèse
- * sur aucune journée et ne bloque aucune règle. C'est voulu — elle doit pouvoir
- * se poser le lendemain d'une grosse sortie.
- */
-export const MOBILITY_LOAD = 5
-
-export const MOBILITY_NAME = 'Souplesse — hanches et psoas'
-
 /** Le temps que la séance prend réellement, les deux côtés comptés. */
 export function mobilitySeconds(movements: readonly Movement[] = ROUTINE): number {
   return movements.reduce(
@@ -138,49 +122,3 @@ export function mobilitySeconds(movements: readonly Movement[] = ROUTINE): numbe
 
 /** La routine complète, dans l'ordre où elle se fait. */
 export const ROUTINE: readonly Movement[] = [...BEFORE, ...AFTER, ...STRENGTH]
-
-/** La routine en texte, telle qu'elle part dans le calendrier. */
-export function mobilityText(): string {
-  const section = (title: string, movements: readonly Movement[]) =>
-    [
-      title,
-      ...movements.map(
-        (move) =>
-          `- ${move.name} — ${move.seconds}s${move.bothSides ? ' par côté' : ''}. ${move.how}`,
-      ),
-    ].join('\n')
-
-  return [
-    section('AVANT (mobilité, on bouge)', BEFORE),
-    '',
-    section('APRÈS (tenues longues, 60 à 90 s)', AFTER),
-    '',
-    section('RENFORCEMENT (sans lui, le reste ne tient pas)', STRENGTH),
-  ].join('\n')
-}
-
-/** La séance telle que les règles la liront : trop légère pour compter. */
-export function asPlannedMobility(date: DayKey): PlannedSession {
-  return { id: `${CANDIDATE_ID}:souplesse`, date, load: MOBILITY_LOAD, kind: 'autre' }
-}
-
-export function mobilityEvent(date: DayKey): Record<string, unknown> {
-  return {
-    category: 'WORKOUT',
-    start_date_local: `${date}T00:00:00`,
-    name: MOBILITY_NAME,
-    // Ni Ride ni VirtualRide : il n'y a pas de vélo, pas de puissance, pas de
-    // zone. Le type doit le dire.
-    type: 'Workout',
-    moving_time: mobilitySeconds(),
-    icu_training_load: MOBILITY_LOAD,
-    description: mobilityText(),
-  }
-}
-
-export async function placeMobility(
-  credentials: Credentials,
-  date: DayKey,
-): Promise<ApiOutcome<unknown>> {
-  return createEvent(credentials, mobilityEvent(date))
-}

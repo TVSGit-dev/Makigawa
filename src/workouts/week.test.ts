@@ -4,6 +4,7 @@ import type { Context } from '../rules/decide'
 import type { DayRecord, PlannedSession } from '../rules/types'
 import { levelOf } from '../rules/scale'
 import { MAX_MINUTES, ZONES, type Zone } from './levels'
+import { asPlannedCommute } from '../actions/commute'
 
 const observed = (date: string, load: number): DayRecord => ({
   date,
@@ -239,6 +240,42 @@ describe('les niveaux par zone (E.16)', () => {
     const familles = withLevels({ vo2: 9 }).map((s) => s.workout.family.key)
     expect(familles).not.toContain('vo2-30-30')
     expect(familles).not.toContain('vo2-30-15')
+  })
+})
+
+describe('les trajets dans le plan (E.17)', () => {
+  const trajet = (date: string, kind: 'chill' | 'hard') => asPlannedCommute(kind, date)!
+
+  it('ne laisse pas un trajet consommer la séance de la semaine', () => {
+    // Un aller-retour musculaire pèse 115 : sans le drapeau, il passait pour
+    // une séance de qualité et le mode prudent ne proposait plus rien.
+    const semaine = planWeek({
+      context: context({ intent: 'prudent', planned: [trajet('2026-09-08', 'hard')] }),
+      today: '2026-09-07',
+      fitness: 17,
+    })
+    expect(semaine.length).toBeGreaterThan(0)
+  })
+
+  it('s’écarte quand même des journées chargées par un trajet', () => {
+    // Sa charge compte toujours : le jour et ses voisins restent pris.
+    const dates = planWeek({
+      context: context({ planned: [trajet('2026-09-09', 'hard')] }),
+      today: '2026-09-07',
+      fitness: 17,
+    }).map((s) => s.date)
+    expect(dates).not.toContain('2026-09-08')
+    expect(dates).not.toContain('2026-09-09')
+    expect(dates).not.toContain('2026-09-10')
+  })
+
+  it('ne bloque rien avec un trajet électrique', () => {
+    const dates = planWeek({
+      context: context({ planned: [trajet('2026-09-07', 'chill')] }),
+      today: '2026-09-07',
+      fitness: 17,
+    }).map((s) => s.date)
+    expect(dates).toContain('2026-09-07')
   })
 })
 

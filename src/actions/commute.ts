@@ -16,8 +16,7 @@
  */
 
 import { parseDayKey, type DayKey } from '../calendar/dates'
-import type { PlannedSession } from '../rules/types'
-import { CANDIDATE_ID } from './place'
+import { CANDIDATE_ID, type PlannedSession } from '../rules/types'
 
 export type CommuteKind = 'chill' | 'hard' | 'aucun'
 
@@ -87,5 +86,6 @@ export function asPlannedCommute(kind: CommuteKind, date: DayKey): PlannedSessio
     date,
     load: COMMUTE_LOADS[kind],
     kind: 'autre',
+    commute: true,
   }
 }

@@ -284,10 +284,6 @@ p {
   font-size: 0.875rem;
 }
 
-.footer {
-  padding-top: 0.5rem;
-}
-
 .field {
   display: flex;
   flex-direction: column;
@@ -521,12 +517,6 @@ p {
   margin-top: 0.25rem;
 }
 
-.applied {
-  margin-top: 0.25rem;
-  color: var(--ok);
-  font-size: 0.8125rem;
-}
-
 /* ---------- l'intention de la semaine ---------- */
 
 .segmented {
@@ -601,51 +591,9 @@ p {
   color: var(--muted);
 }
 
-.now-answer {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
 .now .button {
   align-self: flex-start;
   margin-top: 0.25rem;
-}
-
-/* Les trois réponses du trajet (E.17). Toutes montrées, une seule mise en
-   avant : l'app dit laquelle elle recommande, pas laquelle est permise. */
-.options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  margin: 0.375rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.option {
-  padding: 0.5rem 0.625rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-}
-
-.option-on {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.option-name {
-  font-weight: 500;
-}
-
-.option-load {
-  color: var(--muted);
-  font-weight: 400;
-}
-
-.option-why {
-  color: var(--muted);
-  margin-top: 0.2rem;
 }
 
 /* L'appui long qui arme la suppression (E.19) : la carte s'enfonce, pour
@@ -730,17 +678,6 @@ p {
   border-left: 3px solid var(--accent);
 }
 
-.suggested-day {
-  font-family: inherit;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--accent);
-}
-
-.suggested-day::first-letter {
-  text-transform: uppercase;
-}
-
 .suggested-name {
   font-weight: 500;
 }
@@ -758,16 +695,6 @@ p {
 /* Trois gestes sur une proposition : la poser, l'écarter, la repousser (E.14).
    Aucun n'est mis en avant — refuser est une réponse valable, pas un échec, et
    un refus qui ne change rien ne serait pas un refus mais de l'insistance. */
-.suggested-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-top: 0.25rem;
-}
-
-.suggested-actions .button {
-  margin-top: 0;
-}
 
 /* Le groupe passe à la ligne d'un bloc quand il ne tient plus, plutôt que de
    laisser « plus tard » orphelin sous les deux autres. */
@@ -867,79 +794,11 @@ p {
 
 /* ---------- poser une séance ---------- */
 
-.place {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
-}
-
-.place-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.place-title {
-  font-weight: 600;
-  font-size: 0.9375rem;
-}
-
 /* Une ligne de choix : toute la largeur est tactile, parce qu'on choisit au
    pouce et qu'une cible étroite se rate. */
-.choice {
-  appearance: none;
-  font: inherit;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  width: 100%;
-  min-height: 3rem;
-  padding: 0.625rem 0.75rem;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  cursor: pointer;
-}
-
-.choice:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
 
 /* Le jour qui convient se distingue par sa bordure, pas par un fond vert :
    les autres jours restent des choix possibles, pas des interdictions. */
-.choice-fits {
-  border-color: var(--accent);
-}
-
-.choice-name {
-  font-weight: 500;
-}
-
-.choice-name::first-letter {
-  text-transform: uppercase;
-}
-
-.choice-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-
-.choice-why {
-  color: var(--muted);
-  font-size: 0.8125rem;
-}
-
-.choice:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
 
 .settings {
   border: 1px solid var(--border);

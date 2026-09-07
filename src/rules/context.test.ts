@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { isQuality, weighDay } from './scale'
 import type { Activity, CalendarEvent, Wellness } from '../api/intervals'
 import {
   buildContext,
@@ -70,8 +71,25 @@ describe('ce qui compte comme une séance', () => {
 describe('les séances planifiées', () => {
   it('traduit un événement en séance que les règles comprennent', () => {
     expect(toPlannedSessions([event()])).toEqual([
-      { id: 'e1', date: '2026-09-10', load: 55, kind: 'endurance' },
+      { id: 'e1', date: '2026-09-10', load: 55, kind: 'endurance', commute: false },
     ])
+  })
+
+  it('reconnaît un trajet, et refuse d’en faire une séance de qualité', () => {
+    // La règle critique : un trajet porte une charge, ce n'est jamais de
+    // l'entraînement — quel que soit son vélo.
+    const electrique = toPlannedSessions([event({ type: 'EBikeRide', trainingLoad: 90 })])[0]!
+    const musculaire = toPlannedSessions([
+      event({ type: 'Ride', name: 'Hard Commute', trainingLoad: 115 }),
+    ])[0]!
+
+    expect(electrique.commute).toBe(true)
+    expect(musculaire.commute).toBe(true)
+    expect(isQuality(electrique)).toBe(false)
+    expect(isQuality(musculaire)).toBe(false)
+
+    // Leur charge, elle, pèse la journée comme n'importe quelle autre.
+    expect(weighDay(undefined, musculaire.date, [musculaire])).toBe('chargee')
   })
 
   it('écarte un événement sans identifiant', () => {
@@ -150,7 +168,7 @@ describe('le décor complet', () => {
     expect(context).toEqual({
       today: '2026-09-10',
       days: [{ date: '2026-09-09', observedLoad: 18, peakSeconds: 0 }],
-      planned: [{ id: 'e1', date: '2026-09-10', load: 55, kind: 'endurance' }],
+      planned: [{ id: 'e1', date: '2026-09-10', load: 55, kind: 'endurance', commute: false }],
       intent: 'normal',
       tsb: -4,
     })

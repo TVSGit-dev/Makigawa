@@ -568,10 +568,22 @@ La réponse est **non** si l'une de ces conditions est vraie :
 3. **Le TSB est sous le plancher du mode en cours** (partie D)
 4. **Le mode est « prudent » et une séance de qualité a déjà eu lieu cette
    semaine**
+5. **La journée est déjà chargée sans elle** — ajouté le 7 septembre 2026
 
 Sinon, la réponse est **oui**, et l'app ne fait rien — c'est le cas le plus
 fréquent, et une app qui ne fait rien quand tout va bien est une app qui
 fonctionne.
+
+> **La cinquième condition était implicite, et c'est un défaut qui l'a
+> révélée.** Tant qu'un aller-retour musculaire comptait à tort pour une séance
+> de qualité, l'espacement du E.4 refusait de placer quoi que ce soit le jour
+> même. La marque de trajet corrigée, ce refus a disparu — et l'app s'est mise
+> à poser un sweet spot sur une journée qui portait déjà 115 de charge, soit
+> une journée plus lourde que tout ce que l'athlète a jamais fait.
+>
+> La condition dit maintenant ce que les autres supposaient : on ne pose pas
+> une séance de qualité sur une journée que le reste a déjà rendue chargée. Le
+> E.11 la posait déjà pour lui seul, sur le test FTP ; elle vaut pour toutes.
 
 > **Retenu avec réserve.** La condition 2 est la plus discutable : elle
 > interdit une séance après deux journées moyennes consécutives, ce qui, avec
@@ -1055,6 +1067,20 @@ le projet s'interdit.
 Les absentes ne sont pas perdues pour autant : elles servent en interne, à ne
 pas faire monter un niveau qu'on n'a pas gagné.
 
+### Un trajet n'est jamais une séance, et le code doit le dire
+
+Constaté le 7 septembre en relisant tout : le drapeau manquait. Un aller-retour
+musculaire pèse 115, donc l'échelle du E.1 en faisait une **séance de qualité**
+— et en mode prudent il consommait la seule séance de la semaine. L'athlète
+allait au travail, et l'app en concluait qu'il s'était entraîné.
+
+La règle critique du projet le disait depuis le début : *les trajets n'en sont
+jamais, mais leur charge compte toujours*. Une séance planifiée porte désormais
+la marque, et `isQuality` la lit avant tout le reste. Sa charge, elle, continue
+de peser la journée comme n'importe quelle autre — c'est bien une journée
+chargée, et le E.2 s'en écarte pour cette raison-là, pas parce qu'il la
+prendrait pour un entraînement.
+
 ### La reprise, enfin détectable
 
 Le E.5 attendait ceci depuis le début. Le compteur repart à zéro à chaque
@@ -1335,15 +1361,21 @@ la seule écriture qui va dans le sens du retrait. Elle demande un appui long de
 deux secondes — un geste qu'on ne fait pas par accident — et l'app ne
 supprime jamais d'elle-même.
 
-### Ce qui devient dormant
+### Ce qui reste, et ce qui part
 
-Le catalogue de familles, la composition de séances, la sortie ouverte, la
-routine de souplesse, le protocole du test FTP : tout cela reste, testé, et
-alimente ce que l'app **montre**. Rien n'en part vers intervals.icu.
+**Reste tout ce qui alimente ce que l'app montre** : le catalogue de familles,
+la composition de séances, les niveaux par zone, la routine de souplesse et le
+protocole du test FTP. Ils ne partent nulle part, mais ils s'affichent — et
+c'est en s'affichant qu'ils servent.
+
+**Part ce qui ne servait qu'à écrire** : la machinerie de décalage et de
+réduction, la pose d'une séance de bibliothèque, la sortie ouverte. Du code
+qu'aucun chemin n'atteint est un piège pour le prochain lecteur, et l'athlète
+avait raison d'appeler ça de la complexité prématurée. Il se retrouve dans
+l'historique du dépôt le jour où l'écriture reviendra.
 
 Les trajets, eux, ne se posaient déjà pas : ils arrivent de Garmin. Sur ce
-point rien ne change, et l'app continue de dire lequel conviendrait aujourd'hui
-sans rien écrire.
+point rien ne change.
 
 ## E.20 La dose, et la vitesse à laquelle elle monte
 
