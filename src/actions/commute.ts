@@ -59,6 +59,14 @@ export const COMMUTE_OPTIONS: readonly CommuteOption[] = [
   },
 ]
 
+export type CommuteVerdict = {
+  option: CommuteOption
+  /** Pourquoi le E.2 l'écarte, ou `null` s'il l'accepte. */
+  reason: Refusal | null
+  /** Celle que l'app recommande : la plus exigeante qui passe. */
+  advised: boolean
+}
+
 export type CommuteAdvice = {
   option: CommuteOption
   /** Ce que le E.2 a répondu aux options plus exigeantes, dans l'ordre. */
@@ -83,11 +91,20 @@ function asPlanned(option: CommuteOption, date: DayKey): PlannedSession {
  * La réponse la plus exigeante que le E.2 accepte. L'électrique est le dernier
  * recours et il ne peut pas échouer, donc il y a toujours une réponse.
  */
-export function adviseCommute(date: DayKey, context: Context): CommuteAdvice {
+/**
+ * Les trois réponses, chacune avec le verdict du E.2.
+ *
+ * **Les trois sont toujours montrées.** N'afficher que la recommandation
+ * donnait un écran qui se contredisait : l'électrique n'apparaissait qu'une
+ * fois le trajet musculaire posé, comme s'il venait d'être inventé. L'app dit
+ * laquelle elle recommande et pourquoi, pas laquelle est permise — le E.17 le
+ * disait déjà, l'écran ne le faisait pas.
+ */
+export function commuteVerdicts(date: DayKey, context: Context): CommuteVerdict[] {
   const scale = context.scale ?? DEFAULT_SCALE
-  const refused: { option: CommuteOption; reason: Refusal }[] = []
+  let advisedFound = false
 
-  for (const option of COMMUTE_OPTIONS) {
+  return COMMUTE_OPTIONS.map((option) => {
     const planned = asPlanned(option, date)
 
     // Le premier principe du E.0 : les règles ne gouvernent que les séances de
@@ -95,17 +112,24 @@ export function adviseCommute(date: DayKey, context: Context): CommuteAdvice {
     // le cas de l'électrique, qui doit toujours rester possible. Le garde-fou
     // vit dans `propose` ; l'oublier ici ferait refuser un trajet qu'aucune
     // règle ne peut refuser.
-    if (!isQuality(planned, scale)) return { option, refused }
+    const reason = isQuality(planned, scale) ? refuse(planned, date, context) : null
 
-    const reason = refuse(planned, date, context)
-    if (!reason) return { option, refused }
-    refused.push({ option, reason })
-  }
+    const advised = !reason && !advisedFound
+    if (advised) advisedFound = true
+    return { option, reason, advised }
+  })
+}
 
-  // Inatteignable en pratique — l'électrique n'est jamais une séance de
-  // qualité — mais on ne renvoie pas `null` d'une question dont il existe
-  // toujours une réponse : il va au travail de toute façon.
-  return { option: COMMUTE_OPTIONS[COMMUTE_OPTIONS.length - 1]!, refused }
+export function adviseCommute(date: DayKey, context: Context): CommuteAdvice {
+  const verdicts = commuteVerdicts(date, context)
+  const advised = verdicts.find((verdict) => verdict.advised)
+
+  const refused = verdicts
+    .filter((verdict): verdict is CommuteVerdict & { reason: Refusal } => verdict.reason !== null)
+    .map(({ option, reason }) => ({ option, reason }))
+
+  // Il existe toujours une réponse : il va au travail de toute façon.
+  return { option: advised?.option ?? COMMUTE_OPTIONS[COMMUTE_OPTIONS.length - 1]!, refused }
 }
 
 /**

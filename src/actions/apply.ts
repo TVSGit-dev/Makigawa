@@ -5,6 +5,11 @@
  * la confirmation devient un appel réseau. La décision est séparée de
  * l'écriture — `changeFor` est pure, donc testable, et `writeChange` ne fait
  * qu'obéir.
+ *
+ * **Dormant depuis le 7 septembre 2026 (E.19).** L'app n'écrit plus dans
+ * intervals.icu : elle dit ce qu'elle ferait, et l'athlète le fait s'il veut.
+ * Le module reste, testé, parce que la capacité d'écrire est démontrée et
+ * qu'elle attend seulement que le jugement soit bon.
  */
 
 import {

@@ -62,14 +62,16 @@ export function build(family: Family, sets: number, reps: number, long = true): 
 
   blocks.push(SETTLE, ...(long ? COOLDOWN : COOLDOWN_SHORT))
 
+  const seconds = blocks.reduce((total, block) => total + block.seconds, 0)
+
   return {
-    name: nameOf(family, sets, reps),
+    name: nameOf(family, sets, reps, seconds),
     family,
     sets,
     reps,
     long,
     blocks,
-    seconds: blocks.reduce((total, block) => total + block.seconds, 0),
+    seconds,
   }
 }
 
@@ -186,9 +188,17 @@ function duration(seconds: number): string {
  * d'un coup d'œil est la longueur du bloc, pas le nombre de répétitions
  * dedans.
  */
-function nameOf(family: Family, sets: number, reps: number): string {
+/**
+ * Le nom, à la convention de l'athlète : `Sweet spot 2 × 12 min`, où les
+ * douze minutes sont celles de **travail**.
+ *
+ * L'endurance fait exception, et c'est nécessaire : sa séance entière est du
+ * travail, donc annoncer les minutes de bloc donnait « Endurance 10 min » sur
+ * une sortie de trente-deux. Pour elle, le nom porte la durée totale.
+ */
+function nameOf(family: Family, sets: number, reps: number, seconds: number): string {
+  if (family.key === 'endurance') return `${family.name} ${Math.round(seconds / 60)} min`
   const minutes = Math.round(blockSeconds(family, reps) / 60)
-  if (family.key === 'endurance') return `${family.name} ${sets * minutes} min`
   return `${family.name} ${sets} × ${minutes} min`
 }
 

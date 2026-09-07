@@ -88,6 +88,13 @@ export type WeekOptions = {
   reprise?: boolean
   /** La décharge du E.18 : moitié moins de travail, intensité inchangée. */
   decharge?: boolean
+  /**
+   * La forme monte déjà au plafond (E.20) : le plan tient son niveau.
+   *
+   * Rien n'est retiré, rien n'est réduit — la semaine ressemble à la
+   * précédente. On ne progresse pas en ajoutant à ce qui monte déjà.
+   */
+  hold?: boolean
 }
 
 /**
@@ -115,8 +122,14 @@ export function planWeek({
   levels = {},
   reprise = false,
   decharge = false,
+  hold = false,
 }: WeekOptions): Suggestion[] {
-  const quota = INTENTS[context.intent].chargedDaysPerWeek
+  // Le quota est hebdomadaire ; l'horizon fait deux semaines. Le plan couvre
+  // les deux (E.19) — le E.2 et le E.4 se chargent de les espacer.
+  // Une décharge ne concerne que la semaine en cours (E.18) : on n'en étale
+  // pas deux, la suivante repartira normalement.
+  const weeks = decharge ? 1 : Math.max(1, Math.round(horizon / 7))
+  const quota = INTENTS[context.intent].chargedDaysPerWeek * weeks
   const available = familiesFor(fitness).filter((family) => !refused.includes(family.key))
   if (available.length === 0) return []
 
@@ -139,16 +152,23 @@ export function planWeek({
     const zone = zoneOfFamily(family.key)
     const level = zone ? (levels[zone] ?? 0) : 0
     const target =
-      decharge && zone ? unloadLevel(zone, level) : nextLevel(level, reprise)
+      decharge && zone ? unloadLevel(zone, level) : nextLevel(level, reprise || hold)
     const workout = composeAtLevel(family, target)
 
-    const placed = firstFittingDay({ ...context, planned }, start, horizon, workout, taken)
+    const placed = firstFittingDay(
+      { ...context, planned },
+      start,
+      horizon,
+      workout,
+      taken,
+      INTENTS[context.intent].chargedDaysPerWeek,
+    )
     if (!placed) continue
 
     suggestions.push({
       date: placed,
       workout,
-      because: reasonFor(family, index, fitness, level, reprise, decharge),
+      because: reasonFor(family, index, fitness, level, reprise, decharge, hold),
     })
     planned = [...planned, sessionFor(workout, placed)]
     taken.push(placed)
@@ -173,13 +193,38 @@ function firstFittingDay(
   horizon: number,
   workout: Workout,
   taken: readonly DayKey[],
+  perWeek: number,
 ): DayKey | null {
   for (let ahead = 0; ahead < horizon; ahead += 1) {
     const date = shiftDayKey(start, ahead)
     if (touchesTaken(date, taken)) continue
+    if (!fitsWeeklyQuota(date, taken, perWeek)) continue
     if (!refuse(sessionFor(workout, date), date, context)) return date
   }
   return null
+}
+
+/**
+ * Le quota hebdomadaire, tenu par le planificateur lui-même.
+ *
+ * Le E.2 ne peut pas le faire ici : une séance composée n'a pas de charge —
+ * intervals.icu la calculera depuis la structure — donc `weighDay` la voit
+ * comme une journée vide et le quota du mode ne se déclenche jamais. C'est la
+ * même raison qui oblige le planificateur à tenir son propre espacement.
+ *
+ * La règle est glissante : **aucune fenêtre de sept jours** ne doit porter plus
+ * de séances que le mode n'en autorise. Sans elle, un plan de deux semaines
+ * entasse tout au début de l'horizon — quatre séances en une semaine là où le
+ * mode normal en tient deux.
+ */
+function fitsWeeklyQuota(date: DayKey, taken: readonly DayKey[], perWeek: number): boolean {
+  const dates = [...taken, date]
+  for (let back = 0; back < 7; back += 1) {
+    const from = shiftDayKey(date, -back)
+    const to = shiftDayKey(from, 6)
+    if (dates.filter((one) => one >= from && one <= to).length > perWeek) return false
+  }
+  return true
 }
 
 /** Le jour, ou l'un de ses deux voisins, porte-t-il déjà une proposition ? */
@@ -217,6 +262,7 @@ function reasonFor(
   level: number,
   reprise: boolean,
   decharge: boolean,
+  hold: boolean,
 ): string {
   if (decharge) {
     return level > 0
@@ -228,6 +274,12 @@ function reasonFor(
     return level > 0
       ? `Deux semaines sans séance de qualité : on repart au niveau ${level}, sans monter.`
       : `Deux semaines sans séance de qualité : on repart doucement.`
+  }
+
+  if (hold) {
+    return level > 0
+      ? `Ta forme monte déjà vite : on reste au niveau ${level} cette fois.`
+      : `Ta forme monte déjà vite : on ne rajoute rien pour l’instant.`
   }
 
   if (level > 0) {

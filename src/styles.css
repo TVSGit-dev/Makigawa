@@ -561,6 +561,56 @@ p {
   margin-top: 0.25rem;
 }
 
+/* Les trois réponses du trajet (E.17). Toutes montrées, une seule mise en
+   avant : l'app dit laquelle elle recommande, pas laquelle est permise. */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0.375rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.option-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.option-name {
+  font-weight: 500;
+}
+
+.option-load {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.option-why {
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+/* L'appui long qui arme la suppression (E.19) : la carte s'enfonce, pour
+   qu'on voie qu'il se passe quelque chose avant les deux secondes. */
+.session {
+  touch-action: manipulation;
+}
+
+.session-holding {
+  opacity: 0.7;
+  transform: scale(0.99);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+}
+
 /* Une proposition qui attend une réponse : la décharge (E.18). Encadrée, pour
    qu'on la voie, mais sans couleur d'alerte — alléger est une décision, pas un
    échec, et surtout pas une dette. */
@@ -986,4 +1036,18 @@ p {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
+}
+
+.routine-part {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.routine-name {
+  font-weight: 500;
+}
+
+.routine-how {
+  margin-top: 0.2rem;
 }
