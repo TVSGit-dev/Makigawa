@@ -33,6 +33,7 @@ const activity = (over: Partial<Activity> = {}): Activity => ({
   startDateLocal: '2026-09-07T18:00:00',
   trainingLoad: 80,
   movingTime: 2520,
+  distance: null,
   pairedEventId: null,
   raw: {},
   ...over,

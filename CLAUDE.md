@@ -41,6 +41,24 @@ réécrit les événements. Elle décide du moment, pas du contenu.
 > reste vrai sur le fond — le *quoi* vient d'intervals.icu, le *quand* et le
 > *si* viennent de Makigawa — mais Makigawa ne le pousse plus nulle part.
 
+### Ce que le plan dit, et dans quelle unité
+
+Révisé le 7 septembre 2026 (E.23). Le plan ne donne plus une recette à recopier
+mais **une intention** : un style, une dose, et la forme des blocs — assez pour
+reconnaître une séance équivalente dans le catalogue de Zwift, pas assez pour la
+retaper.
+
+- **Les watts s'affichent, ils ne se décident pas.** Un pourcentage résolu par
+  la FTP d'intervals.icu se lit dans l'unité de Zwift ; la décision reste le
+  pourcentage, donc le test FTP recalibre tout sans qu'une séance ne bouge.
+- **La charge d'une sortie ne s'estime pas, elle se lit** dans l'historique de
+  l'athlète : « tes sorties de cette distance ont pesé 190 à 215 ». Une formule
+  donnerait un nombre plausible ; ses propres sorties donnent le vrai.
+- **La dose se dit à la semaine et aux jours qui restent.** L'objectif est la
+  moyenne des trois dernières semaines complètes plus 10 % — le plafond du E.20
+  gardant le dernier mot. Une journée sans rien ne crée aucune dette : le reste
+  se répartit sur les jours restants.
+
 ### La frontière, telle que l'athlète l'a formulée
 
 > **Tous les chiffres viennent d'intervals.icu, l'organisation vient de

@@ -33,6 +33,8 @@ export type Activity = {
   trainingLoad: number | null
   /** Durée en mouvement, en secondes. Sert à lire le pas d'un flux (E.21). */
   movingTime: number | null
+  /** Distance parcourue, en mètres. */
+  distance: number | null
   /**
    * La séance planifiée que cette activité réalise, quand intervals.icu les a
    * appariées (E.15).
@@ -43,6 +45,32 @@ export type Activity = {
    */
   pairedEventId: string | null
   raw: Record<string, unknown>
+}
+
+/**
+ * Les types dont la puissance est réelle : il y a un capteur.
+ *
+ * La règle critique du projet exclut la puissance des `EBikeRide` **par
+ * principe, jamais par nom de champ**. C'est pourquoi elle ne figure pas dans
+ * le type `Activity` : la lire demande de passer par cette fonction, qui
+ * refuse tout ce qui n'est pas dans la liste. Un champ de puissance à venir ne
+ * pourra donc pas se glisser dans l'app par inadvertance.
+ */
+const POWERED_TYPES = new Set(['Ride', 'VirtualRide'])
+
+/**
+ * La puissance moyenne d'une activité, ou `null` si on n'a pas le droit d'y
+ * croire.
+ *
+ * Deux verrous : le type doit porter un capteur, et intervals.icu doit
+ * confirmer qu'il y en avait un (`has_device_watts`). Sur le vélo électrique
+ * de l'athlète il vaut `false`, et toute valeur de puissance y est une
+ * estimation fausse.
+ */
+export function averageWattsOf(activity: Activity): number | null {
+  if (!activity.type || !POWERED_TYPES.has(activity.type)) return null
+  if (activity.raw.has_device_watts === false) return null
+  return count(activity.raw.average_watts)
 }
 
 /**
@@ -259,6 +287,7 @@ function toActivity(raw: Record<string, unknown>): Activity {
     startDateLocal: text(raw.start_date_local),
     trainingLoad: count(raw.icu_training_load),
     movingTime: count(raw.moving_time),
+    distance: count(raw.distance),
     pairedEventId: text(raw.paired_event_id),
     raw,
   }
@@ -463,6 +492,29 @@ export async function fetchActivity(
   if (outcome.kind !== 'ok') return outcome
   const record = asRecord(outcome.data)
   return { kind: 'ok', data: record ? toActivity(record) : null }
+}
+
+/**
+ * La FTP du profil, lue dans les réglages de sport (E.23).
+ *
+ * Elle ne sert **jamais à décider** — aucune règle du projet n'en dépend, les
+ * seuils sont en bpm. Elle sert à **afficher** : un pourcentage résolu en watts
+ * se lit dans l'unité de Zwift, et le jour du test tout se recalibre sans
+ * qu'une seule séance ne bouge.
+ */
+export async function fetchFtp(
+  credentials: Credentials,
+  sport = 'Ride',
+): Promise<ApiOutcome<number | null>> {
+  const outcome = await request<unknown>(
+    `/sport-settings/${encodeURIComponent(sport)}`,
+    credentials,
+  )
+  if (outcome.kind !== 'ok') return outcome
+
+  const record = asRecord(outcome.data)
+  const ftp = record ? count(record.ftp) : null
+  return { kind: 'ok', data: ftp && ftp > 0 ? ftp : null }
 }
 
 /** Fenêtre courte : on veut valider l'accès, pas rapatrier l'historique. */

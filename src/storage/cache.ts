@@ -21,6 +21,8 @@ export type CachedRead = {
   events: CalendarEvent[]
   activities: Activity[]
   wellness: Wellness[]
+  /** La FTP du profil, pour continuer d'afficher des watts hors ligne. */
+  ftp?: number | null
 }
 
 /** Au-delà, mieux vaut l'écran d'erreur : un plan de la semaine dernière ment. */
@@ -39,7 +41,13 @@ export function loadRead(now = Date.now()): CachedRead | null {
     if (!Array.isArray(read.wellness)) return null
     if (hoursSince(read.at, now) > CACHE_MAX_HOURS) return null
 
-    return { at: read.at, events: read.events, activities: read.activities, wellness: read.wellness }
+    return {
+      at: read.at,
+      events: read.events,
+      activities: read.activities,
+      wellness: read.wellness,
+      ftp: typeof read.ftp === 'number' ? read.ftp : null,
+    }
   } catch {
     return null
   }

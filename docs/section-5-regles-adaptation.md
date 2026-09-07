@@ -1552,6 +1552,82 @@ Une séance ainsi posée devient un vrai événement du calendrier, donc le E.15
 l'apparie comme n'importe quelle autre — sans aucune des réserves ci-dessus.
 C'est le chemin le plus sûr, et l'app le laisse à portée de pouce.
 
+## E.23 Une intention, pas une recette
+
+Demandé le 7 septembre 2026, et c'est un recentrage plus qu'un ajout. L'athlète
+l'a expliqué ainsi :
+
+> *« Mon but avec ce planning est de voir un style de séance et une catégorie de
+> charge à faire. Ensuite, je chercherai une séance plus ou moins équivalente
+> sur Zwift. […] Pour les sorties plus longues, j'aimerais avoir un niveau de
+> puissance à tenir en moyenne en fonction d'une distance, et avoir la charge
+> équivalente. »*
+
+L'app composait une séance bloc par bloc et la donnait à recopier. Ce n'est pas
+ce dont il a besoin : il a besoin de **savoir quoi faire et combien**, puis de
+trouver lui-même la séance qui y ressemble dans le catalogue de Zwift.
+
+### Ce que l'app dit d'une séance
+
+Trois choses, dans cet ordre : le **style**, la **dose**, et la **forme des
+blocs**.
+
+> **Sweet spot · 45 min · charge soutenue**
+> 2 × 12 min en alternant 90 s à 95 % et 90 s à 85 %, récup 4 min
+
+La notation complète disparaît de l'écran. Elle n'a jamais servi qu'à être
+recopiée, et l'athlète ne recopie plus.
+
+**Les pourcentages s'accompagnent de leur équivalent en watts** quand la FTP est
+connue — `95 % (≈ 210 W)`. Zwift affiche des watts ; une intention illisible
+dans l'unité de l'outil n'est pas une intention.
+
+Ceci ne contredit pas la règle des watts, qui interdit d'**écrire** une
+intensité en watts parce qu'elle se figerait. Ici la décision reste un
+pourcentage, et le watt n'est qu'un affichage résolu par la FTP
+d'intervals.icu : le jour du test, tout se recalibre sans qu'une seule séance
+ne bouge.
+
+### Ce que l'app dit de la dose
+
+Deux mailles, parce que l'athlète les a demandées toutes les deux.
+
+**La semaine**, qui est la maille à laquelle la charge s'accumule vraiment :
+
+> Les trois dernières semaines : 310, 280, 340. Cette semaine, vise **325**.
+> Déjà acquis : 140.
+
+L'objectif est la moyenne des trois dernières semaines complètes, **plus 10 %**
+— le même dix pour cent que le E.20, appliqué cette fois à la quantité sur
+laquelle l'athlète peut agir. Et le plafond du E.20 garde le dernier mot :
+quand la forme monte déjà trop vite, l'objectif **tient** au lieu de monter.
+
+**Les jours qui viennent**, où le reste se répartit. Ce n'est pas un quota
+quotidien : une journée sans rien ne crée aucune dette, le reste se
+redistribue simplement sur les jours restants. La différence est celle que le
+E.6 pose depuis le début — répartir n'est pas devoir.
+
+Aucune charge n'est calculée ici. Les totaux hebdomadaires sont des **sommes de
+charges quotidiennes d'intervals.icu**, et l'objectif est un pourcentage de
+cette somme. C'est la même arithmétique que la fraîcheur, qui est une
+soustraction.
+
+### Ce que l'app dit d'une sortie longue
+
+L'athlète part de la **distance** — c'est ainsi qu'il pense ses sorties.
+
+> **50 km** — tiens environ **180 W** de moyenne.
+> Tes sorties de 45 à 55 km autour de cette allure ont pesé **190 à 215**.
+
+L'allure vient d'un pourcentage de FTP résolu comme ci-dessus. **La charge, elle,
+n'est pas estimée : elle est lue dans l'historique de l'athlète.** Une formule
+donnerait un nombre plausible ; ses propres sorties donnent le vrai, avec son
+terrain, son vélo et son vent.
+
+Quand l'historique ne contient rien de comparable, l'app ne dit rien plutôt
+qu'un chiffre inventé. C'est la règle du projet, et c'est aussi la seule
+réponse honnête.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1594,6 +1670,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 26 | Les trajets dans le plan | **l'athlète les marque d'avance**, électrique ou musculaire ; l'app n'en recommande plus aucun (E.17, révisé) |
 | 27 | Le pic et le journal | **le pic se mesure** sur la courbe cardiaque ; l'app note ses propres refus, jamais les séances manquées (E.21) |
 | 28 | Reconnaître une séance proposée | **par le jour et la durée** — 85 % du temps proposé et une charge de qualité ; seule sur-estimation acceptée du projet, et elle est bornée (E.22) |
+| 29 | Ce que le plan dit | **un style, une dose, la forme des blocs** — plus de notation à recopier ; les watts sont affichés, jamais décidés ; la charge d'une sortie se lit dans l'historique (E.23) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles
