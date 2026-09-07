@@ -24,9 +24,15 @@ import {
   type Wellness,
 } from '../api/intervals'
 import { buildContext, isSession, toDayRecords } from '../rules/context'
-import { daysSinceQuality, isReprise, matchCompletions } from '../rules/done'
+import { daysSinceQuality, heldProposals, isReprise, matchCompletions } from '../rules/done'
+import {
+  loadProposals,
+  rememberProposals,
+  type RememberedProposal,
+} from '../storage/proposals'
+import { workSeconds, zoneOfFamily } from '../workouts/levels'
 import { shouldUnload } from '../rules/decharge'
-import { heldFrom, levelsFrom } from '../workouts/levels'
+import { heldFrom, levelsFrom, type Held } from '../workouts/levels'
 import { propose, type Proposal } from '../rules/decide'
 import { weighDay } from '../rules/scale'
 import type { Intent } from '../rules/intent'
@@ -253,7 +259,45 @@ export function Plan({
     })
   }, [state, today])
 
-  const levels = useMemo(() => levelsFrom(heldFrom(completions)), [completions])
+  /**
+   * Ce que l'app a proposé les six dernières semaines (E.22).
+   *
+   * Sans cette mémoire, une séance proposée et faite ne laissait aucune trace :
+   * elle n'est pas dans le calendrier d'intervals.icu, donc le E.15 ne pouvait
+   * pas l'apparier, donc aucun niveau ne montait jamais.
+   */
+  const [remembered, setRemembered] = useState<RememberedProposal[]>(() => loadProposals())
+
+  /**
+   * Les propositions que les activités ont réalisées, et ce qu'elles valent.
+   *
+   * **Les jours passés seulement.** Une proposition d'aujourd'hui qui ferait
+   * monter un niveau changerait le plan d'aujourd'hui, donc la proposition,
+   * donc le niveau : l'app tournerait en rond. Ce que tu fais ce soir compte
+   * demain, et ne coûte rien puisque le plan du jour est déjà rendu.
+   */
+  const heldFromProposals = useMemo((): Held[] => {
+    if (state.status !== 'ok') return []
+    const passees = remembered.filter((one) => one.date < today)
+    return heldProposals(passees, state.data.activities).map((one) => ({
+      zone: one.zone,
+      seconds: one.work,
+    }))
+  }, [remembered, state, today])
+
+  const levels = useMemo(
+    () => levelsFrom([...heldFrom(completions), ...heldFromProposals]),
+    [completions, heldFromProposals],
+  )
+
+  /** Les jours qui ont porté une séance tenue, par l'un ou l'autre chemin. */
+  const heldDays = useMemo(() => {
+    if (state.status !== 'ok') return []
+    const fromCalendar = completions.filter((one) => one.outcome === 'tenue').map((one) => one.date)
+    const passees = remembered.filter((one) => one.date < today)
+    const fromApp = heldProposals(passees, state.data.activities).map((one) => one.date)
+    return [...new Set([...fromCalendar, ...fromApp])]
+  }, [completions, remembered, state, today])
 
   const sinceQuality = useMemo(
     () =>
@@ -273,8 +317,8 @@ export function Plan({
   const hold = holdsLevel(ramp)
 
   const unloadSuggested = useMemo(
-    () => shouldUnload({ completions, today, unloaded: unloadedWeeks }),
-    [completions, today, unloadedWeeks],
+    () => shouldUnload({ held: heldDays, today, unloaded: unloadedWeeks }),
+    [heldDays, today, unloadedWeeks],
   )
 
   useEffect(() => {
@@ -365,6 +409,32 @@ export function Plan({
   useEffect(() => {
     if (state.status !== 'ok') return
     setJournal(recordRefusals(today, planned2.refusals))
+
+    // Ce qui est proposé aujourd'hui se retient : c'est la seule trace qui
+    // restera si l'athlète le fait sans rien encoder (E.22).
+    const next = rememberProposals(
+      today,
+      planned2.suggestions.flatMap((one) => {
+        const zone = zoneOfFamily(one.workout.family.key)
+        if (!zone) return []
+        return [
+          {
+            date: one.date,
+            zone,
+            seconds: one.workout.seconds,
+            work: workSeconds(one.workout.blocks, zone),
+            name: one.workout.name,
+          },
+        ]
+      }),
+    )
+
+    // Ne remplacer l'état que si le contenu a changé : un nouveau tableau à
+    // chaque rendu relancerait le calcul des niveaux, donc du plan, donc de
+    // cet effet — l'app tournerait en rond sans jamais se stabiliser.
+    setRemembered((current) =>
+      JSON.stringify(current) === JSON.stringify(next) ? current : next,
+    )
   }, [state.status, today, planned2])
 
   const days = useMemo(() => {

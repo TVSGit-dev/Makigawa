@@ -157,6 +157,53 @@ describe('l’écran du plan', () => {
     expect(container.querySelectorAll('.day')).toHaveLength(14)
   })
 
+  it('reconnaît une séance qu’elle a proposée, sans passer par le calendrier', async () => {
+    // Le trou du E.19 : sans cette reconnaissance, aucun niveau ne monte
+    // jamais. Une proposition d'hier, une activité d'hier, et le niveau suit.
+    localStorage.setItem(
+      'makigawa.propositions',
+      JSON.stringify([
+        {
+          date: shift(-1),
+          zone: 'sweet-spot',
+          seconds: 2520,
+          work: 1440,
+          name: 'Sweet spot 2 × 12 min',
+        },
+      ]),
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: string | URL | Request) => {
+        const url = String(input)
+        const body = url.includes('/events')
+          ? []
+          : url.includes('/wellness')
+            ? wellness
+            : url.includes('/streams')
+              ? []
+              : [
+                  {
+                    id: 'z1',
+                    type: 'VirtualRide',
+                    name: 'Zwift',
+                    start_date_local: `${shift(-1)}T18:00:00`,
+                    icu_training_load: 80,
+                    moving_time: 2600,
+                  },
+                ]
+        return new Response(JSON.stringify(body), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }),
+    )
+
+    const { container } = plan()
+    await waitFor(() => expect(container.textContent).toContain('Sweet spot'))
+    expect(container.textContent).toContain('niveau')
+  })
+
   it('dit franchement quand il n’y a rien, et rien de plus', async () => {
     serve({ fail: true })
     const { container } = plan()

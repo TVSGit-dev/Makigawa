@@ -13,6 +13,7 @@
  * journée chargée, et le E.2 s'en écarte comme de n'importe quelle autre.
  */
 
+import { useState } from 'react'
 import { COMMUTE_LABELS, COMMUTE_MARKS, type CommuteKind } from '../actions/commute'
 import type { CalendarEvent } from '../api/intervals'
 import type { Proposal } from '../rules/decide'
@@ -112,7 +113,12 @@ export function Week({
 
       <div className="calendar">
         {days.map((day) => (
-          <div className={day.date === today ? 'day day-today' : 'day'} key={day.date}>
+          <div
+            className={`day${day.date === today ? ' day-today' : ''}${
+              day.weight === 'chargee' ? ' day-heavy' : ''
+            }`}
+            key={day.date}
+          >
             <p className="day-title">
               <button
                 className={`mark mark-${day.commute}`}
@@ -125,7 +131,7 @@ export function Week({
               <span className="day-name">
                 {day.date === today ? 'Aujourd’hui' : formatDayShort(day.date)}
               </span>
-              <span className={`weight weight-${day.weight}`}>{WEIGHTS[day.weight]}</span>
+              <Load weight={day.weight} />
             </p>
 
             {day.items.map(({ event, proposal }) => {
@@ -159,6 +165,29 @@ export function Week({
   )
 }
 
+/**
+ * Le poids d'une journée, en trois crans plutôt qu'en un mot.
+ *
+ * Quatorze lignes disant « légère » sont quatorze fois du bruit. La jauge dit
+ * la même chose d'un coup d'œil, dans la même couleur que partout ailleurs —
+ * plus le rose est profond, plus c'est sévère. Le mot reste pour la journée
+ * chargée, qui est la seule dont on veut être averti.
+ */
+function Load({ weight }: { weight: DayWeight }) {
+  const filled = { legere: 1, moyenne: 2, chargee: 3 }[weight]
+
+  return (
+    <span className={`load load-${weight}`} title={WEIGHTS[weight]}>
+      {weight === 'chargee' ? <span className="load-word">chargée</span> : null}
+      <span className="load-gauge" role="img" aria-label={`Journée ${WEIGHTS[weight]}`}>
+        {[1, 2, 3].map((step) => (
+          <span className={step <= filled ? 'load-step load-step-on' : 'load-step'} key={step} />
+        ))}
+      </span>
+    </span>
+  )
+}
+
 /** Une séance que Makigawa propose. Elle n'existe que dans l'app. */
 function Proposed({
   suggestion,
@@ -184,6 +213,8 @@ function Proposed({
       </details>
 
       <div className="suggested-refuse">
+        <Copy notation={toNotation(suggestion.workout)} />
+
         <button
           className="button button-small button-quiet"
           onClick={() => onRefuse(suggestion.workout.family.key)}
@@ -203,6 +234,42 @@ function Proposed({
         ) : null}
       </div>
     </article>
+  )
+}
+
+/**
+ * Le raccourci qui ferme la boucle (E.22).
+ *
+ * L'app ne pose plus rien dans intervals.icu (E.19), donc faire la séance
+ * demandait de la retaper. Un tap la met dans le presse-papier, prête à coller
+ * dans l'éditeur d'intervals.icu — c'est l'athlète qui écrit, pas l'app.
+ *
+ * Et une séance ainsi posée devient un vrai événement du calendrier : le E.15
+ * l'apparie alors comme n'importe quelle autre, sans la réserve du E.22.
+ */
+function Copy({ notation }: { notation: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(notation)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2500)
+    } catch {
+      // Presse-papier refusé — page non sécurisée, permission absente. On ne
+      // ment pas : le bouton ne se met pas au vert.
+      setCopied(false)
+    }
+  }
+
+  return (
+    <button
+      className="button button-small button-ghost"
+      onClick={() => void copy()}
+      title="Copier la structure, prête à coller dans intervals.icu"
+    >
+      {copied ? 'Copiée ✓' : 'Copier'}
+    </button>
   )
 }
 
