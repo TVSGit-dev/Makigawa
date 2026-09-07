@@ -53,6 +53,23 @@ export function parseDayKey(key: DayKey): Date | null {
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
 }
 
+/**
+ * « lun. 8 sept. » — la forme courte, pour une liste de quatorze jours.
+ *
+ * Quatorze lignes de « mercredi 16 septembre » passaient à la ligne sur un
+ * téléphone, et une date qui se coupe en deux se lit moins bien qu'une date
+ * abrégée.
+ */
+export function formatDayShort(key: DayKey): string {
+  const date = parseDayKey(key)
+  if (!date) return key
+  return date.toLocaleDateString('fr-BE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
 /** « lundi 8 septembre ». Renvoie la clé brute si elle est illisible. */
 export function formatDay(key: DayKey): string {
   const date = parseDayKey(key)

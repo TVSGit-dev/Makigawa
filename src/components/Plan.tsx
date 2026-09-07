@@ -26,7 +26,7 @@ import { heldFrom, levelsFrom } from '../workouts/levels'
 import { propose, type Proposal } from '../rules/decide'
 import { weighDay } from '../rules/scale'
 import type { Intent } from '../rules/intent'
-import type { DayRecord, DayWeight } from '../rules/types'
+import type { DayRecord } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
 import { rampOf, holdsLevel } from '../rules/ramp'
 import {
@@ -41,19 +41,19 @@ import {
 import {
   addDays,
   dayKeyOf,
-  formatDay,
   formatRelativeDay,
   shiftDayKey,
   toDayKey,
   type DayKey,
 } from '../calendar/dates'
 import { Progress } from './Progress'
-import { Today } from './Today'
-import { Week } from './Week'
+import { Week, type CalendarDay } from './Week'
+import { asPlannedCommute } from '../actions/commute'
+import { commuteOn, cycleCommute, forgetOldCommutes, type CommuteMarks } from '../storage/commutes'
 import { planWeek } from '../workouts/week'
 import { firstTestDay, FTP_TEST_NAME } from '../workouts/ftp-test'
-import { SessionCard, type DeleteState } from './SessionCard'
-import { explainTest, weightLabel } from './reasons'
+import { type DeleteState } from './SessionCard'
+import { explainTest } from './reasons'
 
 /** Deux semaines devant : l'horizon de planification annoncé par le projet. */
 const AHEAD_DAYS = 14
@@ -130,11 +130,15 @@ export function Plan({
   // Ce que l'athlète a écarté ou repoussé du plan (E.14). Vit dans le
   // téléphone, ne part jamais dans intervals.icu.
   const [choices, setChoices] = useState<PlanPreferences>({ refused: {}, notBefore: null })
+  // Les jours de trajet marqués par l'athlète (E.17 révisé). Ils changent le
+  // poids d'une journée, donc le plan se recalcule autour.
+  const [commutes, setCommutes] = useState<CommuteMarks>({})
 
   const today = toDayKey(new Date())
 
   useEffect(() => {
     setChoices(forgetStalePreferences(today))
+    setCommutes(forgetOldCommutes(today))
   }, [today])
 
   const load = useCallback(async () => {
@@ -257,23 +261,32 @@ export function Plan({
     [state, today],
   )
 
+  /**
+   * Les trajets à venir, tels que les règles les liront (E.17 révisé).
+   *
+   * Ils ne partent nulle part : ce sont des intentions locales. Mais ils
+   * portent 60 à 100 % de la charge hebdomadaire de l'athlète, donc un plan
+   * qui les ignore planifie dans le vide.
+   */
+  const commuteSessions = useMemo(
+    () =>
+      Array.from({ length: AHEAD_DAYS }, (_, ahead) => shiftDayKey(today, ahead))
+        .map((date) => asPlannedCommute(commuteOn(commutes, date), date))
+        .filter((session): session is NonNullable<typeof session> => session !== null),
+    [commutes, today],
+  )
+
   const context = useMemo(() => {
     if (state.status !== 'ok') return null
-    return buildContext({
+    const base = buildContext({
       today,
       events: upcoming,
       activities: state.data.activities,
       wellness: state.data.wellness,
       intent,
     })
-  }, [state, today, intent, upcoming])
-
-  const days = useMemo(() => {
-    if (state.status !== 'ok' || !context) return []
-    return groupByDay(state.data.events, context, today)
-  }, [state, context, today])
-
-  const planned = days.reduce((total, day) => total + day.items.length, 0)
+    return { ...base, planned: [...base.planned, ...commuteSessions] }
+  }, [state, today, intent, upcoming, commuteSessions])
 
   // Le plan est recalculé en entier à chaque refus, jamais rapiécé : les
   // séances suivantes sont placées par rapport à la première (E.14).
@@ -294,6 +307,19 @@ export function Plan({
         : [],
     [context, today, fitness, choices, levels, reprise, unloading, hold],
   )
+
+  const days = useMemo(() => {
+    if (state.status !== 'ok' || !context) return []
+    return buildCalendar({
+      events: state.data.events,
+      context,
+      today,
+      commutes,
+      suggestions,
+    })
+  }, [state, context, today, commutes, suggestions])
+
+  const planned = days.reduce((total, day) => total + day.items.length, 0)
 
   /**
    * La seule écriture qui reste (E.19).
@@ -352,20 +378,8 @@ export function Plan({
     )
   }
 
-  const todayDay = days.find((day) => day.date === today)
-
   return (
     <>
-    {context ? (
-      <Today
-        today={today}
-        weight={(todayDay?.weight ?? 'legere') as DayWeight}
-        context={context}
-        planned={todayDay?.items ?? []}
-        suggestion={suggestions.find((one) => one.date === today) ?? null}
-      />
-    ) : null}
-
     {children}
 
     <section className="card">
@@ -390,46 +404,26 @@ export function Plan({
       ) : null}
 
       <Week
-        suggestions={suggestions}
+        days={days}
+        today={today}
+        intent={intent}
         fitness={fitness}
         ramp={ramp}
-        today={today}
         refusing={hasPlanPreferences(choices)}
+        removals={removals}
+        onCommute={(date) => setCommutes(cycleCommute(date))}
         onRefuse={(family) => setChoices(refuseFamily(family, today))}
         onPostpone={(date) => setChoices(postponePlan(date))}
         onReset={() => setChoices(resetPlanPreferences())}
+        onDelete={(id) => void remove(id)}
       />
 
       {context ? <TestDay today={today} context={context} /> : null}
 
-      {/* Aujourd'hui est déjà en tête d'écran : le répéter ici ferait deux
-          fois la même journée sur un seul défilement. */}
-      {days
-        .filter((day) => day.date !== today)
-        .map((day) => (
-          <div className="day" key={day.date}>
-            <p className="day-title">
-              <span>{formatDay(day.date)}</span>
-              <span className={`weight weight-${day.weight}`}>{weightLabel(day.weight)}</span>
-            </p>
-
-            {day.items.map(({ event, proposal }) => {
-              const id = event.id ?? ''
-              return (
-                <SessionCard
-                  key={id || `${day.date}-${event.name}`}
-                  event={event}
-                  proposal={proposal}
-                  intent={intent}
-                  today={today}
-                  open={false}
-                  remove={removals[id] ?? { status: 'idle' }}
-                  onDelete={() => id && void remove(id)}
-                />
-              )
-            })}
-          </div>
-        ))}
+      <p className="muted small">
+        La pastille de chaque jour dit ton trajet — <strong>É</strong> pour électrique,
+        <strong> M</strong> pour musculaire. Un tap la change, et le plan se recalcule autour.
+      </p>
 
       <p className="muted small">
         Makigawa n’écrit rien dans intervals.icu. Elle lit ce que Garmin y verse, tient ce
@@ -492,22 +486,27 @@ function Empty({ read }: { read: number }) {
   )
 }
 
-type Day = {
-  date: DayKey
-  weight: string
-  items: { event: CalendarEvent; proposal: Proposal }[]
-}
-
 /**
- * Les journées à afficher : aujourd'hui toujours, puis celles qui portent
- * quelque chose. Une grille de jours vides n'apprend rien et donne un air de
- * reproche.
+ * Les quatorze jours, tous, y compris les vides.
+ *
+ * Une grille de jours vides donnait « un air de reproche » tant que l'app
+ * proposait d'écrire. Elle ne propose plus rien à écrire : un jour vide est
+ * devenu une information — c'est là qu'il reste de la place — et le rythme
+ * d'une semaine ne se lit que sur la suite complète.
  */
-function groupByDay(
-  events: readonly CalendarEvent[],
-  context: ReturnType<typeof buildContext>,
-  today: DayKey,
-): Day[] {
+function buildCalendar({
+  events,
+  context,
+  today,
+  commutes,
+  suggestions,
+}: {
+  events: readonly CalendarEvent[]
+  context: ReturnType<typeof buildContext>
+  today: DayKey
+  commutes: CommuteMarks
+  suggestions: readonly import('../workouts/week').Suggestion[]
+}): CalendarDay[] {
   const byDay = new Map<DayKey, { event: CalendarEvent; proposal: Proposal }[]>()
 
   for (const event of events) {
@@ -523,17 +522,20 @@ function groupByDay(
     else byDay.set(date, [{ event, proposal }])
   }
 
-  // « Aujourd'hui » est toujours dans la liste, même vide, parce que le poids
-  // de la journée s'y lit — sauf quand la carte du haut le dit déjà.
-  return [...new Set([today, ...byDay.keys()])].sort().map((date) => ({
-    date,
-    weight: weighDay(
-      context.days.find((day) => day.date === date),
+  return Array.from({ length: AHEAD_DAYS }, (_, ahead) => {
+    const date = shiftDayKey(today, ahead)
+    return {
       date,
-      context.planned,
-    ),
-    items: byDay.get(date) ?? [],
-  }))
+      weight: weighDay(
+        context.days.find((day) => day.date === date),
+        date,
+        context.planned,
+      ),
+      commute: commuteOn(commutes, date),
+      items: byDay.get(date) ?? [],
+      suggestion: suggestions.find((one) => one.date === date) ?? null,
+    }
+  })
 }
 
 /** Un échec d'API, rendu en une phrase qui dit quoi corriger. */

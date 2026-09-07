@@ -1,145 +1,91 @@
 /**
- * Le compagnon de trajet (section 5, E.17).
+ * Les trajets, marqués d'avance (section 5, E.17 révisé le 7 septembre 2026).
  *
- * L'athlète fait six à sept trajets par semaine et ils portent **60 à 100 % de
- * sa charge hebdomadaire** : c'est, de loin, la décision qu'il prend le plus
- * souvent. Elle se prenait sans l'app.
+ * L'app ne recommande plus comment aller au travail. C'est l'athlète qui
+ * marque ses jours, et l'app en tient compte pour planifier autour :
  *
- * La question n'est pas « est-ce que j'y vais ? » — il y va de toute façon.
- * C'est **tes jambes, ou la batterie ?**
+ * > *« On s'en fiche de mettre comment je vais au travail, puisqu'on n'est
+ * > intéressé que par les résultats que la journée a donnés. »*
  *
- * **Aucune règle nouvelle ici.** Un trajet musculaire est une séance de qualité
- * dès qu'il atteint le niveau 2 du E.1, donc les quatre conditions du E.2 s'y
- * appliquent déjà. Ce module pose la même question à un autre endroit.
+ * La contradiction était dans le projet depuis le début — les trajets **ne se
+ * posent pas, ils arrivent de Garmin**. Leur recommander un mode revenait à
+ * prescrire ce que l'app observe.
+ *
+ * **Une marque par jour suffit** : l'aller et le retour se font d'office de la
+ * même manière.
  */
 
-import { refuse, type Context, type Refusal } from '../rules/decide'
-import { DEFAULT_SCALE, isQuality } from '../rules/scale'
-import type { DayKey, PlannedSession } from '../rules/types'
-import { parseDayKey } from '../calendar/dates'
+import { parseDayKey, type DayKey } from '../calendar/dates'
+import type { PlannedSession } from '../rules/types'
 import { CANDIDATE_ID } from './place'
-import { COMMUTE_TARGETS, type Where } from './open-ride'
 
-export type CommuteChoice = 'aller-retour' | 'un-seul' | 'electrique'
+export type CommuteKind = 'chill' | 'hard' | 'aucun'
 
-export type CommuteOption = {
-  choice: CommuteChoice
-  /** La charge relevée par l'athlète, jamais estimée (E.13). */
-  load: number
-  /** Musculaire ou électrique : ce que l'app écrira dans le calendrier. */
-  where: Where
-  label: string
-}
+/** L'ordre dans lequel un tap fait défiler les marques. */
+export const COMMUTE_CYCLE: readonly CommuteKind[] = ['chill', 'hard', 'aucun']
 
 /**
- * Les trois réponses, de la plus exigeante à la plus économe.
+ * Les charges d'un aller-retour, telles que l'athlète les a mesurées (E.13).
  *
- * Les charges viennent des relevés du E.13. L'électrique ferme la marche et
- * passe toujours : il n'est jamais une séance de qualité, donc le E.2 n'a rien
- * à lui refuser.
+ * Ce ne sont pas des estimations : 35 pour l'électrique, 115 pour le
+ * musculaire — ce dernier fait à lui seul une journée chargée.
  */
-export const COMMUTE_OPTIONS: readonly CommuteOption[] = [
-  {
-    choice: 'aller-retour',
-    load: COMMUTE_TARGETS.hard[1]!.load,
-    where: 'hard',
-    label: 'Aller-retour à la force des jambes',
-  },
-  {
-    choice: 'un-seul',
-    load: COMMUTE_TARGETS.hard[0]!.load,
-    where: 'hard',
-    label: 'Un seul des deux à la force des jambes',
-  },
-  {
-    choice: 'electrique',
-    load: COMMUTE_TARGETS.chill[1]!.load,
-    where: 'chill',
-    label: 'Aller-retour en électrique',
-  },
-]
-
-export type CommuteVerdict = {
-  option: CommuteOption
-  /** Pourquoi le E.2 l'écarte, ou `null` s'il l'accepte. */
-  reason: Refusal | null
-  /** Celle que l'app recommande : la plus exigeante qui passe. */
-  advised: boolean
+export const COMMUTE_LOADS: Record<CommuteKind, number> = {
+  chill: 35,
+  hard: 115,
+  aucun: 0,
 }
 
-export type CommuteAdvice = {
-  option: CommuteOption
-  /** Ce que le E.2 a répondu aux options plus exigeantes, dans l'ordre. */
-  refused: readonly { option: CommuteOption; reason: Refusal }[]
+export const COMMUTE_LABELS: Record<CommuteKind, string> = {
+  chill: 'électrique',
+  hard: 'musculaire',
+  aucun: 'pas de trajet',
 }
 
-/** Le trajet envisagé, tel que les règles le liront. */
-function asPlanned(option: CommuteOption, date: DayKey): PlannedSession {
-  return {
-    id: `${CANDIDATE_ID}:trajet`,
-    date,
-    load: option.load,
-    // Un trajet musculaire sollicite la filière aérobie ; l'électrique ne
-    // sollicite rien, mais sa charge compte quand même.
-    kind: option.where === 'hard' ? 'endurance' : 'autre',
-  }
-}
-
-/**
- * Ce que l'app recommande pour aujourd'hui.
- *
- * La réponse la plus exigeante que le E.2 accepte. L'électrique est le dernier
- * recours et il ne peut pas échouer, donc il y a toujours une réponse.
- */
-/**
- * Les trois réponses, chacune avec le verdict du E.2.
- *
- * **Les trois sont toujours montrées.** N'afficher que la recommandation
- * donnait un écran qui se contredisait : l'électrique n'apparaissait qu'une
- * fois le trajet musculaire posé, comme s'il venait d'être inventé. L'app dit
- * laquelle elle recommande et pourquoi, pas laquelle est permise — le E.17 le
- * disait déjà, l'écran ne le faisait pas.
- */
-export function commuteVerdicts(date: DayKey, context: Context): CommuteVerdict[] {
-  const scale = context.scale ?? DEFAULT_SCALE
-  let advisedFound = false
-
-  return COMMUTE_OPTIONS.map((option) => {
-    const planned = asPlanned(option, date)
-
-    // Le premier principe du E.0 : les règles ne gouvernent que les séances de
-    // qualité. En dessous, une chose cohabite avec tout — et c'est précisément
-    // le cas de l'électrique, qui doit toujours rester possible. Le garde-fou
-    // vit dans `propose` ; l'oublier ici ferait refuser un trajet qu'aucune
-    // règle ne peut refuser.
-    const reason = isQuality(planned, scale) ? refuse(planned, date, context) : null
-
-    const advised = !reason && !advisedFound
-    if (advised) advisedFound = true
-    return { option, reason, advised }
-  })
-}
-
-export function adviseCommute(date: DayKey, context: Context): CommuteAdvice {
-  const verdicts = commuteVerdicts(date, context)
-  const advised = verdicts.find((verdict) => verdict.advised)
-
-  const refused = verdicts
-    .filter((verdict): verdict is CommuteVerdict & { reason: Refusal } => verdict.reason !== null)
-    .map(({ option, reason }) => ({ option, reason }))
-
-  // Il existe toujours une réponse : il va au travail de toute façon.
-  return { option: advised?.option ?? COMMUTE_OPTIONS[COMMUTE_OPTIONS.length - 1]!, refused }
+/** Une lettre, pour la pastille du calendrier. */
+export const COMMUTE_MARKS: Record<CommuteKind, string> = {
+  chill: 'É',
+  hard: 'M',
+  aucun: '—',
 }
 
 /**
  * Un jour de semaine.
  *
- * Ce sont des trajets domicile-travail : les proposer le dimanche serait du
- * bruit. C'est un choix d'affichage, pas une règle sur la vie de l'athlète —
- * poser un trajet un samedi reste possible par le menu ordinaire.
+ * Ce sont des trajets domicile-travail : le week-end n'en porte pas par
+ * défaut. C'est un défaut, pas une règle — un tap le contredit.
  */
 export function isWorkday(date: DayKey): boolean {
   const day = parseDayKey(date)?.getDay()
   return day !== undefined && day >= 1 && day <= 5
+}
+
+/**
+ * Ce qu'un jour porte quand l'athlète n'a rien marqué.
+ *
+ * Électrique en semaine, parce que c'est ce que le projet relève —
+ * « majoritairement en vélo électrique ». Ne rien compter serait la pire des
+ * approximations : ces trajets portent 60 à 100 % de la charge hebdomadaire, et
+ * un plan qui les ignore planifie dans le vide.
+ */
+export function defaultCommute(date: DayKey): CommuteKind {
+  return isWorkday(date) ? 'chill' : 'aucun'
+}
+
+/**
+ * Le trajet marqué, tel que les règles le liront.
+ *
+ * `kind: 'autre'` : un trajet n'est **jamais** une séance, quelle que soit sa
+ * charge. Sa charge, elle, compte toujours — c'est la règle critique du
+ * projet, et c'est elle qui rend la journée chargée quand le trajet est
+ * musculaire.
+ */
+export function asPlannedCommute(kind: CommuteKind, date: DayKey): PlannedSession | null {
+  if (kind === 'aucun') return null
+  return {
+    id: `${CANDIDATE_ID}:trajet:${date}`,
+    date,
+    load: COMMUTE_LOADS[kind],
+    kind: 'autre',
+  }
 }

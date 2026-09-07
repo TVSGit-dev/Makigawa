@@ -1211,6 +1211,39 @@ question.
   la règle critique du projet dit depuis le début : ces trajets portent la
   charge, ils ne sont pas l'entraînement.
 
+### Révision du 7 septembre 2026 : l'athlète déclare, l'app en tient compte
+
+La recommandation est **retirée**. L'athlète l'a dit en une phrase :
+
+> *« On s'en fiche de mettre comment je vais au travail, puisqu'on n'est
+> intéressé que par les résultats que la journée a donnés. »*
+
+Il a raison, et la contradiction était dans le projet depuis le début : le
+`CLAUDE.md` dit que les trajets **ne se posent pas, ils arrivent de Garmin**.
+Leur recommander un mode revenait à prescrire ce que l'app observe.
+
+Ce qui reste est bien plus utile : **marquer d'avance les jours de trajet**, et
+en tenir compte dans le plan.
+
+| Marque | Charge | Ce que la journée devient |
+|---|---|---|
+| électrique | 35 | légère — elle ne bloque rien |
+| musculaire | 115 | chargée — le E.2 s'en écarte, et de ses voisins |
+| aucun | 0 | une journée libre |
+
+**Une marque par jour suffit** : l'athlète fait d'office l'aller et le retour de
+la même manière. Distinguer les deux sens ajouterait un tap sans ajouter une
+information.
+
+**Les jours de semaine sont électriques par défaut**, parce que c'est ce que le
+`CLAUDE.md` relève — « majoritairement en vélo électrique ». Ne rien compter
+serait la pire des approximations : ces trajets portent 60 à 100 % de la charge
+hebdomadaire, et un plan qui les ignore planifie dans le vide.
+
+La marque **ne part pas dans intervals.icu** (E.19). C'est une intention, pas
+une mesure ; ce qui a réellement été fait arrivera de Garmin, et c'est lui qui
+comptera.
+
 ## E.18 La semaine de décharge
 
 Demandé le 6 septembre 2026, quatrième des cinq idées. Le rythme 2:1 est
@@ -1402,6 +1435,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 23 | Déclencher la décharge | **deux semaines qui ont porté une séance tenue**, et la troisième est proposée en décharge (E.18) |
 | 24 | Ce que l'app écrit | **plus rien, sauf supprimer** ; le plan vit dans Makigawa, la vérité dans intervals.icu (E.19) |
 | 25 | La vitesse de montée | **+10 % de forme par semaine**, lu sur la CTL ; au plafond, le plan tient son niveau (E.20) |
+| 26 | Les trajets dans le plan | **l'athlète les marque d'avance**, électrique ou musculaire ; l'app n'en recommande plus aucun (E.17, révisé) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles
