@@ -38,6 +38,23 @@ describe('la vitesse de montée', () => {
   it('ne dit rien quand les deux bouts sont le même relevé', () => {
     expect(rampOf([day('2026-09-01', 23)], '2026-09-07')).toBeNull()
   })
+
+  it('ne dit rien sur un trou trop large', () => {
+    // Six points en vingt jours ne sont pas six points par semaine, et le
+    // chiffre serait assez haut pour bloquer la progression à tort.
+    expect(rampOf([day('2026-08-18', 20), day('2026-09-07', 26)], '2026-09-07')).toBeNull()
+  })
+
+  it('ramène un écart un peu court ou un peu long à sept jours', () => {
+    // Quatre points en dix jours font 2,8 par semaine.
+    const large = rampOf([day('2026-08-28', 20), day('2026-09-07', 24)], '2026-09-07')
+    expect(large?.rate).toBeCloseTo(2.8, 5)
+
+    // Écart court : le relevé du jour manque depuis trois jours, il reste
+    // quatre jours entre les deux bouts. Deux points en font 3,5 par semaine.
+    const court = rampOf([day('2026-08-31', 20), day('2026-09-04', 22)], '2026-09-07')
+    expect(court?.rate).toBeCloseTo(3.5, 5)
+  })
 })
 
 describe('le plafond', () => {
@@ -70,5 +87,13 @@ describe('le plafond', () => {
 
   it('ne retient rien quand la vitesse est inconnue', () => {
     expect(holdsLevel(null)).toBe(false)
+  })
+
+  it('ne retient rien à forme nulle', () => {
+    // Sinon un athlète parti de zéro resterait au premier échelon pour
+    // toujours : son plafond vaut zéro, et zéro atteint zéro.
+    expect(holdsLevel(rampOf([day('2026-08-31', 0), day('2026-09-07', 0)], '2026-09-07'))).toBe(
+      false,
+    )
   })
 })

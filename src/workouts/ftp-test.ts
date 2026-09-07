@@ -13,8 +13,7 @@
 import { refuse, type Context } from '../rules/decide'
 import { weighDay } from '../rules/scale'
 import { shiftDayKey, type DayKey } from '../calendar/dates'
-import type { PlannedSession } from '../rules/types'
-import { CANDIDATE_ID } from '../actions/place'
+import { CANDIDATE_ID, type PlannedSession } from '../rules/types'
 import type { Block } from './families'
 import type { Workout } from './compose'
 

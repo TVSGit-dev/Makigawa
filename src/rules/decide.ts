@@ -28,6 +28,7 @@ export const FORCE_ENDURANCE_GAP_DAYS = 2
 
 /** Ce qui fait dire non, et pourquoi. */
 export type Refusal =
+  | { code: 'jour-deja-charge' }
   | { code: 'veille-chargee' }
   | { code: 'deux-jours-charges' }
   | { code: 'lendemain-charge' }
@@ -142,6 +143,13 @@ export function refuse(
       }
     }
   }
+
+  // E.2 (5) — la journée est déjà chargée sans elle. En dernier, parce que les
+  // règles précédentes nomment mieux ce qui la charge quand elles le savent :
+  // celle-ci ramasse le reste — un trajet musculaire marqué, une sortie déjà
+  // prévue. La séance évaluée est retirée du calcul, donc c'est bien « le
+  // reste » qui pèse, jamais elle-même.
+  if (weightAt(date) === 'chargee') return { code: 'jour-deja-charge' }
 
   return null
 }

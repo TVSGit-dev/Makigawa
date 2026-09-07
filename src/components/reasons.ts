@@ -24,6 +24,8 @@ const INTENT_NAMES: Record<Intent, string> = {
 /** Pourquoi aujourd'hui n'est pas un bon jour pour cette séance. */
 export function explain(refusal: Refusal, intent: Intent, today: DayKey): string {
   switch (refusal.code) {
+    case 'jour-deja-charge':
+      return 'La journée est déjà chargée par ailleurs — un trajet, ou ce qui y est prévu.'
     case 'veille-chargee':
       return 'La veille a été une journée chargée.'
     case 'deux-jours-charges':

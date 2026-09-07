@@ -10,6 +10,15 @@ import type { DayKey } from '../calendar/dates'
 
 export type { DayKey }
 
+/**
+ * L'identifiant qu'on donne à une séance envisagée mais pas posée.
+ *
+ * Il ne doit ressembler à aucun identifiant du calendrier : `refuse` écarte de
+ * ses calculs la séance qu'il évalue, en la reconnaissant par son id. Une
+ * collision ferait disparaître de l'examen une séance réelle.
+ */
+export const CANDIDATE_ID = 'candidate:makigawa'
+
 /** Le niveau d'une charge sur l'échelle à cinq degrés du E.1. */
 export type LoadLevel = 0 | 1 | 2 | 3 | 4
 
@@ -37,6 +46,18 @@ export type PlannedSession = {
   date: DayKey
   load: number | null
   kind: SessionKind
+  /**
+   * Un trajet domicile-travail.
+   *
+   * **Il n'est jamais une séance de qualité**, quelle que soit sa charge —
+   * c'est la règle critique du projet. Sa charge, elle, compte toujours : elle
+   * pèse la journée comme n'importe quelle autre.
+   *
+   * Sans ce drapeau, un aller-retour musculaire à 115 passait pour une séance
+   * de qualité : en mode prudent il consommait la seule séance de la semaine,
+   * et l'app ne proposait plus rien parce que l'athlète était allé au travail.
+   */
+  commute?: boolean
 }
 
 /**

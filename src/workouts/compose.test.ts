@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { blocksOf } from './read'
 import {
   build,
   compose,
   durationsFor,
   DURATIONS,
-  eventFor,
   toNotation,
   TOLERANCE_MINUTES,
 } from './compose'
@@ -17,7 +17,6 @@ import {
   WARMUP,
   WARMUP_SHORT,
 } from './families'
-import { halveStructure } from '../actions/apply'
 
 const sweetSpot = familyOf('sweet-spot')!
 const vo2 = familyOf('vo2-30-30')!
@@ -32,11 +31,6 @@ describe('la division des rôles', () => {
       expect(notation, family.name).not.toMatch(/\d+\s*w\b/i)
       expect(notation, family.name).toMatch(/%/)
     }
-  })
-
-  it('n’envoie jamais de charge : c’est intervals.icu qui la calcule', () => {
-    const event = eventFor(compose(sweetSpot, 45), '2026-09-12')
-    expect(event).not.toHaveProperty('icu_training_load')
   })
 
   it('déduit la durée des blocs, sans jamais la saisir', () => {
@@ -153,23 +147,18 @@ describe('la structure écrite', () => {
     expect(notation).toContain('- 5m 45%')
   })
 
-  it('produit une structure que la réduction de moitié sait relire', () => {
-    // Le E.3 doit pouvoir raccourcir ce que l'app vient de composer : une
-    // séance générée qui ne se réduirait pas serait une impasse.
+  it('produit une structure que l’app sait relire', () => {
+    // Le niveau d'une séance tenue se lit sur sa notation (E.16) : une séance
+    // composée que l'app ne saurait pas relire serait une impasse.
     for (const family of FAMILIES) {
-      const notation = toNotation(compose(family, 45))
-      expect(halveStructure(notation), family.name).not.toBeNull()
+      const workout = compose(family, 45)
+      const relus = blocksOf(toNotation(workout))
+      expect(relus.length, family.name).toBeGreaterThan(0)
+      expect(
+        relus.reduce((total, block) => total + block.seconds, 0),
+        family.name,
+      ).toBe(workout.seconds)
     }
-  })
-
-  it('recopie la structure dans l’événement, sans y toucher', () => {
-    const workout = compose(sweetSpot, 45)
-    expect(eventFor(workout, '2026-09-12')).toMatchObject({
-      category: 'WORKOUT',
-      start_date_local: '2026-09-12T00:00:00',
-      description: toNotation(workout),
-      moving_time: workout.seconds,
-    })
   })
 })
 

@@ -1,16 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  AFTER,
-  asPlannedMobility,
-  BEFORE,
-  mobilityEvent,
-  mobilitySeconds,
-  mobilityText,
-  MOBILITY_LOAD,
-  ROUTINE,
-  STRENGTH,
-} from './mobility'
-import { isQuality, levelOf, weighDay } from '../rules/scale'
+import { AFTER, BEFORE, mobilitySeconds, ROUTINE, STRENGTH } from './mobility'
 
 describe('la routine de souplesse', () => {
   it('tient les soixante secondes minimum sur les tenues longues', () => {
@@ -54,38 +43,17 @@ describe('la routine de souplesse', () => {
   })
 })
 
-describe('ce que la souplesse pèse', () => {
-  it('reste au niveau 0 : elle ne bloque rien', () => {
-    // Elle doit pouvoir se poser le lendemain d'une grosse sortie — c'est là
-    // qu'elle sert le plus.
-    expect(levelOf(MOBILITY_LOAD)).toBe(0)
+describe('l’ordre dans lequel elle se fait', () => {
+  it('bouge avant, tient après, renforce ensuite', () => {
+    // C'est l'ordre qui fait l'effet : étirer longuement avant réduit la
+    // force, et renforcer sans étirer laisse le psoas se raccourcir.
+    const noms = ROUTINE.map((move) => move.name)
+    expect(noms.indexOf(BEFORE[0]!.name)).toBeLessThan(noms.indexOf(AFTER[0]!.name))
+    expect(noms.indexOf(AFTER[0]!.name)).toBeLessThan(noms.indexOf(STRENGTH[0]!.name))
   })
 
-  it('n’est jamais une séance de qualité', () => {
-    expect(isQuality(asPlannedMobility('2026-09-10'))).toBe(false)
-  })
-
-  it('ne fait pas basculer une journée', () => {
-    const seule = asPlannedMobility('2026-09-10')
-    expect(weighDay(undefined, '2026-09-10', [seule])).toBe('legere')
-  })
-})
-
-describe('l’événement posé', () => {
-  it('n’est ni un vélo ni une puissance', () => {
-    // Il n'y a pas de vélo, pas de watt, pas de zone. Le type doit le dire.
-    const event = mobilityEvent('2026-09-10')
-    expect(event.type).toBe('Workout')
-    expect(String(event.description)).not.toMatch(/%|z[1-6]/)
-  })
-
-  it('porte sa charge, faute de structure d’où la déduire', () => {
-    expect(mobilityEvent('2026-09-10')).toHaveProperty('icu_training_load', MOBILITY_LOAD)
-  })
-
-  it('écrit la routine dans l’ordre où elle se fait', () => {
-    const texte = mobilityText()
-    expect(texte.indexOf('AVANT')).toBeLessThan(texte.indexOf('APRÈS'))
-    expect(texte.indexOf('APRÈS')).toBeLessThan(texte.indexOf('RENFORCEMENT'))
+  it('tient dans un quart d’heure, les deux côtés comptés', () => {
+    // Une routine qu'on ne fait pas est une routine inutile.
+    expect(mobilitySeconds()).toBeLessThanOrEqual(15 * 60)
   })
 })

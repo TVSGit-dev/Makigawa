@@ -56,6 +56,33 @@ export function isCommute(type: string | null): boolean {
 }
 
 /**
+ * Ce qui marque un trajet dans un nom.
+ *
+ * Les libellés sont ceux que l'athlète leur donne lui-même dans Garmin, d'où
+ * viennent d'ailleurs ceux du E.13. C'est le seul moyen de distinguer un
+ * `Hard Commute` d'une vraie sortie : les deux sont des `Ride` avec un capteur
+ * de puissance, et rien d'autre ne les sépare.
+ *
+ * L'électrique, lui, est écarté par son type — par principe, jamais par nom.
+ */
+const COMMUTE_MARKS = ['commute', 'trajet', 'domicile-travail']
+
+export function namedLikeCommute(name: string | null): boolean {
+  const flat = name?.toLowerCase() ?? ''
+  return COMMUTE_MARKS.some((mark) => flat.includes(mark))
+}
+
+/**
+ * Un trajet, quel que soit son vélo.
+ *
+ * **Il n'est jamais une séance de qualité** (règle critique). Sa charge, elle,
+ * pèse la journée comme n'importe quelle autre.
+ */
+export function looksLikeCommute(type: string | null, name: string | null): boolean {
+  return isCommute(type) || namedLikeCommute(name)
+}
+
+/**
  * Les séances planifiées, telles que les règles les lisent.
  *
  * Un événement sans identifiant est écarté : l'app ne peut ni le décaler ni
@@ -74,6 +101,7 @@ export function toPlannedSessions(events: readonly CalendarEvent[]): PlannedSess
       date,
       load: event.trainingLoad,
       kind: kindOf(event.type),
+      commute: looksLikeCommute(event.type, event.name),
     })
   }
 

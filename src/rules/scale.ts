@@ -83,10 +83,13 @@ export function levelOf(load: number, scale: LoadScale = DEFAULT_SCALE): LoadLev
  * Une séance de qualité est celle que les règles protègent. En dessous, elle
  * cohabite avec tout : ni bloquante, ni bloquée.
  *
- * Une séance dont la charge est inconnue n'en est jamais une — on ne suppose
- * pas ce qu'on ne sait pas.
+ * Deux choses n'en sont jamais. Une séance dont la charge est inconnue — on ne
+ * suppose pas ce qu'on ne sait pas. Et **un trajet**, quelle que soit sa
+ * charge : c'est la règle critique du projet, et sa charge continue de peser
+ * la journée sans faire de lui de l'entraînement.
  */
 export function isQuality(session: PlannedSession, scale: LoadScale = DEFAULT_SCALE): boolean {
+  if (session.commute) return false
   return session.load !== null && levelOf(session.load, scale) >= QUALITY_LEVEL
 }
 
