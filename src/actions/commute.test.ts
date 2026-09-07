@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { adviseCommute, COMMUTE_OPTIONS, isWorkday } from './commute'
+import { adviseCommute, commuteVerdicts, COMMUTE_OPTIONS, isWorkday } from './commute'
 import type { Context } from '../rules/decide'
 import type { DayRecord, PlannedSession } from '../rules/types'
 
@@ -80,6 +80,42 @@ describe('ce que l’app recommande', () => {
     for (const { option, reason } of apres.refused) {
       expect(option.choice).not.toBe('electrique')
       expect(reason.code).toBeTruthy()
+    }
+  })
+})
+
+describe('les trois réponses restent visibles', () => {
+  const verdicts = (over: Partial<Context> = {}) => commuteVerdicts('2026-09-07', context(over))
+
+  it('montre toujours les trois, quoi qu’il arrive', () => {
+    // N'afficher que la recommandation faisait apparaître l'électrique
+    // seulement après avoir posé le trajet musculaire, comme s'il venait
+    // d'être inventé.
+    for (const tsb of [-60, -20, 0, 20]) {
+      expect(verdicts({ tsb })).toHaveLength(3)
+    }
+  })
+
+  it('n’en recommande qu’une, la plus exigeante qui passe', () => {
+    const frais = verdicts()
+    expect(frais.filter((v) => v.advised)).toHaveLength(1)
+    expect(frais[0]?.advised).toBe(true)
+
+    const epuise = verdicts({ tsb: -40 })
+    expect(epuise.filter((v) => v.advised)).toHaveLength(1)
+    expect(epuise[2]?.advised).toBe(true)
+  })
+
+  it('donne la raison de chaque option écartée', () => {
+    const epuise = verdicts({ tsb: -40 })
+    expect(epuise[0]?.reason?.code).toBe('tsb-sous-plancher')
+    expect(epuise[1]?.reason?.code).toBe('tsb-sous-plancher')
+    expect(epuise[2]?.reason).toBeNull()
+  })
+
+  it('n’écarte jamais l’électrique', () => {
+    for (const tsb of [-60, -40, -20, 0]) {
+      expect(verdicts({ tsb })[2]?.reason).toBeNull()
     }
   })
 })

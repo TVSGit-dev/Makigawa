@@ -35,6 +35,12 @@ Les séances sont **créées et stockées dans intervals.icu**, jamais définies
 dans Makigawa. L'app lit ce calendrier, applique les règles d'adaptation et
 réécrit les événements. Elle décide du moment, pas du contenu.
 
+> **Révisé le 7 septembre 2026 (E.19).** L'app **n'écrit plus rien**, sauf
+> supprimer. Le plan des deux prochaines semaines vit dans Makigawa ;
+> intervals.icu tient la vérité de ce qui a été fait. Le tableau ci-dessus
+> reste vrai sur le fond — le *quoi* vient d'intervals.icu, le *quand* et le
+> *si* viennent de Makigawa — mais Makigawa ne le pousse plus nulle part.
+
 ### La frontière, telle que l'athlète l'a formulée
 
 > **Tous les chiffres viennent d'intervals.icu, l'organisation vient de
@@ -77,13 +83,16 @@ l'interface :
    Ils ne se posent pas : ils arrivent de Garmin. Leur charge compte toujours.
 
 **La sortie ouverte est la seule séance sans structure que Makigawa crée** —
-décision du 6 septembre 2026, spécifiée en E.8. C'est une séance extérieure sans structure,
+décision du 6 septembre 2026, spécifiée en E.8. *Dormante depuis le
+7 septembre : l'app la propose, elle ne la crée plus (E.19).* C'est une séance extérieure sans structure,
 qui ne porte qu'une charge visée. La frontière tient parce qu'**une sortie
 ouverte n'a pas de contenu** : ni bloc, ni zone, ni ordre. L'app pose une
 intention, elle ne compose pas une séance. Dès qu'il faut de la structure, elle
 vient d'intervals.icu comme le reste.
 
-**Poser une séance est du ressort de Makigawa** — décision du 6 septembre 2026.
+**Poser une séance est du ressort de Makigawa** — décision du 6 septembre 2026,
+**abandonnée le 7** (E.19) : l'app dit quel jour conviendrait, elle ne recopie
+plus rien.
 intervals.icu range les séances dans une bibliothèque, sans date ; l'app la lit
 et propose les jours qui conviennent, puis recopie la séance choisie sur le
 jour choisi. La structure est recopiée telle quelle. C'est la même frontière
@@ -242,6 +251,9 @@ En bref :
 - **Un niveau par zone**, lu sur la plus grosse séance qu'il a tenue dans cette
   zone en six semaines. La séance suivante vise un cran au-dessus. Rien ne fait
   descendre un niveau sauf le temps.
+- **La forme ne monte que de 10 % par semaine.** Quand elle monte déjà aussi
+  vite, le plan tient son niveau au lieu de le monter — on ne progresse pas en
+  ajoutant à ce qui monte déjà (E.20).
 - **Le trajet du jour se décide avec les mêmes règles.** « Tes jambes ou la
   batterie ? » est le E.2 posé sur trois réponses relevées — aller-retour
   musculaire, un seul, ou électrique. L'app recommande la plus exigeante que la
@@ -278,6 +290,18 @@ contrainte technique, pas une intention :
 Contexte : deux enfants en bas âge, disponibilité irrégulière, aucun
 objectif de compétition.
 
+## Ce que l'app écrit
+
+**Rien, sauf supprimer** — décision du 7 septembre 2026, spécifiée en E.19.
+
+Le plan des deux prochaines semaines vit dans Makigawa. intervals.icu tient la
+vérité de ce qui a été fait, Garmin l'y verse, et l'app lit. Une app qui ne
+fait que proposer peut se tromper sans conséquence, ce qui est la condition
+pour qu'elle apprenne à ne plus se tromper.
+
+La suppression d'un événement reste, derrière un appui long de deux secondes :
+c'est ce qui défait ce qui a déjà été écrit.
+
 ## Sécurité
 
 **Décision du 5 septembre 2026 : pas de serveur.** L'app est un client
@@ -306,12 +330,17 @@ exposer les données — hors de proportion pour un usage personnel.
 
 ## Priorités fonctionnelles
 
-Dans l'ordre :
+Réordonnées le 7 septembre 2026 (E.19), l'app passant en lecture seule :
 
-1. Vue mobile du calendrier — aujourd'hui et cette semaine.
-2. Encodage rapide d'une séance faite / dégradée / manquée, en quelques taps.
-3. Replanification automatique selon les règles ci-dessus.
+1. **Le plan des deux prochaines semaines**, tenu par Makigawa, corrigé à
+   chaque lecture d'intervals.icu.
+2. **La dose et sa vitesse** : la forme monte-t-elle trop vite pour qu'on en
+   rajoute ? (E.20)
+3. Vue mobile du calendrier — aujourd'hui et cette semaine.
 4. Distinction visuelle claire électrique / musculaire.
+
+L'encodage en quelques taps et la replanification écrite dans intervals.icu
+sont **retirés** : ils supposaient une app qui écrit.
 
 Secondaire : vue de charge sur les dernières semaines. La bibliothèque de
 séances courtes (15-30 min) se constitue dans intervals.icu — c'est du
@@ -328,8 +357,13 @@ contenu, pas du code, et elle ne bloque rien.
    **Fait**, dans `src/rules/`.
 4. ~~Interface en dernier.~~ **Fait** le 6 septembre.
 
-Les quatre étapes sont franchies. La suite se joue en phase 6 : observer les
-règles sur des semaines réelles, et corriger les bornes plutôt que le code.
+Les quatre étapes sont franchies. **L'étape 2 est ensuite revenue en arrière**
+le 7 septembre : l'app n'écrit plus (E.19). Ce n'est pas un retour en arrière
+du projet mais du périmètre — la capacité d'écrire est démontrée, elle attend
+que le jugement soit bon.
+
+La suite se joue en phase 6 : observer les règles sur des semaines réelles, et
+corriger les bornes plutôt que le code.
 
 ### La souplesse
 

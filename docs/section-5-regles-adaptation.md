@@ -1260,6 +1260,109 @@ dans le téléphone, jamais dans intervals.icu.
 faisait déjà une règle d'interface autant que d'entraînement : une décharge est
 une décision, pas un échec, et l'app ne la présente jamais comme une dette.
 
+## E.19 Makigawa n'écrit plus, elle raisonne
+
+Décidé le 7 septembre 2026, et cette décision **remplace** celles du 6 qui
+faisaient de l'app un outil d'écriture — « poser une séance est du ressort de
+Makigawa », la sortie ouverte créée par l'app, l'encodage en quelques taps.
+L'athlète l'a dit ainsi :
+
+> *« On s'est orienté vers quelque chose de trop complexe trop tôt. Il ne faut
+> pas que Makigawa écrive dans intervals pour l'instant. […] Cette application
+> ne doit pas implémenter quelque chose mais doit réfléchir par elle-même à
+> augmenter la dose d'effort d'une manière chirurgicale afin de ne pas me
+> blesser et de progresser. »*
+
+### Ce que l'app fait désormais
+
+Elle **lit** intervals.icu — les activités qu'y verse Garmin, la charge, la
+forme, la fatigue — et elle **raisonne** : elle tient un plan de deux semaines,
+le montre, et le corrige à chaque nouvelle lecture. Elle ne le pousse nulle
+part.
+
+Le plan vit dans l'app. C'est le renversement : jusqu'ici le calendrier
+d'intervals.icu était la mémoire du plan et Makigawa y écrivait ; maintenant
+c'est Makigawa qui tient le plan et intervals.icu qui tient la vérité de ce qui
+a été fait.
+
+### Pourquoi c'est mieux, et pas seulement plus simple
+
+L'app construisait sa capacité d'agir avant sa capacité de juger. Or c'est la
+lecture qui rend le jugement bon, et l'écriture ne fait que rendre une erreur
+permanente : un mauvais plan poussé dans le calendrier se retrouve dans Garmin,
+sur la montre, et se nettoie à la main.
+
+Une app qui ne fait que proposer peut se tromper sans conséquence. C'est la
+condition pour qu'elle apprenne à ne plus se tromper.
+
+### La seule écriture qui reste
+
+**Supprimer un événement.** C'est ce qui défait ce qui a déjà été écrit, donc
+la seule écriture qui va dans le sens du retrait. Elle demande un appui long de
+deux secondes — un geste qu'on ne fait pas par accident — et l'app ne
+supprime jamais d'elle-même.
+
+### Ce qui devient dormant
+
+Le catalogue de familles, la composition de séances, la sortie ouverte, la
+routine de souplesse, le protocole du test FTP : tout cela reste, testé, et
+alimente ce que l'app **montre**. Rien n'en part vers intervals.icu.
+
+Les trajets, eux, ne se posaient déjà pas : ils arrivent de Garmin. Sur ce
+point rien ne change, et l'app continue de dire lequel conviendrait aujourd'hui
+sans rien écrire.
+
+## E.20 La dose, et la vitesse à laquelle elle monte
+
+C'est la part « chirurgicale » du E.19. Progresser, c'est en faire un peu plus
+qu'avant ; se blesser, c'est en faire trop d'un coup. La différence entre les
+deux n'est pas la quantité, c'est **la vitesse**.
+
+### Ce qu'on mesure, et ce qu'on ne mesure pas
+
+**La forme d'intervals.icu monte à une certaine vitesse.** La CTL d'aujourd'hui
+moins celle d'il y a sept jours donne des points de forme par semaine. C'est
+une soustraction sur deux nombres d'intervals.icu — la même arithmétique que la
+fraîcheur, et le projet n'en fait pas d'autre.
+
+Aucune charge n'est estimée ici. L'app ne sait pas ce que pèsera une séance
+qu'elle propose — c'est intervals.icu qui le calcule depuis la structure — et
+elle n'essaie pas de le deviner.
+
+### Le plafond
+
+**+10 % de la forme par semaine**, le chiffre du E.5, appliqué désormais tout
+le temps et non plus seulement en reprise.
+
+Un pourcentage plutôt qu'un nombre fixe, parce qu'il suit l'athlète : à une CTL
+de 20 il autorise 2 points par semaine, à 45 il en autorise 4,5. C'est
+exactement la fourchette que la littérature donne pour une montée soutenable, et
+elle se resserre d'elle-même quand la forme est basse — c'est-à-dire quand les
+tissus sont les moins prêts.
+
+### Ce que le plafond change
+
+Quand la forme monte **déjà** aussi vite que le plafond l'autorise, le plan
+**tient son niveau** au lieu de le monter d'un cran (E.16). Rien n'est retiré,
+rien n'est réduit : la semaine ressemble à la précédente, et c'est tout ce
+qu'il faut. On ne progresse pas en ajoutant à ce qui monte déjà.
+
+Les trajets comptent dans cette montée comme le reste, et c'est essentiel :
+ils portent 60 à 100 % de la charge hebdomadaire de l'athlète. Une semaine de
+six trajets musculaires fait monter sa forme sans qu'aucune séance ait été
+faite — et le plafond doit le voir.
+
+### Ce qu'il ne fait pas
+
+- **Il ne fait pas redescendre.** Une montée trop rapide n'est pas une faute à
+  corriger, c'est une raison d'attendre. Le plan garde son niveau jusqu'à ce
+  que la vitesse retombe.
+- **Il ne bloque pas une séance.** C'est le E.2 qui décide si un jour convient ;
+  le plafond ne décide que du **niveau** de ce qu'on propose.
+- **Il ne s'applique pas quand la forme est inconnue.** Sans deux relevés de
+  CTL à sept jours d'écart, il n'y a pas de vitesse, et une donnée manquante ne
+  se transforme jamais en interdiction.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1297,6 +1400,8 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 21 | Progresser | **un niveau par zone**, lu sur le temps de travail tenu en six semaines, et la séance suivante vise un cran au-dessus (E.16) |
 | 22 | Le choix du trajet | **le E.2 y répond**, sur trois réponses relevées : aller-retour musculaire, un seul, ou électrique (E.17) |
 | 23 | Déclencher la décharge | **deux semaines qui ont porté une séance tenue**, et la troisième est proposée en décharge (E.18) |
+| 24 | Ce que l'app écrit | **plus rien, sauf supprimer** ; le plan vit dans Makigawa, la vérité dans intervals.icu (E.19) |
+| 25 | La vitesse de montée | **+10 % de forme par semaine**, lu sur la CTL ; au plafond, le plan tient son niveau (E.20) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

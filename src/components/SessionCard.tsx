@@ -1,65 +1,80 @@
 /**
- * Une séance, et ce que l'app en pense.
+ * Une séance du calendrier, et ce que l'app en pense.
  *
- * Le E.7 tient dans ce fichier : la proposition s'affiche avec sa raison, et
- * rien ne part vers intervals.icu avant un tap. Les deux boutons sont à
- * égalité — « Garder » n'est pas un refus qu'il faut justifier.
+ * Depuis le E.19 la proposition est **dite, pas appliquée** : l'app n'écrit
+ * plus dans intervals.icu. Elle explique pourquoi le jour convient ou non, et
+ * l'athlète fait ce qu'il veut de cet avis.
+ *
+ * Une seule écriture subsiste, et elle va dans le sens du retrait :
+ * **supprimer**, derrière un appui long de deux secondes — un geste qu'on ne
+ * fait pas par accident, sur une action qui ne se rattrape pas.
  */
 
+import { useEffect, useRef, useState } from 'react'
 import { formatDuration } from '../calendar/dates'
 import type { CalendarEvent } from '../api/intervals'
-import type { Change } from '../actions/apply'
 import type { Proposal } from '../rules/decide'
 import type { Intent } from '../rules/intent'
 import type { DayKey } from '../calendar/dates'
 import { Profile } from './Profile'
 import { blocksOf } from '../workouts/read'
-import {
-  actionLabel,
-  activityLabel,
-  activityTone,
-  announce,
-  confirmation,
-  explain,
-} from './reasons'
+import { activityLabel, activityTone, announce, explain } from './reasons'
 
-export type WriteState =
+/** Deux secondes de doigt posé. En dessous, on supprime par accident. */
+export const HOLD_MS = 2000
+
+export type DeleteState =
   | { status: 'idle' }
-  | { status: 'writing' }
-  | { status: 'done' }
+  | { status: 'deleting' }
   | { status: 'failed'; detail: string }
 
 type Props = {
   event: CalendarEvent
   proposal: Proposal
-  change: Change | null
   intent: Intent
   today: DayKey
   /** Vrai pour la journée du jour : sa structure s'affiche d'emblée. */
   open: boolean
-  write: WriteState
-  onApply: () => void
-  onDismiss: () => void
+  remove: DeleteState
+  onDelete: () => void
 }
 
-export function SessionCard({
-  event,
-  proposal,
-  change,
-  intent,
-  today,
-  open,
-  write,
-  onApply,
-  onDismiss,
-}: Props) {
+export function SessionCard({ event, proposal, intent, today, open, remove, onDelete }: Props) {
+  const [armed, setArmed] = useState(false)
+  const [holding, setHolding] = useState(false)
+  const timer = useRef<number | null>(null)
+
+  const clear = () => {
+    if (timer.current !== null) window.clearTimeout(timer.current)
+    timer.current = null
+    setHolding(false)
+  }
+
+  useEffect(() => clear, [])
+
+  const start = () => {
+    if (armed || !event.id) return
+    setHolding(true)
+    timer.current = window.setTimeout(() => {
+      setHolding(false)
+      setArmed(true)
+    }, HOLD_MS)
+  }
+
   const chips = [
     event.movingTime === null ? null : formatDuration(event.movingTime),
     event.trainingLoad === null ? null : `charge ${Math.round(event.trainingLoad)}`,
   ].filter((chip): chip is string => chip !== null)
 
   return (
-    <article className="session">
+    <article
+      className={holding ? 'session session-holding' : 'session'}
+      onPointerDown={start}
+      onPointerUp={clear}
+      onPointerLeave={clear}
+      onPointerCancel={clear}
+      onContextMenu={(fired) => fired.preventDefault()}
+    >
       <p className="session-name">{event.name ?? 'Séance sans nom'}</p>
 
       <p className="session-meta">
@@ -80,86 +95,38 @@ export function SessionCard({
         </details>
       ) : null}
 
-      {proposal.action !== 'garder' && change ? (
-        <Suggestion
-          proposal={proposal}
-          change={change}
-          intent={intent}
-          today={today}
-          write={write}
-          onApply={onApply}
-          onDismiss={onDismiss}
-        />
+      {proposal.action !== 'garder' ? (
+        <div className="suggestion">
+          <p className="suggestion-head">{announce(proposal, today)}</p>
+          <p className="suggestion-why">{explain(proposal.because, intent, today)}</p>
+          <p className="suggestion-why">
+            À toi de le faire dans intervals.icu si tu es d’accord — l’app n’y touche pas.
+          </p>
+        </div>
       ) : null}
-    </article>
-  )
-}
 
-function Suggestion({
-  proposal,
-  change,
-  intent,
-  today,
-  write,
-  onApply,
-  onDismiss,
-}: {
-  proposal: Exclude<Proposal, { action: 'garder' }>
-  change: Change
-  intent: Intent
-  today: DayKey
-  write: WriteState
-  onApply: () => void
-  onDismiss: () => void
-}) {
-  if (write.status === 'done') {
-    return <p className="applied">{confirmation(proposal, today)}</p>
-  }
+      {remove.status === 'failed' ? <p className="error small">{remove.detail}</p> : null}
 
-  // La réduction que l'app ne sait pas écrire sans réécrire le contenu :
-  // elle le dit et laisse la main, plutôt que d'approximer.
-  if (change.kind === 'byHand') {
-    return (
-      <div className="suggestion">
-        <p className="suggestion-head">{announce(proposal, today)}</p>
-        <p className="suggestion-why">{explain(proposal.because, intent, today)}</p>
-        <p className="suggestion-why">{change.because}</p>
+      {armed ? (
         <div className="suggestion-actions">
-          <button className="button button-small button-ghost" onClick={onDismiss}>
-            Entendu
+          <button
+            className="button button-small button-quiet"
+            onClick={onDelete}
+            disabled={remove.status === 'deleting'}
+          >
+            {remove.status === 'deleting' ? 'Suppression…' : 'Supprimer du calendrier'}
+          </button>
+          <button
+            className="button button-small button-ghost"
+            onClick={() => setArmed(false)}
+            disabled={remove.status === 'deleting'}
+          >
+            Annuler
           </button>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="suggestion">
-      <p className="suggestion-head">{announce(proposal, today)}</p>
-      <p className="suggestion-why">{explain(proposal.because, intent, today)}</p>
-
-      {write.status === 'failed' ? <p className="error small">{write.detail}</p> : null}
-
-      <div className="suggestion-actions">
-        <button
-          className={
-            proposal.action === 'abandonner'
-              ? 'button button-small button-quiet'
-              : 'button button-small'
-          }
-          onClick={onApply}
-          disabled={write.status === 'writing'}
-        >
-          {write.status === 'writing' ? 'En cours…' : actionLabel(proposal)}
-        </button>
-        <button
-          className="button button-small button-ghost"
-          onClick={onDismiss}
-          disabled={write.status === 'writing'}
-        >
-          Garder
-        </button>
-      </div>
-    </div>
+      ) : holding ? (
+        <p className="muted small">Garde le doigt appuyé pour supprimer…</p>
+      ) : null}
+    </article>
   )
 }

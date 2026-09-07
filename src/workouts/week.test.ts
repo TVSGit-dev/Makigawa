@@ -43,10 +43,12 @@ describe('ce que la forme ouvre', () => {
 })
 
 describe('le planning proposé', () => {
-  it('propose autant de séances que le mode en autorise', () => {
-    expect(plan({ intent: 'prudent' })).toHaveLength(1)
-    expect(plan({ intent: 'normal' })).toHaveLength(2)
-    expect(plan({ intent: 'ambitieux' })).toHaveLength(3)
+  it('couvre les deux semaines, au quota hebdomadaire du mode', () => {
+    // L'horizon fait quatorze jours et le quota est hebdomadaire : le plan
+    // porte donc deux semaines de séances (E.19).
+    expect(plan({ intent: 'prudent' })).toHaveLength(2)
+    expect(plan({ intent: 'normal' })).toHaveLength(4)
+    expect(plan({ intent: 'ambitieux' })).toHaveLength(6)
   })
 
   it('commence par la séance la plus exigeante', () => {
@@ -174,7 +176,7 @@ describe('refuser, ou repousser (E.14)', () => {
       fitness: 45,
       notBefore: '2026-09-25',
     })
-    expect(loin).toHaveLength(3)
+    expect(loin).toHaveLength(6)
   })
 
   it('ignore un report déjà passé', () => {
@@ -272,16 +274,25 @@ describe('la semaine de décharge (E.18)', () => {
     expect(decharge({ 'sweet-spot': 8 })[0]?.because).toContain('décharge')
   })
 
-  it('n’en propose qu’une, comme le mode prudent', () => {
+  it('n’en propose qu’une, et ne déborde pas sur la semaine suivante', () => {
+    // Une décharge ne concerne que la semaine en cours.
     expect(decharge({ 'sweet-spot': 8 })).toHaveLength(1)
   })
 })
 
 describe('ce que le planning respecte', () => {
-  it('tient le quota de journées chargées du mode', () => {
-    const semaine = plan({ intent: 'normal' }, 45)
-    const jours = new Set(semaine.map((s) => s.date))
-    expect(jours.size).toBeLessThanOrEqual(2)
+  it('tient le quota de journées chargées du mode, semaine glissante', () => {
+    // Le quota est hebdomadaire : c'est chaque fenêtre de sept jours qui doit
+    // le respecter, pas le plan entier.
+    const dates = plan({ intent: 'normal' }, 45).map((s) => s.date)
+    for (const jour of dates) {
+      const fin = new Date(`${jour}T00:00:00`)
+      fin.setDate(fin.getDate() + 6)
+      const dans = dates.filter(
+        (autre) => autre >= jour && new Date(`${autre}T00:00:00`) <= fin,
+      )
+      expect(dans.length, `fenêtre du ${jour}`).toBeLessThanOrEqual(2)
+    }
   })
 
   it('ne propose jamais une séance dont la charge serait inventée', () => {

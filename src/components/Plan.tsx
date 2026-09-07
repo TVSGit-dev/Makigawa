@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
+  deleteEvent,
   fetchActivities,
   fetchCalendarEvents,
   fetchWellness,
@@ -18,7 +19,6 @@ import {
   type CalendarEvent,
   type Wellness,
 } from '../api/intervals'
-import { changeFor, writeChange, type Change } from '../actions/apply'
 import { buildContext, isSession, toDayRecords } from '../rules/context'
 import { daysSinceQuality, isReprise, matchCompletions } from '../rules/done'
 import { shouldUnload } from '../rules/decharge'
@@ -28,7 +28,7 @@ import { weighDay } from '../rules/scale'
 import type { Intent } from '../rules/intent'
 import type { DayRecord, DayWeight } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
-import { dismiss, fingerprint, forgetOlderThan } from '../storage/preferences'
+import { rampOf, holdsLevel } from '../rules/ramp'
 import {
   forgetStalePreferences,
   hasPlanPreferences,
@@ -42,17 +42,18 @@ import {
   addDays,
   dayKeyOf,
   formatDay,
+  formatRelativeDay,
   shiftDayKey,
   toDayKey,
   type DayKey,
 } from '../calendar/dates'
-import { Place } from './Place'
 import { Progress } from './Progress'
 import { Today } from './Today'
 import { Week } from './Week'
 import { planWeek } from '../workouts/week'
-import { SessionCard, type WriteState } from './SessionCard'
-import { weightLabel } from './reasons'
+import { firstTestDay, FTP_TEST_NAME } from '../workouts/ftp-test'
+import { SessionCard, type DeleteState } from './SessionCard'
+import { explainTest, weightLabel } from './reasons'
 
 /** Deux semaines devant : l'horizon de planification annoncé par le projet. */
 const AHEAD_DAYS = 14
@@ -125,8 +126,7 @@ export function Plan({
   children,
 }: Props) {
   const [state, setState] = useState<State>({ status: 'loading' })
-  const [writes, setWrites] = useState<Record<string, WriteState>>({})
-  const [dismissed, setDismissed] = useState<Set<string>>(() => new Set())
+  const [removals, setRemovals] = useState<Record<string, DeleteState>>({})
   // Ce que l'athlète a écarté ou repoussé du plan (E.14). Vit dans le
   // téléphone, ne part jamais dans intervals.icu.
   const [choices, setChoices] = useState<PlanPreferences>({ refused: {}, notBefore: null })
@@ -134,13 +134,12 @@ export function Plan({
   const today = toDayKey(new Date())
 
   useEffect(() => {
-    setDismissed(forgetOlderThan(today))
     setChoices(forgetStalePreferences(today))
   }, [today])
 
   const load = useCallback(async () => {
     setState({ status: 'loading' })
-    setWrites({})
+    setRemovals({})
 
     const now = new Date()
     const [events, activities, wellness] = await Promise.all([
@@ -214,6 +213,14 @@ export function Plan({
   )
   const reprise = isReprise(sinceQuality)
 
+  // La vitesse à laquelle la forme monte, et son plafond (E.20). Au plafond,
+  // le plan tient son niveau plutôt que de le monter d'un cran.
+  const ramp = useMemo(
+    () => (state.status === 'ok' ? rampOf(state.data.wellness, today) : null),
+    [state, today],
+  )
+  const hold = holdsLevel(ramp)
+
   const unloadSuggested = useMemo(
     () => shouldUnload({ completions, today, unloaded: unloadedWeeks }),
     [completions, today, unloadedWeeks],
@@ -282,33 +289,34 @@ export function Plan({
             levels,
             reprise,
             decharge: unloading,
+            hold,
           })
         : [],
-    [context, today, fitness, choices, levels, reprise, unloading],
+    [context, today, fitness, choices, levels, reprise, unloading, hold],
   )
 
-  const apply = async (event: CalendarEvent, change: Change) => {
-    if (!event.id) return
-    setWrites((current) => ({ ...current, [event.id!]: { status: 'writing' } }))
+  /**
+   * La seule écriture qui reste (E.19).
+   *
+   * Elle va dans le sens du retrait : elle défait ce qui a été écrit avant, et
+   * elle demande un appui long de deux secondes côté carte.
+   */
+  const remove = async (eventId: string) => {
+    setRemovals((current) => ({ ...current, [eventId]: { status: 'deleting' } }))
 
-    const outcome = await writeChange(credentials, event.id, change)
+    const outcome = await deleteEvent(credentials, eventId)
     if (outcome.kind !== 'ok') {
       const { title, detail } = describe(outcome)
-      setWrites((current) => ({
+      setRemovals((current) => ({
         ...current,
-        [event.id!]: { status: 'failed', detail: `${title} — ${detail}` },
+        [eventId]: { status: 'failed', detail: `${title} — ${detail}` },
       }))
       return
     }
 
-    setWrites((current) => ({ ...current, [event.id!]: { status: 'done' } }))
     // Le calendrier vient de changer : le relire est la seule façon d'être
-    // sûr que les propositions suivantes portent sur l'état réel.
-    window.setTimeout(() => void load(), 1200)
-  }
-
-  const forget = (eventId: string, proposal: Proposal) => {
-    setDismissed(dismiss(fingerprint(eventId, proposal.action, today)))
+    // sûr que le plan porte sur l'état réel.
+    window.setTimeout(() => void load(), 800)
   }
 
   if (state.status === 'loading') {
@@ -350,13 +358,11 @@ export function Plan({
     <>
     {context ? (
       <Today
-        credentials={credentials}
         today={today}
         weight={(todayDay?.weight ?? 'legere') as DayWeight}
         context={context}
         planned={todayDay?.items ?? []}
         suggestion={suggestions.find((one) => one.date === today) ?? null}
-        onPlaced={() => void load()}
       />
     ) : null}
 
@@ -364,7 +370,7 @@ export function Plan({
 
     <section className="card">
       <div className="card-head">
-        <h2>Ta semaine</h2>
+        <h2>Les deux prochaines semaines</h2>
         <button className="button button-small button-ghost" onClick={() => void load()}>
           Actualiser
         </button>
@@ -384,74 +390,77 @@ export function Plan({
       ) : null}
 
       <Week
-        credentials={credentials}
         suggestions={suggestions}
         fitness={fitness}
+        ramp={ramp}
         today={today}
-        empty={planned === 0}
         refusing={hasPlanPreferences(choices)}
-        onPlaced={() => void load()}
         onRefuse={(family) => setChoices(refuseFamily(family, today))}
         onPostpone={(date) => setChoices(postponePlan(date))}
         onReset={() => setChoices(resetPlanPreferences())}
       />
 
+      {context ? <TestDay today={today} context={context} /> : null}
+
+      {/* Aujourd'hui est déjà en tête d'écran : le répéter ici ferait deux
+          fois la même journée sur un seul défilement. */}
       {days
-        .filter((day) => day.date !== today || day.items.length > 0)
+        .filter((day) => day.date !== today)
         .map((day) => (
-        <div className={day.date === today ? 'day day-today' : 'day'} key={day.date}>
-          <p className="day-title">
-            <span>{day.date === today ? 'Aujourd’hui' : formatDay(day.date)}</span>
-            <span className={`weight weight-${day.weight}`}>{weightLabel(day.weight)}</span>
-          </p>
+          <div className="day" key={day.date}>
+            <p className="day-title">
+              <span>{formatDay(day.date)}</span>
+              <span className={`weight weight-${day.weight}`}>{weightLabel(day.weight)}</span>
+            </p>
 
-          {day.items.length === 0 ? (
-            <p className="muted">Rien de prévu. C’est une réponse valable.</p>
-          ) : null}
+            {day.items.map(({ event, proposal }) => {
+              const id = event.id ?? ''
+              return (
+                <SessionCard
+                  key={id || `${day.date}-${event.name}`}
+                  event={event}
+                  proposal={proposal}
+                  intent={intent}
+                  today={today}
+                  open={false}
+                  remove={removals[id] ?? { status: 'idle' }}
+                  onDelete={() => id && void remove(id)}
+                />
+              )
+            })}
+          </div>
+        ))}
 
-          {day.items.map(({ event, proposal }) => {
-            const id = event.id ?? ''
-            const change = changeFor(event, proposal)
-            const hidden = dismissed.has(fingerprint(id, proposal.action, today))
-
-            return (
-              <SessionCard
-                key={id || `${day.date}-${event.name}`}
-                event={event}
-                proposal={hidden ? { action: 'garder' } : proposal}
-                change={change}
-                intent={intent}
-                today={today}
-                open={day.date === today}
-                write={writes[id] ?? { status: 'idle' }}
-                onApply={() => change && void apply(event, change)}
-                onDismiss={() => forget(id, proposal)}
-              />
-            )
-          })}
-        </div>
-      ))}
-
-      {context ? (
-        <Place
-          credentials={credentials}
-          context={context}
-          intent={intent}
-          today={today}
-          onPlaced={() => void load()}
-        />
-      ) : null}
-
-      {planned > 0 ? (
-        <p className="muted small">
-          L’app propose, tu confirmes. Rien n’est écrit dans intervals.icu sans un tap de ta
-          part.
-        </p>
-      ) : null}
+      <p className="muted small">
+        Makigawa n’écrit rien dans intervals.icu. Elle lit ce que Garmin y verse, tient ce
+        plan, et le corrige à chaque lecture. Un appui long de deux secondes sur une séance
+        du calendrier fait apparaître de quoi la supprimer.
+      </p>
     </section>
 
     <Progress levels={levels} completions={completions} today={today} />
     </>
+  )
+}
+
+/**
+ * Le jour du test FTP (E.11), dit et non posé.
+ *
+ * Il reste la dernière inconnue du projet : la FTP du profil est à 221 W,
+ * Garmin en estime 240, et toutes les séances composées sont écrites en
+ * pourcentage — corriger le profil les recalibre toutes d'un coup.
+ */
+function TestDay({ today, context }: { today: DayKey; context: ReturnType<typeof buildContext> }) {
+  const found = firstTestDay(today, AHEAD_DAYS, context)
+
+  return (
+    <p className="muted small">
+      <strong>{FTP_TEST_NAME}</strong>
+      <br />
+      {'date' in found
+        ? `Il tiendrait ${formatRelativeDay(found.date, today)}. À toi de le lancer depuis intervals.icu.`
+        : explainTest(found.refusal)}
+    </p>
   )
 }
 

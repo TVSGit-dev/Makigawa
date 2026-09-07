@@ -15,6 +15,7 @@
  */
 
 import type { Completion } from '../rules/done'
+import { AFTER, BEFORE, mobilitySeconds, ROUTINE, STRENGTH, type Movement } from '../workouts/mobility'
 import { LEVELS, ZONE_NAMES, ZONES, type Zone } from '../workouts/levels'
 import { formatDay, shiftDayKey, type DayKey } from '../calendar/dates'
 
@@ -68,6 +69,8 @@ export function Progress({ levels, completions, today }: Props) {
         </p>
       ) : null}
 
+      <Mobility />
+
       {shown.length > 0 ? (
         <details className="structure">
           <summary>Ce que tu as fait — {shown.length} séance{shown.length > 1 ? 's' : ''}</summary>
@@ -85,6 +88,50 @@ export function Progress({ levels, completions, today }: Props) {
         </details>
       ) : null}
     </section>
+  )
+}
+
+/**
+ * La souplesse (E.13), en lecture.
+ *
+ * Le psoas et l'iliaque sont raccourcis à chaque coup de pédale et ne
+ * s'allongent jamais pendant la sortie. Depuis le E.19 l'app ne pose plus
+ * cette séance ; elle la montre, ce qui suffit — c'est une routine à faire,
+ * pas un événement à planifier.
+ */
+function Mobility() {
+  const minutes = Math.round(mobilitySeconds() / 60)
+
+  return (
+    <details className="structure">
+      <summary>
+        Ta souplesse — {ROUTINE.length} mouvements, {minutes} min
+      </summary>
+      <div className="routine">
+        <Moves title="AVANT (mobilité, on bouge)" movements={BEFORE} />
+        <Moves title="APRÈS (tenues longues, 60 à 90 s)" movements={AFTER} />
+        <Moves title="RENFORCEMENT (sans lui, le reste ne tient pas)" movements={STRENGTH} />
+      </div>
+    </details>
+  )
+}
+
+function Moves({ title, movements }: { title: string; movements: readonly Movement[] }) {
+  return (
+    <div className="routine-part">
+      <p className="now-label">{title}</p>
+      {movements.map((move) => (
+        <div className="routine-move" key={move.name}>
+          <p className="routine-name">
+            {move.name}{' '}
+            <span className="muted">
+              — {move.seconds}s{move.bothSides ? ' par côté' : ''}
+            </span>
+          </p>
+          <p className="routine-how muted small">{move.how}</p>
+        </div>
+      ))}
+    </div>
   )
 }
 

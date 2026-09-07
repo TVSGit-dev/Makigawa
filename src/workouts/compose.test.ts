@@ -116,7 +116,10 @@ describe('composer une séance', () => {
   it('nomme une séance par ce qu’elle contient', () => {
     // La convention de l'athlète : « 2 x 15m Sweet Spot », pas « 2 × 5 ».
     expect(build(sweetSpot, 2, 5).name).toBe('Sweet spot 2 × 15 min')
-    expect(build(endurance, 3, 1).name).toBe('Endurance 30 min')
+    // L'endurance porte sa durée totale : sa séance entière est du travail,
+    // et « Endurance 10 min » sur une sortie de trente-deux ne veut rien dire.
+    const sortie = build(endurance, 3, 1)
+    expect(sortie.name).toBe(`Endurance ${Math.round(sortie.seconds / 60)} min`)
   })
 })
 
