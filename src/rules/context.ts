@@ -111,28 +111,39 @@ export function toPlannedSessions(events: readonly CalendarEvent[]): PlannedSess
 /**
  * Les journées observées, une par jour ayant porté au moins une activité.
  *
- * **`peakSeconds` vaut toujours zéro pour l'instant**, et ce n'est pas un
- * oubli. Le seuil de pic du E.1 est un temps cumulé au-dessus de 175 bpm ;
- * le connaître demande la courbe de fréquence cardiaque de chaque activité,
- * que l'app ne rapatrie pas. Deviner à partir des zones d'intervals.icu est
- * exclu — les règles comparent des bpm bruts, jamais un nom de zone.
+ * **`peakSeconds` se mesure depuis le E.21**, sur la courbe cardiaque de
+ * chaque activité. Les pics sont passés en argument plutôt que lus ici : ce
+ * module reste pur, et c'est ce qui le rend testable.
  *
- * Conséquence assumée : une journée pèse par sa charge seule. Un effort
- * maximal court noyé dans une journée légère ne la fait pas basculer. C'est
- * une sous-estimation, jamais une sur-estimation — le sens le moins risqué
- * pour une app qui décide d'en faire moins.
+ * Sans courbe — lecture échouée, activité trop ancienne — le pic vaut zéro et
+ * la journée pèse par sa charge seule. C'est une sous-estimation, jamais une
+ * sur-estimation : le sens le moins risqué pour une app qui décide d'en faire
+ * moins.
  */
-export function toDayRecords(activities: readonly Activity[]): DayRecord[] {
+export function toDayRecords(
+  activities: readonly Activity[],
+  peaks: Readonly<Record<string, number>> = {},
+): DayRecord[] {
   const loads = new Map<DayKey, number>()
+  const peaked = new Map<DayKey, number>()
 
   for (const activity of activities) {
     const date = dayKeyOf(activity.startDateLocal)
     if (!date) continue
     loads.set(date, (loads.get(date) ?? 0) + (activity.trainingLoad ?? 0))
+
+    // Les pointes de la journée se cumulent, comme les charges : deux sorties
+    // qui montent chacune une minute font une journée qui en fait deux.
+    const seconds = activity.id ? peaks[activity.id] : undefined
+    if (seconds !== undefined) peaked.set(date, (peaked.get(date) ?? 0) + seconds)
   }
 
   return [...loads.entries()]
-    .map(([date, observedLoad]) => ({ date, observedLoad, peakSeconds: 0 }))
+    .map(([date, observedLoad]) => ({
+      date,
+      observedLoad,
+      peakSeconds: peaked.get(date) ?? 0,
+    }))
     .sort((a, b) => a.date.localeCompare(b.date))
 }
 
@@ -160,6 +171,8 @@ export type Sources = {
   activities: readonly Activity[]
   wellness: readonly Wellness[]
   intent: Intent
+  /** Les pics mesurés, par identifiant d'activité (E.21). */
+  peaks?: Readonly<Record<string, number>>
 }
 
 /**
@@ -170,10 +183,17 @@ export type Sources = {
  * interdiction — l'app ne bloquerait pas une séance parce qu'elle ignore
  * quelque chose.
  */
-export function buildContext({ today, events, activities, wellness, intent }: Sources): Context {
+export function buildContext({
+  today,
+  events,
+  activities,
+  wellness,
+  intent,
+  peaks = {},
+}: Sources): Context {
   return {
     today,
-    days: toDayRecords(activities),
+    days: toDayRecords(activities, peaks),
     planned: toPlannedSessions(events),
     intent,
     tsb: freshnessOf(wellness, today) ?? 0,

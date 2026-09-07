@@ -27,6 +27,7 @@ const activity = (over: Partial<Activity> = {}): Activity => ({
   type: 'VirtualRide',
   startDateLocal: '2026-09-04T18:00:00',
   trainingLoad: 78,
+  movingTime: 2700,
   pairedEventId: null,
   raw: {},
   ...over,

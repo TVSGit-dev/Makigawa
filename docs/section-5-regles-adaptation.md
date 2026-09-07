@@ -1428,6 +1428,64 @@ faite — et le plafond doit le voir.
   CTL à sept jours d'écart, il n'y a pas de vitesse, et une donnée manquante ne
   se transforme jamais en interdiction.
 
+## E.21 Ce que l'app garde, et ce qu'elle note
+
+Trois ajouts du 7 septembre 2026, qui ne changent aucune règle mais changent ce
+que l'app sait d'elle-même.
+
+### Le pic, enfin mesuré
+
+Le E.1 fait basculer une journée en chargée dès **deux minutes cumulées
+au-dessus de 175 bpm**. Cette règle n'avait jamais fonctionné : `peakSeconds`
+valait zéro, faute de courbe cardiaque.
+
+L'app lit désormais la courbe de chaque activité récente —
+`/activity/{id}/streams.json?types=heartrate` — et compte les secondes
+au-dessus du seuil. C'est un comptage, pas une estimation : les battements
+viennent de la montre, via intervals.icu, et le seuil est celui du E.1.
+
+Trois précautions :
+
+- **Une seule lecture par activité.** Le résultat est gardé dans le téléphone,
+  indexé par l'identifiant de l'activité. Une courbe ne change jamais.
+- **Quatorze jours en arrière**, pas six semaines : au-delà, une journée ne
+  pèse plus sur aucune décision.
+- **Un échec ne bloque rien.** Sans courbe, le pic reste à zéro et la journée
+  pèse par sa charge seule — exactement le comportement d'avant.
+
+Le sens de l'erreur change, et il faut le dire : jusqu'ici l'app
+**sous-estimait** toujours. Elle mesure maintenant, et peut donc retenir une
+séance qu'elle aurait proposée. C'est le but.
+
+### Ce que l'app a refusé, et pourquoi
+
+La phase 6 consiste à *observer les règles sur des semaines réelles, et
+corriger les bornes plutôt que le code*. Encore faut-il voir les règles agir.
+
+L'app tient donc un **journal de ses propres refus** : le jour, ce qui a été
+écarté, et le motif. Rien d'autre.
+
+C'est de l'instrumentation sur l'app, jamais sur l'athlète. Le journal
+n'enregistre **aucune séance manquée**, aucun écart, aucune assiduité — il
+n'enregistre que des décisions que Makigawa a prises. La différence n'est pas
+cosmétique : l'un se relit pour corriger un seuil, l'autre serait la dette que
+le projet s'interdit.
+
+Il vit dans le téléphone, garde trente jours, et sert à répondre à une question
+précise : la condition 2 du E.2, retenue avec réserve, bloque-t-elle vraiment
+trop souvent ?
+
+### La zone, lue sur la structure quand le nom ne dit rien
+
+Le E.16 attribue la zone d'une séance tenue **par son nom**, celui que Makigawa
+écrit. Une séance nommée autrement ne faisait monter aucun niveau.
+
+À défaut de nom reconnaissable, l'app lit maintenant la **structure** : la plus
+haute intensité tenue au moins vingt secondes désigne la zone, et la forme du
+motif départage le sweet spot du seuil, qui se ressemblent en intensité. C'est
+moins sûr qu'un nom, donc c'est un recours et non la règle — le nom garde la
+priorité.
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1468,6 +1526,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 24 | Ce que l'app écrit | **plus rien, sauf supprimer** ; le plan vit dans Makigawa, la vérité dans intervals.icu (E.19) |
 | 25 | La vitesse de montée | **+10 % de forme par semaine**, lu sur la CTL ; au plafond, le plan tient son niveau (E.20) |
 | 26 | Les trajets dans le plan | **l'athlète les marque d'avance**, électrique ou musculaire ; l'app n'en recommande plus aucun (E.17, révisé) |
+| 27 | Le pic et le journal | **le pic se mesure** sur la courbe cardiaque ; l'app note ses propres refus, jamais les séances manquées (E.21) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

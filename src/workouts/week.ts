@@ -11,7 +11,7 @@
  * Il reste pur : il propose, l'athlète confirme (E.7).
  */
 
-import { refuse, type Context } from '../rules/decide'
+import { refuse, type Context, type Refusal } from '../rules/decide'
 import { INTENTS } from '../rules/intent'
 import { shiftDayKey, type DayKey } from '../calendar/dates'
 import { CANDIDATE_ID, type PlannedSession } from '../rules/types'
@@ -88,6 +88,14 @@ export type WeekOptions = {
   /** La décharge du E.18 : moitié moins de travail, intensité inchangée. */
   decharge?: boolean
   /**
+   * Appelé pour chaque jour écarté, avec son motif (E.21).
+   *
+   * C'est ce qui alimente le journal : sans lui, personne ne peut dire si une
+   * règle bloque six séances par semaine ou aucune. Le planificateur reste
+   * déterministe — il rapporte ce qu'il a fait, il ne lit rien.
+   */
+  onRefused?: (refusal: { date: DayKey; code: Refusal['code']; what: string }) => void
+  /**
    * La forme monte déjà au plafond (E.20) : le plan tient son niveau.
    *
    * Rien n'est retiré, rien n'est réduit — la semaine ressemble à la
@@ -122,6 +130,7 @@ export function planWeek({
   reprise = false,
   decharge = false,
   hold = false,
+  onRefused,
 }: WeekOptions): Suggestion[] {
   // Le quota est hebdomadaire ; l'horizon fait deux semaines. Le plan couvre
   // les deux (E.19) — le E.2 et le E.4 se chargent de les espacer.
@@ -161,6 +170,7 @@ export function planWeek({
       workout,
       taken,
       INTENTS[context.intent].chargedDaysPerWeek,
+      onRefused && ((date, code) => onRefused({ date, code, what: family.name })),
     )
     if (!placed) continue
 
@@ -193,12 +203,19 @@ function firstFittingDay(
   workout: Workout,
   taken: readonly DayKey[],
   perWeek: number,
+  note?: (date: DayKey, code: Refusal['code']) => void,
 ): DayKey | null {
   for (let ahead = 0; ahead < horizon; ahead += 1) {
     const date = shiftDayKey(start, ahead)
+    // Les deux premiers écarts sont l'affaire du planificateur, pas des
+    // règles : les noter dirait « le E.2 a refusé » là où c'est lui-même qui
+    // s'est fait de la place.
     if (touchesTaken(date, taken)) continue
     if (!fitsWeeklyQuota(date, taken, perWeek)) continue
-    if (!refuse(sessionFor(workout, date), date, context)) return date
+
+    const refusal = refuse(sessionFor(workout, date), date, context)
+    if (!refusal) return date
+    note?.(date, refusal.code)
   }
   return null
 }
