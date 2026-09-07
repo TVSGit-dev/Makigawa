@@ -12,6 +12,7 @@ import {
   unloadLevel,
   workSeconds,
   zoneOfFamily,
+  zoneOfBlocks,
   zoneOfName,
   ZONES,
   type Held,
@@ -76,10 +77,72 @@ describe('les zones', () => {
     expect(zoneOfName('Séance seuil')).toBe('seuil')
   })
 
-  it('n’invente pas de zone pour une séance qu’elle ne reconnaît pas', () => {
-    // Sous-estimation assumée : l'app proposera plus doux, jamais plus dur.
+  it('n’invente pas de zone pour un nom qu’elle ne reconnaît pas', () => {
     expect(zoneOfName('Coach — bloc 3 semaine 2')).toBeNull()
     expect(zoneOfName(null)).toBeNull()
+  })
+})
+
+describe('la zone lue sur la structure (E.21)', () => {
+  it('reconnaît chaque famille du catalogue à ses blocs seuls', () => {
+    const attendu: Record<string, string> = {
+      endurance: 'endurance',
+      tempo: 'tempo',
+      'sweet-spot': 'sweet-spot',
+      'sweet-spot-continu': 'sweet-spot',
+      seuil: 'seuil',
+      'vo2-30-30': 'vo2',
+      'vo2-30-15': 'vo2',
+      navette: 'anaerobie',
+    }
+    for (const [key, zone] of Object.entries(attendu)) {
+      const workout = compose(familyOf(key)!, 45)
+      expect(zoneOfBlocks(workout.blocks), key).toBe(zone)
+    }
+  })
+
+  it('sépare le sweet spot du seuil, qui culminent tous deux vers 95 %', () => {
+    // C'est la pointe au-dessus de 100 % qui les distingue.
+    expect(zoneOfBlocks([{ seconds: 90, percent: 95 }, { seconds: 90, percent: 85 }])).toBe(
+      'sweet-spot',
+    )
+    // Trois répétitions du motif de seuil : le long travail à 95 % dépasse
+    // trois minutes, ce que le VO2 max n'a jamais.
+    const seuil = [0, 1, 2].flatMap(() => [
+      { seconds: 120, percent: 95 },
+      { seconds: 30, percent: 110 },
+    ])
+    expect(zoneOfBlocks(seuil)).toBe('seuil')
+
+    // Le même nombre de pointes, sans le travail à 95 % : c'est du VO2 max.
+    const vo2 = [0, 1, 2, 3, 4, 5].flatMap(() => [
+      { seconds: 30, percent: 115 },
+      { seconds: 30, percent: 65 },
+    ])
+    expect(zoneOfBlocks(vo2)).toBe('vo2')
+  })
+
+  it('ignore les ouvertures, qui ne sont pas du travail', () => {
+    // Deux sprints de quinze secondes à 200 % ne font pas une séance
+    // anaérobie.
+    const avecOuvertures = [
+      { seconds: 15, percent: 200 },
+      { seconds: 60, percent: 55 },
+      { seconds: 600, percent: 65 },
+    ]
+    expect(zoneOfBlocks(avecOuvertures)).toBe('endurance')
+  })
+
+  it('ne dit rien d’une structure vide ou trop douce', () => {
+    expect(zoneOfBlocks([])).toBeNull()
+    expect(zoneOfBlocks([{ seconds: 600, percent: 40 }])).toBeNull()
+  })
+
+  it('fait monter un niveau sur une séance nommée autrement', () => {
+    // Le nom garde la priorité ; la structure est le recours.
+    const inconnue = event({ name: 'Bloc 3 semaine 2', description: '- 5m 45%\n- 20m 90%' })
+    const held = heldFrom([completion({ event: inconnue })])
+    expect(held[0]?.zone).toBe('sweet-spot')
   })
 })
 
@@ -149,9 +212,16 @@ describe('ce qui compte comme tenu', () => {
     expect(heldFrom([completion({ event: planned, outcome: 'absente' })])).toEqual([])
   })
 
-  it('ignore une séance dont la famille n’est pas reconnaissable', () => {
+  it('lit la structure quand le nom ne dit rien (E.21)', () => {
+    // Vingt minutes à 90 % sont du sweet spot, quel que soit le nom.
     const inconnue = event({ name: 'Bloc 3 semaine 2', description: '- 20m 90%' })
-    expect(heldFrom([completion({ event: inconnue })])).toEqual([])
+    expect(heldFrom([completion({ event: inconnue })])[0]?.zone).toBe('sweet-spot')
+  })
+
+  it('ne fait rien monter sur une structure ambiguë', () => {
+    // Faire monter le mauvais niveau serait pire que de n'en monter aucun.
+    const molle = event({ name: 'Bloc 3', description: '- 20m 40%' })
+    expect(heldFrom([completion({ event: molle })])).toEqual([])
   })
 
   it('ignore une séance sans structure lisible', () => {

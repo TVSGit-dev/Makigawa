@@ -16,6 +16,7 @@ import {
   deleteEvent,
   fetchActivities,
   fetchCalendarEvents,
+  fetchHeartRate,
   fetchWellness,
   type Activity,
   type ApiOutcome,
@@ -32,6 +33,10 @@ import type { Intent } from '../rules/intent'
 import type { DayRecord } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
 import { rampOf, holdsLevel } from '../rules/ramp'
+import { peakSecondsOf } from '../rules/peak'
+import { describeAge, loadRead, saveRead } from '../storage/cache'
+import { loadPeaks, savePeaks, type Peaks } from '../storage/peaks'
+import { loadJournal, recordRefusals, type Journal, type JournalEntry } from '../storage/journal'
 import {
   forgetStalePreferences,
   hasPlanPreferences,
@@ -79,6 +84,13 @@ type Data = {
   wellness: Wellness[]
   /** Ce qui n'a pas pu être lu, dit franchement plutôt que masqué. */
   gaps: string[]
+  /**
+   * Quand cette lecture date, si elle vient du cache (E.21).
+   *
+   * `null` pour une lecture fraîche. Un plan d'hier vaut mieux que pas de
+   * plan, à condition de dire qu'il date.
+   */
+  cachedAt: number | null
 }
 
 type State =
@@ -133,6 +145,8 @@ export function Plan({
 }: Props) {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [removals, setRemovals] = useState<Record<string, DeleteState>>({})
+  /** Les pics cardiaques mesurés, par activité (E.21). */
+  const [peaks, setPeaks] = useState<Peaks>(() => loadPeaks())
   // Ce que l'athlète a écarté ou repoussé du plan (E.14). Vit dans le
   // téléphone, ne part jamais dans intervals.icu.
   const [choices, setChoices] = useState<PlanPreferences>({ refused: {}, notBefore: null })
@@ -158,8 +172,24 @@ export function Plan({
       fetchWellness(credentials, addDays(now, -BEHIND_DAYS), now),
     ])
 
-    // Le calendrier est indispensable : sans lui il n'y a rien à afficher.
+    // Le calendrier est indispensable. Sans lui, la dernière lecture réussie
+    // vaut mieux qu'un écran d'erreur : c'est le cas du garage sans réseau,
+    // c'est-à-dire exactement là où l'on regarde son plan avant de partir.
     if (events.kind !== 'ok') {
+      const kept = loadRead()
+      if (kept) {
+        setState({
+          status: 'ok',
+          data: {
+            events: kept.events,
+            activities: kept.activities,
+            wellness: kept.wellness,
+            gaps: [],
+            cachedAt: kept.at,
+          },
+        })
+        return
+      }
       setState({ status: 'error', ...describe(events) })
       return
     }
@@ -174,16 +204,27 @@ export function Plan({
       gaps.push('La forme et la fatigue n’ont pas pu être lues : la fraîcheur est prise comme neutre.')
     }
 
-    setState({
-      status: 'ok',
-      data: {
-        events: events.data,
-        activities: activities.kind === 'ok' ? activities.data : [],
-        wellness: wellness.kind === 'ok' ? wellness.data : [],
-        gaps,
-      },
-    })
-  }, [credentials])
+    const data: Data = {
+      events: events.data,
+      activities: activities.kind === 'ok' ? activities.data : [],
+      wellness: wellness.kind === 'ok' ? wellness.data : [],
+      gaps,
+      cachedAt: null,
+    }
+
+    // On ne garde qu'une lecture complète : une lecture partielle rejouée hors
+    // ligne ferait passer une absence de données pour une journée vide.
+    if (activities.kind === 'ok' && wellness.kind === 'ok') {
+      saveRead({ events: data.events, activities: data.activities, wellness: data.wellness })
+    }
+
+    setState({ status: 'ok', data })
+
+    // Les courbes cardiaques ensuite, une par activité et une seule fois
+    // (E.21). Elles arrivent après coup : le plan s'affiche sans les
+    // attendre, puis se corrige quand elles sont là.
+    void measurePeaks(credentials, data.activities, today).then(setPeaks)
+  }, [credentials, today])
 
   useEffect(() => {
     void load()
@@ -290,29 +331,41 @@ export function Plan({
       activities: state.data.activities,
       wellness: state.data.wellness,
       intent,
+      peaks,
     })
     return { ...base, planned: [...base.planned, ...commuteSessions] }
-  }, [state, today, intent, upcoming, commuteSessions])
+  }, [state, today, intent, upcoming, commuteSessions, peaks])
 
   // Le plan est recalculé en entier à chaque refus, jamais rapiécé : les
   // séances suivantes sont placées par rapport à la première (E.14).
-  const suggestions = useMemo(
-    () =>
-      context
-        ? planWeek({
-            context,
-            today,
-            fitness,
-            refused: refusedKeys(choices),
-            notBefore: choices.notBefore,
-            levels,
-            reprise,
-            decharge: unloading,
-            hold,
-          })
-        : [],
-    [context, today, fitness, choices, levels, reprise, unloading, hold],
-  )
+  const planned2 = useMemo(() => {
+    const refusals: JournalEntry[] = []
+    const suggestions = context
+      ? planWeek({
+          context,
+          today,
+          fitness,
+          refused: refusedKeys(choices),
+          notBefore: choices.notBefore,
+          levels,
+          reprise,
+          decharge: unloading,
+          hold,
+          onRefused: (refusal) => refusals.push(refusal),
+        })
+      : []
+    return { suggestions, refusals }
+  }, [context, today, fitness, choices, levels, reprise, unloading, hold])
+
+  const suggestions = planned2.suggestions
+
+  // Le journal se tient à part du calcul : `planWeek` reste déterministe, et
+  // l'écriture dans le téléphone est un effet, donc elle vit dans un effet.
+  const [journal, setJournal] = useState<Journal>(() => loadJournal())
+  useEffect(() => {
+    if (state.status !== 'ok') return
+    setJournal(recordRefusals(today, planned2.refusals))
+  }, [state.status, today, planned2])
 
   const days = useMemo(() => {
     if (state.status !== 'ok' || !context) return []
@@ -396,6 +449,13 @@ export function Plan({
         </button>
       </div>
 
+      {state.data.cachedAt !== null ? (
+        <p className="notice small">
+          <strong>Pas de réseau.</strong> Voici ta dernière lecture, {describeAge(state.data.cachedAt)}
+          . Ce que tu as fait depuis n’y est pas.
+        </p>
+      ) : null}
+
       {state.data.gaps.map((gap) => (
         <p className="notice small" key={gap}>
           {gap}
@@ -438,9 +498,59 @@ export function Plan({
       </p>
     </section>
 
-    <Progress levels={levels} completions={completions} today={today} />
+    <Progress levels={levels} completions={completions} today={today} journal={journal} />
     </>
   )
+}
+
+/**
+ * Combien de jours en arrière le pic est mesuré.
+ *
+ * Quatorze, pas quarante-deux : au-delà, une journée ne pèse plus sur aucune
+ * décision, et chaque courbe coûte un appel réseau.
+ */
+const PEAK_DAYS = 14
+
+/** Combien de courbes on lit en parallèle. Assez pour ne pas traîner, assez
+ *  peu pour ne pas noyer un téléphone en 4G. */
+const PEAK_BATCH = 4
+
+/**
+ * Mesure le pic des activités récentes qui n'ont pas encore le leur (E.21).
+ *
+ * Une courbe ne change jamais : ce qui a été mesuré est gardé et jamais relu.
+ * Un échec ne bloque rien — l'activité garde un pic inconnu, donc nul, et sa
+ * journée pèse par sa charge seule.
+ */
+async function measurePeaks(
+  credentials: Credentials,
+  activities: readonly Activity[],
+  today: DayKey,
+): Promise<Peaks> {
+  const known = loadPeaks()
+  const floor = shiftDayKey(today, -PEAK_DAYS)
+
+  const missing = activities.filter(
+    (activity) =>
+      activity.id !== null &&
+      known[activity.id] === undefined &&
+      (dayKeyOf(activity.startDateLocal) ?? '') >= floor,
+  )
+  if (missing.length === 0) return known
+
+  const measured: Peaks = {}
+  for (let from = 0; from < missing.length; from += PEAK_BATCH) {
+    const batch = missing.slice(from, from + PEAK_BATCH)
+    await Promise.all(
+      batch.map(async (activity) => {
+        const outcome = await fetchHeartRate(credentials, activity.id!)
+        if (outcome.kind !== 'ok') return
+        measured[activity.id!] = peakSecondsOf(outcome.data, activity.movingTime)
+      }),
+    )
+  }
+
+  return savePeaks(measured)
 }
 
 /**

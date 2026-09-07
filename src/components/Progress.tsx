@@ -15,6 +15,8 @@
  */
 
 import type { Completion } from '../rules/done'
+import type { Refusal } from '../rules/decide'
+import { countByReason, JOURNAL_DAYS, type Journal } from '../storage/journal'
 import { AFTER, BEFORE, mobilitySeconds, ROUTINE, STRENGTH, type Movement } from '../workouts/mobility'
 import { LEVELS, ZONE_NAMES, ZONES, type Zone } from '../workouts/levels'
 import { formatDay, shiftDayKey, type DayKey } from '../calendar/dates'
@@ -26,13 +28,15 @@ type Props = {
   levels: Record<Zone, number>
   completions: readonly Completion[]
   today: DayKey
+  /** Ce que les règles ont écarté ces trente derniers jours (E.21). */
+  journal: Journal
 }
 
 /**
  * La reprise n'est pas annoncée ici mais dans l'en-tête, avec le mode qu'elle
  * force : la dire deux fois dans le même écran serait insister.
  */
-export function Progress({ levels, completions, today }: Props) {
+export function Progress({ levels, completions, today, journal }: Props) {
   const reached = ZONES.filter((zone) => levels[zone] > 0)
 
   const shown = completions
@@ -69,6 +73,8 @@ export function Progress({ levels, completions, today }: Props) {
         </p>
       ) : null}
 
+      <Refusals journal={journal} />
+
       <Mobility />
 
       {shown.length > 0 ? (
@@ -89,6 +95,55 @@ export function Progress({ levels, completions, today }: Props) {
       ) : null}
     </section>
   )
+}
+
+/**
+ * Ce que les règles ont écarté (E.21).
+ *
+ * De l'instrumentation sur l'app, jamais sur l'athlète : on n'y lit aucune
+ * séance manquée, seulement des décisions que Makigawa a prises. C'est ce qui
+ * permettra de dire, dans deux semaines, si la condition 2 du E.2 — retenue
+ * avec réserve — bloque vraiment trop souvent.
+ */
+function Refusals({ journal }: { journal: Journal }) {
+  const counts = countByReason(journal)
+  if (counts.length === 0) return null
+
+  const total = counts.reduce((sum, one) => sum + one.times, 0)
+
+  return (
+    <details className="structure">
+      <summary>
+        Ce que j’ai écarté — {total} fois en {JOURNAL_DAYS} jours
+      </summary>
+      <ul className="held">
+        {counts.map(({ code, times }) => (
+          <li className="held-row" key={code}>
+            <span className="held-day">{times}×</span>
+            <span className="held-name">{REASONS[code]}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="muted small">
+        Ce sont mes décisions, pas tes manquements — de quoi corriger un seuil qui bloquerait
+        trop souvent plutôt que de le deviner.
+      </p>
+    </details>
+  )
+}
+
+/** Chaque motif en trois mots. La phrase entière vit dans `reasons.ts`. */
+const REASONS: Record<Refusal['code'], string> = {
+  'jour-deja-charge': 'la journée était déjà chargée',
+  'veille-chargee': 'la veille avait été chargée',
+  'deux-jours-charges': 'les deux jours d’avant pesaient déjà',
+  'lendemain-charge': 'le lendemain est chargé',
+  'tsb-sous-plancher': 'la fraîcheur était sous le plancher',
+  'quota-hebdomadaire': 'le quota de la semaine était atteint',
+  'une-seule-par-semaine': 'le mode prudent n’en garde qu’une',
+  'qualite-voisine': 'une autre séance de qualité était trop proche',
+  'force-trop-proche': 'du renfo était trop proche',
+  'renfo-sur-journee-chargee': 'du renfo sur une journée chargée',
 }
 
 /**

@@ -31,6 +31,8 @@ export type Activity = {
   startDateLocal: string | null
   /** Charge, telle que calculée par intervals.icu. Jamais recalculée ici. */
   trainingLoad: number | null
+  /** Durée en mouvement, en secondes. Sert à lire le pas d'un flux (E.21). */
+  movingTime: number | null
   /**
    * La séance planifiée que cette activité réalise, quand intervals.icu les a
    * appariées (E.15).
@@ -256,6 +258,7 @@ function toActivity(raw: Record<string, unknown>): Activity {
     type: text(raw.type),
     startDateLocal: text(raw.start_date_local),
     trainingLoad: count(raw.icu_training_load),
+    movingTime: count(raw.moving_time),
     pairedEventId: text(raw.paired_event_id),
     raw,
   }
@@ -395,6 +398,71 @@ export async function fetchWorkoutLibrary(
   }
 
   return { kind: 'ok', data: workouts }
+}
+
+/**
+ * La courbe de fréquence cardiaque d'une activité (E.21).
+ *
+ * C'est ce qui manquait pour mesurer le pic du E.1. Les battements viennent de
+ * la montre ; l'app les compte, elle n'en déduit rien d'autre.
+ *
+ * La forme de la réponse se constate plutôt qu'elle ne se devine, comme
+ * partout ailleurs : intervals.icu renvoie soit un tableau de flux nommés,
+ * soit un objet indexé par nom. Les deux sont acceptés, et une réponse
+ * illisible vaut « pas de courbe », jamais une exception.
+ */
+export async function fetchHeartRate(
+  credentials: Credentials,
+  activityId: string,
+): Promise<ApiOutcome<number[]>> {
+  const outcome = await request<unknown>(
+    `/activity/${encodeURIComponent(activityId)}/streams.json?types=heartrate`,
+    credentials,
+  )
+  if (outcome.kind !== 'ok') return outcome
+  return { kind: 'ok', data: beatsOf(outcome.data) }
+}
+
+/** Les battements d'un flux, quelle que soit la forme qui les porte. */
+function beatsOf(payload: unknown): number[] {
+  const streams: unknown[] = Array.isArray(payload)
+    ? payload
+    : Object.values(asRecord(payload) ?? {})
+
+  for (const stream of streams) {
+    const record = asRecord(stream)
+    if (!record) continue
+
+    const named = text(record.type) === null || text(record.type) === 'heartrate'
+    if (!named) continue
+
+    const data = record.data
+    if (Array.isArray(data)) {
+      return data.filter((beat): beat is number => typeof beat === 'number' && beat > 0)
+    }
+  }
+
+  return []
+}
+
+/**
+ * Une activité prise seule, pour ce que la liste ne donne pas.
+ *
+ * La liste `/activities` ne porte pas le pas de temps des flux ; celui-ci se
+ * lit sur l'activité elle-même. À défaut, on comptera une seconde par point,
+ * ce qui est le pas de Garmin dans la quasi-totalité des cas.
+ */
+export async function fetchActivity(
+  credentials: Credentials,
+  activityId: string,
+): Promise<ApiOutcome<Activity | null>> {
+  const outcome = await request<unknown>(
+    `/activity/${encodeURIComponent(activityId)}`,
+    credentials,
+  )
+  if (outcome.kind !== 'ok') return outcome
+  const record = asRecord(outcome.data)
+  return { kind: 'ok', data: record ? toActivity(record) : null }
 }
 
 /** Fenêtre courte : on veut valider l'accès, pas rapatrier l'historique. */

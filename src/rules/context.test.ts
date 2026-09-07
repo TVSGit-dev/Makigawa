@@ -30,6 +30,7 @@ const activity = (over: Partial<Activity> = {}): Activity => ({
   type: 'EBikeRide',
   startDateLocal: '2026-09-09T08:00:00',
   trainingLoad: 18,
+  movingTime: 1800,
   pairedEventId: null,
   raw: {},
   ...over,

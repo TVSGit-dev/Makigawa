@@ -381,19 +381,20 @@ qui revient à la même distance relève d'abord d'une étude posturale, et d'un
 avis médical si elle dure au-delà de la sortie ou s'accompagne de faiblesse.
 L'app n'a pas à en juger, et n'en juge pas.
 
-### Ce que l'app ne mesure pas encore
+### Ce que l'app mesure
 
-**Le pic à 175 bpm n'est pas mesuré.** Le E.1 fait basculer une journée en
-chargée dès deux minutes cumulées au-dessus de 175 bpm ; le connaître demande
-la courbe de fréquence cardiaque de chaque activité, que l'app ne rapatrie
-pas. Le déduire des zones d'intervals.icu est exclu — les règles comparent des
-bpm bruts, jamais un nom de zone.
+**Le pic à 175 bpm est mesuré depuis le 7 septembre 2026** (E.21). L'app lit la
+courbe cardiaque de chaque activité des quatorze derniers jours et compte les
+secondes au-dessus du seuil. Les battements viennent de la montre via
+intervals.icu ; le déduire des zones reste exclu — les règles comparent des bpm
+bruts, jamais un nom de zone.
 
-`peakSeconds` vaut donc zéro, et une journée pèse par sa charge seule. C'est
-une sous-estimation, jamais une sur-estimation : l'app peut proposer une
-séance là où le pic l'aurait retenue, elle n'en retirera jamais une à tort.
+Une lecture par activité, gardée dans le téléphone : une courbe ne change
+jamais. Et un échec de lecture ne bloque rien — sans courbe, le pic reste à
+zéro et la journée pèse par sa charge seule, comme avant. Le sens de l'erreur
+a changé : l'app sous-estimait toujours, elle mesure maintenant.
 
-**La reprise, elle, se détecte depuis le 6 septembre** (E.15) : l'app distingue
+**La reprise se détecte depuis le 6 septembre** (E.15) : l'app distingue
 une séance d'un trajet dans l'historique, donc le compteur du E.5 fonctionne.
 Il reste un point faible, assumé : un trajet musculaire n'est reconnu que par
 son nom, `Hard Commute`, celui que l'athlète leur donne dans Garmin.

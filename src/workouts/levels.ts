@@ -89,6 +89,57 @@ export function zoneOfName(name: string | null): Zone | null {
 }
 
 /**
+ * La zone lue sur la structure, quand le nom ne dit rien (E.21).
+ *
+ * Pas sur le bloc le plus dur : l'échauffement monte jusqu'à 90 % par paliers
+ * d'une minute, et ferait passer une sortie d'endurance pour du sweet spot.
+ * C'est le **temps passé dans chaque bande** qui décide, et il faut au moins
+ * trois minutes pour qu'une bande compte — de quoi laisser passer la rampe.
+ *
+ * Deux paires se ressemblent trop pour l'intensité seule :
+ *
+ * - le **sweet spot** et le **seuil** culminent tous deux vers 95 % ; c'est la
+ *   pointe au-dessus de 100 % qui les sépare ;
+ * - le **seuil** et le **VO2 max** portent tous deux des pointes au-dessus de
+ *   100 % ; c'est le long travail à 95 % que seul le seuil possède.
+ *
+ * Moins sûr qu'un nom, donc c'est un recours et non la règle : le nom garde
+ * la priorité, et une structure ambiguë ne renvoie rien plutôt que de faire
+ * monter le mauvais niveau.
+ */
+const BAND_MIN_SECONDS = 180
+
+/** Le temps de travail passé entre deux intensités, bornes basses incluses. */
+function secondsIn(blocks: readonly Block[], from: number, to: number): number {
+  return blocks
+    .filter(
+      (block) =>
+        block.seconds >= MIN_WORK_BLOCK && block.percent >= from && block.percent < to,
+    )
+    .reduce((total, block) => total + block.seconds, 0)
+}
+
+export function zoneOfBlocks(blocks: readonly Block[]): Zone | null {
+  if (secondsIn(blocks, 120, Infinity) > 0) return 'anaerobie'
+
+  const auSeuil = secondsIn(blocks, 88, 101)
+
+  if (secondsIn(blocks, 101, 120) > 0) {
+    return auSeuil >= BAND_MIN_SECONDS ? 'seuil' : 'vo2'
+  }
+
+  if (secondsIn(blocks, WORK_FLOOR['sweet-spot'], 101) >= BAND_MIN_SECONDS) return 'sweet-spot'
+  if (secondsIn(blocks, WORK_FLOOR.tempo, WORK_FLOOR['sweet-spot']) >= BAND_MIN_SECONDS) {
+    return 'tempo'
+  }
+  if (secondsIn(blocks, WORK_FLOOR.endurance, WORK_FLOOR.tempo) >= BAND_MIN_SECONDS) {
+    return 'endurance'
+  }
+
+  return null
+}
+
+/**
  * À partir de quelle intensité un bloc compte comme du travail, par zone.
  *
  * Les seuils suivent les motifs des familles, relevés chez l'athlète : le
@@ -178,10 +229,14 @@ export function heldFrom(completions: readonly Completion[]): Held[] {
 
   for (const completion of completions) {
     if (completion.outcome !== 'tenue') continue
-    const zone = zoneOfName(completion.event.name)
+
+    const blocks = blocksOf(completion.event.description)
+    // Le nom d'abord — c'est Makigawa qui l'écrit, donc il est sûr. La
+    // structure ensuite, pour tout ce qui a été nommé autrement (E.21).
+    const zone = zoneOfName(completion.event.name) ?? zoneOfBlocks(blocks)
     if (!zone) continue
 
-    const seconds = workSeconds(blocksOf(completion.event.description), zone)
+    const seconds = workSeconds(blocks, zone)
     if (seconds > 0) held.push({ zone, seconds })
   }
 

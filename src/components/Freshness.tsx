@@ -123,7 +123,22 @@ export function Freshness({
         ))}
       </div>
 
-      <p className="muted small">{DESCRIPTIONS[intent]}</p>
+      {/* Le mode choisi et le mode appliqué peuvent différer : quatre
+          garde-fous peuvent durcir le premier. Le dire ici, sous les boutons,
+          plutôt que dans un bandeau plus bas — sans quoi taper « ambitieux »
+          semble ne rien faire du tout. */}
+      <p className="muted small">
+        {forced ? (
+          <>
+            <strong>
+              Tu as choisi {wanted}, l’app tient {intent}
+            </strong>{' '}
+            — {whyForced({ nightDenied, reprise, unloading })}.
+            <br />
+          </>
+        ) : null}
+        {DESCRIPTIONS[intent]}
+      </p>
 
       {unloadOffered ? (
         <div className="offer">
@@ -184,6 +199,27 @@ export function Freshness({
       ) : null}
     </section>
   )
+}
+
+/**
+ * Pourquoi le mode appliqué n'est pas celui qu'on a choisi.
+ *
+ * Les quatre garde-fous ne se relâchent jamais, ils ne font que durcir : le
+ * plus récemment déclenché a le dernier mot, et c'est celui qu'on nomme.
+ */
+function whyForced({
+  nightDenied,
+  reprise,
+  unloading,
+}: {
+  nightDenied: boolean
+  reprise: boolean
+  unloading: boolean
+}): string {
+  if (unloading) return 'tu as accepté une semaine de décharge'
+  if (nightDenied) return 'tu as démenti ta nuit'
+  if (reprise) return 'tu reprends après deux semaines sans séance de qualité'
+  return `le mode ambitieux ne tient que ${MAX_AMBITIOUS_WEEKS} semaines d’affilée`
 }
 
 function Value({
