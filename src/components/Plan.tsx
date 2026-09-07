@@ -16,6 +16,7 @@ import {
   deleteEvent,
   fetchActivities,
   fetchCalendarEvents,
+  fetchFtp,
   fetchHeartRate,
   fetchWellness,
   type Activity,
@@ -39,6 +40,7 @@ import type { Intent } from '../rules/intent'
 import type { DayRecord } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
 import { rampOf, holdsLevel } from '../rules/ramp'
+import { doseOf } from '../rules/dose'
 import { peakSecondsOf } from '../rules/peak'
 import { describeAge, loadRead, saveRead } from '../storage/cache'
 import { loadPeaks, savePeaks, type Peaks } from '../storage/peaks'
@@ -88,6 +90,8 @@ type Data = {
   events: CalendarEvent[]
   activities: Activity[]
   wellness: Wellness[]
+  /** La FTP du profil : elle ne décide rien, elle affiche des watts (E.23). */
+  ftp: number | null
   /** Ce qui n'a pas pu être lu, dit franchement plutôt que masqué. */
   gaps: string[]
   /**
@@ -172,10 +176,11 @@ export function Plan({
     setRemovals({})
 
     const now = new Date()
-    const [events, activities, wellness] = await Promise.all([
+    const [events, activities, wellness, ftp] = await Promise.all([
       fetchCalendarEvents(credentials, addDays(now, -BEHIND_DAYS), addDays(now, AHEAD_DAYS - 1)),
       fetchActivities(credentials, addDays(now, -BEHIND_DAYS), now),
       fetchWellness(credentials, addDays(now, -BEHIND_DAYS), now),
+      fetchFtp(credentials),
     ])
 
     // Le calendrier est indispensable. Sans lui, la dernière lecture réussie
@@ -190,6 +195,7 @@ export function Plan({
             events: kept.events,
             activities: kept.activities,
             wellness: kept.wellness,
+            ftp: kept.ftp ?? null,
             gaps: [],
             cachedAt: kept.at,
           },
@@ -214,6 +220,7 @@ export function Plan({
       events: events.data,
       activities: activities.kind === 'ok' ? activities.data : [],
       wellness: wellness.kind === 'ok' ? wellness.data : [],
+      ftp: ftp.kind === 'ok' ? ftp.data : null,
       gaps,
       cachedAt: null,
     }
@@ -221,7 +228,12 @@ export function Plan({
     // On ne garde qu'une lecture complète : une lecture partielle rejouée hors
     // ligne ferait passer une absence de données pour une journée vide.
     if (activities.kind === 'ok' && wellness.kind === 'ok') {
-      saveRead({ events: data.events, activities: data.activities, wellness: data.wellness })
+      saveRead({
+        events: data.events,
+        activities: data.activities,
+        wellness: data.wellness,
+        ftp: data.ftp,
+      })
     }
 
     setState({ status: 'ok', data })
@@ -315,6 +327,15 @@ export function Plan({
     [state, today],
   )
   const hold = holdsLevel(ramp)
+
+  /** La charge de la semaine : ce qui est fait, ce qu'il reste (E.23). */
+  const dose = useMemo(
+    () => doseOf({ days: observed, today, hold }),
+    // `observed` est reconstruit à chaque rendu ; c'est l'état qui dit quand
+    // il a vraiment changé.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state, today, hold],
+  )
 
   const unloadSuggested = useMemo(
     () => shouldUnload({ held: heldDays, today, unloaded: unloadedWeeks }),
@@ -545,6 +566,9 @@ export function Plan({
         intent={intent}
         fitness={fitness}
         ramp={ramp}
+        dose={dose}
+        ftp={state.data.ftp}
+        activities={state.data.activities}
         refusing={hasPlanPreferences(choices)}
         removals={removals}
         onCommute={(date) => setCommutes(cycleCommute(date))}

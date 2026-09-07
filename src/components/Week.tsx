@@ -22,6 +22,11 @@ import type { DayWeight } from '../rules/types'
 import type { Ramp } from '../rules/ramp'
 import type { Suggestion } from '../workouts/week'
 import { toNotation } from '../workouts/compose'
+import { shapeOf } from '../workouts/shape'
+import { DISTANCES, paceFor, wattsOf } from '../rides/outing'
+import { loadForDistance, pastWattsFor } from '../rides/history'
+import { perDay, type Dose } from '../rules/dose'
+import type { Activity } from '../api/intervals'
 import { formatDayShort, formatDuration, type DayKey } from '../calendar/dates'
 import { Profile } from './Profile'
 import { SessionCard, type DeleteState } from './SessionCard'
@@ -55,6 +60,12 @@ type Props = {
   fitness: number | null
   /** La vitesse à laquelle la forme monte, et son plafond (E.20). */
   ramp: Ramp | null
+  /** La charge de la semaine : ce qui a été fait, ce qui reste (E.23). */
+  dose: Dose
+  /** La FTP du profil, pour afficher les pourcentages en watts (E.23). */
+  ftp: number | null
+  /** L'historique, pour lire ce que les sorties ont réellement coûté (E.23). */
+  activities: readonly Activity[]
   /** Vrai si l'athlète a écarté ou repoussé quelque chose (E.14). */
   refusing: boolean
   removals: Record<string, DeleteState>
@@ -71,6 +82,9 @@ export function Week({
   intent,
   fitness,
   ramp,
+  dose,
+  ftp,
+  activities,
   refusing,
   removals,
   onCommute,
@@ -93,6 +107,8 @@ export function Week({
 
       {ramp ? <RampLine ramp={ramp} /> : null}
 
+      <DoseBlock dose={dose} />
+
       {proposed.length === 0 && refusing ? (
         <p className="muted small">
           Tu as écarté ce qui restait ouvert à ta forme.{' '}
@@ -110,6 +126,8 @@ export function Week({
           </button>
         </p>
       ) : null}
+
+      <Outing ftp={ftp} activities={activities} />
 
       <div className="calendar">
         {days.map((day) => (
@@ -154,6 +172,7 @@ export function Week({
               <Proposed
                 suggestion={day.suggestion}
                 first={first?.date === day.date}
+                ftp={ftp}
                 onRefuse={onRefuse}
                 onPostpone={onPostpone}
               />
@@ -192,25 +211,37 @@ function Load({ weight }: { weight: DayWeight }) {
 function Proposed({
   suggestion,
   first,
+  ftp,
   onRefuse,
   onPostpone,
 }: {
   suggestion: Suggestion
   first: boolean
+  ftp: number | null
   onRefuse: (familyKey: string) => void
   onPostpone: (date: DayKey) => void
 }) {
   return (
     <article className="suggested">
-      <p className="suggested-name">{suggestion.workout.name}</p>
+      <p className="suggested-name">
+        {suggestion.workout.family.name}
+        <span className="suggested-dose">
+          {' · '}
+          {formatDuration(suggestion.workout.seconds)}
+        </span>
+      </p>
       <p className="suggested-why">{suggestion.because}</p>
 
       <Profile blocks={suggestion.workout.blocks} />
 
-      <details className="structure">
-        <summary>La structure — {formatDuration(suggestion.workout.seconds)}</summary>
-        <pre>{toNotation(suggestion.workout)}</pre>
-      </details>
+      {/* La forme, pas la recette : assez pour reconnaître une séance
+          équivalente dans le catalogue de Zwift, pas assez pour la recopier
+          (E.23). */}
+      <ul className="shape">
+        {shapeOf(suggestion.workout, ftp).map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
 
       <div className="suggested-refuse">
         <Copy notation={toNotation(suggestion.workout)} />
@@ -234,6 +265,111 @@ function Proposed({
         ) : null}
       </div>
     </article>
+  )
+}
+
+/**
+ * La dose de la semaine (E.23).
+ *
+ * L'athlète l'a demandée aux deux mailles : la semaine, où la charge
+ * s'accumule vraiment, et les jours qui viennent, où le reste se répartit.
+ *
+ * **Ce n'est pas un quota quotidien.** Une journée sans rien ne crée aucune
+ * dette : le reste se redistribue sur les jours restants et le chiffre baisse
+ * tout seul. Répartir n'est pas devoir.
+ */
+function DoseBlock({ dose }: { dose: Dose }) {
+  if (dose.target === null) {
+    return (
+      <p className="muted small">
+        Pas encore de semaine complète à comparer : l’objectif de charge arrivera quand il y
+        aura de quoi le poser.
+      </p>
+    )
+  }
+
+  const share = perDay(dose)
+
+  return (
+    <div className="dose">
+      <p className="now-label">La charge de la semaine</p>
+
+      <p className="dose-line">
+        <span className="dose-number">{dose.banked}</span>
+        <span className="muted"> sur </span>
+        <span className="dose-number">{dose.target}</span>
+      </p>
+
+      <span className="dose-bar" role="img" aria-label={`${dose.banked} de charge sur ${dose.target} visés`}>
+        <span
+          className="dose-fill"
+          style={{ width: `${Math.min(100, (dose.banked / dose.target) * 100)}%` }}
+        />
+      </span>
+
+      <p className="muted small">
+        {dose.remaining === 0
+          ? 'La semaine est faite. Ce qui vient en plus est du bonus, pas une dette.'
+          : `Il reste ${dose.remaining} à placer sur ${dose.daysLeft} jour${dose.daysLeft > 1 ? 's' : ''} — environ ${share} par jour. Un jour sans rien ne crée pas de dette : le reste se répartit tout seul.`}
+      </p>
+
+      <p className="muted small">
+        Les semaines précédentes :{' '}
+        {dose.past.map((one) => (one.load > 0 ? one.load : '—')).join(', ')}.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * La sortie longue, dite en distance (E.23).
+ *
+ * L'athlète part de la distance. L'app rend l'allure — un pourcentage de FTP
+ * affiché en watts — et ce que ses propres sorties comparables ont coûté.
+ * Cette charge-là n'est jamais estimée : elle est lue.
+ */
+function Outing({ ftp, activities }: { ftp: number | null; activities: readonly Activity[] }) {
+  const [km, setKm] = useState<number>(50)
+
+  const percent = paceFor(km)
+  const watts = wattsOf(percent, ftp)
+  const past = loadForDistance(activities, km)
+  const held = pastWattsFor(activities, km)
+
+  return (
+    <div className="dose">
+      <p className="now-label">Une sortie longue</p>
+
+      <div className="segmented" role="group" aria-label="Distance">
+        {DISTANCES.map((one) => (
+          <button
+            key={one}
+            className={one === km ? 'segment segment-on' : 'segment'}
+            aria-pressed={one === km}
+            onClick={() => setKm(one)}
+          >
+            {one} km
+          </button>
+        ))}
+      </div>
+
+      <p className="dose-line">
+        <span className="dose-number">{watts === null ? `${percent} %` : `${watts} W`}</span>
+        <span className="muted"> de moyenne</span>
+      </p>
+
+      <p className="muted small">
+        {watts === null
+          ? `Soit ${percent} % de ta FTP. Renseigne-la dans intervals.icu pour la voir en watts.`
+          : `Soit ${percent} % de ta FTP. Le jour du test, ce chiffre se corrige tout seul.`}
+      </p>
+
+      <p className="muted small">
+        {past === null
+          ? 'Aucune sortie comparable dans ton historique : je ne sais pas encore ce qu’elle te coûtera.'
+          : `Tes ${past.count} sortie${past.count > 1 ? 's' : ''} de cette distance ${past.count > 1 ? 'ont pesé' : 'a pesé'} ${past.low === past.high ? past.low : `${past.low} à ${past.high}`}${held === null ? '' : `, à ${held} W de moyenne`}.`}
+      </p>
+    </div>
   )
 }
 
