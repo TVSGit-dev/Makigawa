@@ -254,10 +254,12 @@ En bref :
 - **La forme ne monte que de 10 % par semaine.** Quand elle monte déjà aussi
   vite, le plan tient son niveau au lieu de le monter — on ne progresse pas en
   ajoutant à ce qui monte déjà (E.20).
-- **Le trajet du jour se décide avec les mêmes règles.** « Tes jambes ou la
-  batterie ? » est le E.2 posé sur trois réponses relevées — aller-retour
-  musculaire, un seul, ou électrique. L'app recommande la plus exigeante que la
-  question centrale accepte ; elle n'interdit rien.
+- **Les trajets se marquent d'avance, ils ne se recommandent pas.** Une marque
+  par jour — électrique, musculaire, ou rien — parce que l'aller et le retour
+  se font d'office de la même manière. Le plan s'écarte des jours musculaires,
+  qui sont des journées chargées. L'app ne dit plus comment aller au travail :
+  elle ne s'intéresse qu'à ce que la journée a donné (E.17, révisé le
+  7 septembre).
 - **Le cycle 2:1 se propose enfin.** Après deux semaines qui ont porté une
   séance tenue, l'app propose d'alléger : une seule séance, moitié moins de
   travail, la même intensité. Rien de retiré ne compte comme manqué.
@@ -274,11 +276,10 @@ exception, tenue par le projet lui-même : **la distinction électrique /
 musculaire**, où le gris dit « ce ne sont pas tes jambes » et le rose dit
 « si ».
 
-**L'app s'ouvre sur aujourd'hui** — décision du 6 septembre 2026. Deux
-questions en haut de l'écran, dans l'ordre où elles se posent : le trajet
-d'abord, six à sept fois par semaine, la séance ensuite. Le reste — la forme,
-la semaine, les niveaux — passe dessous. Une app qu'on ouvre en marchant vers
-le vélo doit répondre avant qu'on ait fait défiler.
+**L'app s'ouvre sur le calendrier des deux prochaines semaines** — révisé le
+7 septembre 2026. La carte « Aujourd'hui » est retirée : elle existait pour
+poser la question du trajet, et cette question ne se pose plus (E.17 révisé).
+Aujourd'hui est simplement la première ligne du calendrier, et c'est assez.
 
 L'application doit être **tolérante, pas culpabilisante**. C'est une
 contrainte technique, pas une intention :

@@ -337,20 +337,70 @@ p {
 
 .day-title {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 600;
   font-size: 0.9375rem;
+}
+
+.day-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.day-name::first-letter {
+  text-transform: uppercase;
+}
+
+/* Le calendrier montre les quatorze jours, vides compris : c'est là qu'il
+   reste de la place, et le rythme d'une semaine ne se lit que sur la suite
+   complète. Les jours vides restent discrets pour ne pas crier. */
+.calendar {
+  display: flex;
+  flex-direction: column;
+}
+
+/* La pastille de trajet (E.17 révisé). C'est la seule couleur du projet qui
+   ne soit pas du rose : le gris dit « ce ne sont pas tes jambes », le rose dit
+   « si ». Un tap la fait défiler. */
+.mark {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mark-chill {
+  background: var(--electric);
+  border-color: var(--electric);
+  color: var(--bg);
+}
+
+.mark-hard {
+  background: var(--muscular);
+  border-color: var(--muscular);
+  color: var(--accent-contrast);
+}
+
+.mark:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* toLocaleDateString rend « lundi 7 septembre » tout en minuscules. Seule
    l'initiale se relève : en français les noms de mois restent minuscules,
    ce que `text-transform: capitalize` ne sait pas faire. */
-.day-title > span:first-child::first-letter {
-  text-transform: uppercase;
-}
-
 .day-today .day-title {
   color: var(--accent);
 }

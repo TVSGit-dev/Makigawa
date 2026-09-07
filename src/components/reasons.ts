@@ -59,37 +59,6 @@ export function announce(proposal: Proposal, today: DayKey): string {
   }
 }
 
-/** Le bouton qui applique la proposition. Il dit ce qu'il fait, au présent. */
-export function actionLabel(proposal: Proposal): string {
-  switch (proposal.action) {
-    case 'garder':
-      return ''
-    case 'decaler':
-      return 'Déplacer'
-    case 'reduire':
-      return 'Raccourcir'
-    case 'abandonner':
-      return 'Laisser tomber'
-  }
-}
-
-/**
- * Ce que l'app a écrit, une fois que c'est fait. Au passé et sans
- * félicitations : elle rend compte, elle ne récompense pas.
- */
-export function confirmation(proposal: Proposal, today: DayKey): string {
-  switch (proposal.action) {
-    case 'garder':
-      return ''
-    case 'decaler':
-      return `Déplacée à ${formatRelativeDay(proposal.to, today)}.`
-    case 'reduire':
-      return 'Raccourcie de moitié dans intervals.icu.'
-    case 'abandonner':
-      return 'Retirée du calendrier.'
-  }
-}
-
 /**
  * Le type d'activité, dit en français.
  *
@@ -149,14 +118,4 @@ export function explainTest(refusal: TestRefusal): string {
     case 'regle-ordinaire':
       return 'Les règles habituelles s’y opposent déjà — une séance de qualité trop proche, ou le quota de la semaine.'
   }
-}
-
-const WEIGHTS: Record<string, string> = {
-  legere: 'journée légère',
-  moyenne: 'journée moyenne',
-  chargee: 'journée chargée',
-}
-
-export function weightLabel(weight: string): string {
-  return WEIGHTS[weight] ?? weight
 }
