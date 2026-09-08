@@ -322,28 +322,43 @@ function DoseBlock({ dose }: { dose: Dose }) {
   }
 
   const share = perDay(dose)
+  const part = (load: number) => `${Math.min(100, (load / dose.target!) * 100)}%`
+  const jours = `${dose.daysLeft} jour${dose.daysLeft > 1 ? 's' : ''}`
 
   return (
     <div className="dose">
       <p className="now-label">La charge de la semaine</p>
 
+      {/* Fait et prévu séparés (E.28) : un seul total les confondrait, alors
+          que la différence est justement ce qui se lit d'un coup d'œil. */}
       <p className="dose-line">
-        <span className="dose-number">{dose.banked}</span>
+        <span className="dose-number">{dose.done}</span>
+        {dose.planned > 0 ? (
+          <>
+            <span className="muted"> fait · </span>
+            <span className="dose-number dose-ahead">{dose.planned}</span>
+            <span className="muted"> prévu</span>
+          </>
+        ) : null}
         <span className="muted"> sur </span>
         <span className="dose-number">{dose.target}</span>
       </p>
 
-      <span className="dose-bar" role="img" aria-label={`${dose.banked} de charge sur ${dose.target} visés`}>
-        <span
-          className="dose-fill"
-          style={{ width: `${Math.min(100, (dose.banked / dose.target) * 100)}%` }}
-        />
+      <span
+        className="dose-bar"
+        role="img"
+        aria-label={`${dose.done} de charge faite et ${dose.planned} prévue, sur ${dose.target} visés`}
+      >
+        <span className="dose-fill" style={{ width: part(dose.done) }} />
+        <span className="dose-fill dose-fill-ahead" style={{ width: part(dose.planned) }} />
       </span>
 
       <p className="muted small">
         {dose.remaining === 0
-          ? 'La semaine est faite. Ce qui vient en plus est du bonus, pas une dette.'
-          : `Il reste ${dose.remaining} à placer sur ${dose.daysLeft} jour${dose.daysLeft > 1 ? 's' : ''} — environ ${share} par jour. Un jour sans rien ne crée pas de dette : le reste se répartit tout seul.`}
+          ? dose.planned > 0
+            ? 'Ce que tu as marqué couvre déjà la semaine. Ce qui vient en plus est du bonus, pas une dette.'
+            : 'La semaine est faite. Ce qui vient en plus est du bonus, pas une dette.'
+          : `Il reste ${dose.remaining} à placer sur ${jours} — environ ${share} par jour. Un jour sans rien ne crée pas de dette : le reste se répartit tout seul.`}
       </p>
 
       <p className="muted small">

@@ -331,15 +331,6 @@ export function Plan({
   )
   const hold = holdsLevel(ramp)
 
-  /** La charge de la semaine : ce qui est fait, ce qu'il reste (E.23). */
-  const dose = useMemo(
-    () => doseOf({ days: observed, today, hold }),
-    // `observed` est reconstruit à chaque rendu ; c'est l'état qui dit quand
-    // il a vraiment changé.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state, today, hold],
-  )
-
   const unloadSuggested = useMemo(
     () => shouldUnload({ held: heldDays, today, unloaded: unloadedWeeks }),
     [heldDays, today, unloadedWeeks],
@@ -403,6 +394,22 @@ export function Plan({
     })
     return { ...base, planned: [...base.planned, ...commuteSessions] }
   }, [state, today, intent, upcoming, commuteSessions, peaks])
+
+  /**
+   * La charge de la semaine : ce qui est fait, ce qui est prévu, ce qu'il reste
+   * (E.23, révisé en E.28).
+   *
+   * Les trajets marqués et les séances posées comptent d'avance : sans eux la
+   * jauge affichait zéro six jours sur sept, alors que le E.2 pesait déjà ces
+   * mêmes journées comme chargées.
+   */
+  const dose = useMemo(
+    () => doseOf({ days: observed, today, planned: context?.planned ?? [], hold }),
+    // `observed` est reconstruit à chaque rendu ; c'est l'état qui dit quand
+    // il a vraiment changé.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state, today, hold, context],
+  )
 
   // Le plan est recalculé en entier à chaque refus, jamais rapiécé : les
   // séances suivantes sont placées par rapport à la première (E.14).
