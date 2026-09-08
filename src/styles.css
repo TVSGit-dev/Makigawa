@@ -424,7 +424,7 @@ p {
 /* Une barre qui se remplit, jamais une barre qui manque : dépasser n'est pas
    une dette, et rester en dessous n'est pas un échec. */
 .dose-bar {
-  display: block;
+  display: flex;
   height: 6px;
   border-radius: 3px;
   background: var(--border);
@@ -436,6 +436,25 @@ p {
   height: 100%;
   border-radius: 3px;
   background: var(--accent);
+  /* Le fait garde sa largeur ; c'est le prévu que la barre rogne quand les
+     deux dépassent l'objectif. Sans ça, flex les rétrécirait tous les deux. */
+  flex-shrink: 0;
+}
+
+/* Ce qui est prévu mais pas encore fait (E.28) : la même couleur, en creux.
+   Hachuré plutôt que pâli — un rose plus clair se lirait comme « moins
+   sévère », alors qu'il s'agit d'une charge tout aussi réelle, simplement
+   pas encore portée. */
+.dose-fill-ahead {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--accent) 0 2px,
+    transparent 2px 5px
+  );
+}
+
+.dose-ahead {
+  opacity: 0.75;
 }
 
 /* La forme d'une séance : ce qu'il faut pour la reconnaître ailleurs, pas

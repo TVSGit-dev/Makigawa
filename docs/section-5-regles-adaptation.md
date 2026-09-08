@@ -1825,6 +1825,77 @@ Ce n'est pas un éditeur de séance : rien ne s'y compose et rien ne s'y écrit.
 y lit ce que l'app sait déjà, dans l'ordre où elle le sait.
 
 
+## E.28 La semaine se lit d'avance
+
+Constaté le 8 septembre 2026, sur une remarque de l'athlète : la charge de la
+semaine affichait **zéro** alors qu'il avait marqué ses trajets et que des
+séances étaient posées dans son calendrier.
+
+**Deux parties de l'app ne pesaient pas la même journée pareil.** Le E.2 lit la
+charge d'un trajet marqué (E.13) et déclare la journée chargée ; la dose du
+E.23, elle, ne comptait que les activités déjà remontées de Garmin. La même
+journée valait 115 pour les règles et 0 pour la jauge.
+
+Ce n'est pas un cas limite, c'est le cas ordinaire : **les trajets portent 60 à
+100 % de la charge hebdomadaire**, ils se marquent d'avance, et une jauge qui
+les ignore affiche zéro six jours sur sept.
+
+### Ce que la semaine compte, jour par jour
+
+| Le jour | Ce qui compte |
+|---|---|
+| Passé | **ce qui a été fait**, et rien d'autre |
+| Aujourd'hui et après | **le plus grand des deux** : ce qui a été fait, ou ce qui est prévu |
+
+**Le passé ne se projette pas.** Un trajet marqué mais non fait n'a rien pesé,
+et c'est intervals.icu qui tient la vérité de ce qui a été fait (E.19). Une
+semaine passée se lit donc exactement comme avant, ce qui garde l'objectif
+comparable d'une semaine à l'autre.
+
+**Aujourd'hui et après, le plus grand des deux plutôt que leur somme**, pour
+deux raisons. Le trajet du matin peut être remonté quand celui du soir ne l'est
+pas encore, et la marque vaut l'aller-retour : elle reste alors la meilleure
+lecture des deux. Et additionner compterait deux fois ce qui n'a été fait
+qu'une.
+
+**Rien n'est estimé.** Les charges de trajet sont celles que l'athlète a
+mesurées (E.13), celles des séances posées sont celles qu'intervals.icu a
+calculées, celles des activités faites sont lues telles quelles. La jauge ne
+fait que des sommes et une soustraction, comme tout le E.23.
+
+### Ce qu'une proposition ne compte pas
+
+**Une séance que Makigawa propose n'entre pas dans la semaine.** Deux raisons,
+et la seconde suffirait :
+
+- elle n'a **pas de charge** — intervals.icu la calculerait depuis la
+  structure, et l'app ne lui envoie plus rien (E.19) ;
+- elle **n'engage à rien**. L'app propose, l'athlète confirme (E.7). La compter
+  d'avance ferait de chaque proposition une dette, ce que le projet s'interdit
+  depuis le E.6.
+
+C'est précisément à quoi sert « il reste X à placer » : les propositions sont
+ce qui *remplit* ce reste, pas ce qui le consomme d'avance.
+
+### Ce que la jauge montre
+
+Deux parts plutôt qu'un seul nombre — **ce qui est fait**, et **ce qui est
+prévu par-dessus**. Un seul total les confondrait, alors que la différence est
+justement ce qui se lit d'un coup d'œil : ce qui est acquis, et ce sur quoi on
+compte encore.
+
+Le reste à placer se calcule sur les deux : ce sur quoi on compte n'est plus à
+trouver.
+
+### Ce que ça révèle
+
+Quand les trajets marqués suffisent à couvrir l'objectif, la jauge le dit et le
+reste tombe à zéro. **Ce n'est pas une erreur** : c'est le constat qui fonde
+tout le projet, enfin visible à l'écran. Ses trajets font l'essentiel de son
+entraînement ; ce qu'il ajoute par-dessus est sa marge de progression, pas le
+gros de sa charge.
+
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1872,6 +1943,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 31 | Les trous du catalogue | **trois familles ajoutées** — récupération active, seuil continu, VO2 long ; une famille s'ajoute quand un trou bloque une règle, jamais pour la variété (E.25) |
 | 32 | La difficulté d'une proposition | **l'écart au niveau tenu**, dit en un mot : à ta portée, productive, un pari, inconnu (E.26) |
 | 33 | Trouver la séance | **le rayon, pas l'article** : l'app nomme la collection Zwift et la dose ; le catalogue s'ouvre pour choisir soi-même (E.27) |
+| 34 | La charge de la semaine | **ce qui est fait plus ce qui est prévu** — le passé ne se projette pas, et une proposition ne compte jamais d'avance (E.28) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

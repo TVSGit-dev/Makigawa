@@ -58,6 +58,11 @@ retaper.
   moyenne des trois dernières semaines complètes plus 10 % — le plafond du E.20
   gardant le dernier mot. Une journée sans rien ne crée aucune dette : le reste
   se répartit sur les jours restants.
+- **La semaine compte ce qui est prévu, pas seulement ce qui est fait** (E.28).
+  Les trajets marqués et les séances posées entrent dans la jauge dès qu'on les
+  marque ; le passé, lui, ne se projette pas. Une **proposition** de Makigawa
+  n'y entre jamais : elle n'engage à rien, et c'est justement le reste à placer
+  qu'elle vient remplir.
 
 ### La frontière, telle que l'athlète l'a formulée
 
