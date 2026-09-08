@@ -1896,6 +1896,155 @@ entraînement ; ce qu'il ajoute par-dessus est sa marge de progression, pas le
 gros de sa charge.
 
 
+## E.29 Les trois bandes
+
+Décidé le 8 septembre 2026, en regardant ce que l'app télécharge et jette.
+
+Depuis le E.21, l'app lit la **courbe cardiaque entière** de chaque activité des
+quatorze derniers jours. Elle en tire un seul nombre — les secondes au-dessus
+de 175 bpm — et jette le reste. Compter dans trois bandes au lieu d'une est la
+**même lecture**, déjà payée, déjà gardée dans le téléphone.
+
+Et les bornes existent depuis le premier jour, dans les constantes athlète :
+
+| Bande | Bornes | Ce que c'est |
+|---|---|---|
+| **Facile** | sous 150 bpm | `T_effort` : au-dessous, le corps n'est pas au travail |
+| **Modéré** | 150 à 175 bpm | entre les deux seuils |
+| **Dur** | au-dessus de 175 bpm | `T_haut` : le pic du E.1, inchangé |
+
+**`T_effort` était une constante fantôme.** Elle figure dans `CLAUDE.md` depuis
+le début, elle vient de l'esquisse de phase 2 abandonnée le 5 septembre, et
+elle n'apparaissait nulle part dans le code. Elle retrouve ici un emploi, et
+c'est le seul honnête : elle sépare un trajet électrique (~129 bpm) d'un
+aller-retour musculaire (~160 bpm), donc elle sépare bien le facile du modéré.
+
+### Un constat, jamais une cible
+
+**L'app dit la répartition. Elle ne dit pas laquelle viser.** C'est délibéré, et
+c'est ce que dit la littérature la plus récente : sur 41 études et 797
+cyclistes entraînés, aucune différence significative entre polarisé et
+non-polarisé ; une méta-analyse en réseau ne sépare pas non plus polarisé et
+pyramidal. Le pyramidal conviendrait même plutôt mieux quand les heures sont
+comptées, ce qui est le cas de l'athlète.
+
+Afficher un objectif « 80 / 20 » serait donc **prendre parti là où la recherche
+ne tranche pas** — exactement ce que la partie B du document reproche aux
+raccourcis. La partie B garde ses sources ; le E.29 n'en tire aucune règle.
+
+### Ce que ça sert vraiment
+
+Le piège du cycliste peu disponible n'est pas de mal doser le polarisé : c'est
+que **tout devienne modéré**. Jamais assez facile pour récupérer, jamais assez
+dur pour progresser. Avec cinq trajets par semaine entre 129 et 160 bpm, c'est
+le risque réel, et rien dans l'app ne permettait de le voir.
+
+Trois pourcentages le montrent d'un coup d'œil. L'athlète en fait ce qu'il
+veut : le document ne lui dit pas quoi en penser.
+
+### Ce que le stockage devient
+
+Le pic gardé par activité devient trois nombres. Les mesures déjà faites ne se
+convertissent pas — une seconde au-dessus de 175 ne dit rien des deux autres
+bandes — donc **elles sont abandonnées et l'app relit une fois**. C'est ce
+qu'elle fait déjà à la première ouverture, et une demi-mesure fausserait la
+répartition sans qu'on le voie.
+
+Le E.1 ne bouge pas : le pic reste la bande dure, au même seuil.
+
+## E.30 La variabilité
+
+Décidé le 8 septembre 2026. C'est la deuxième donnée que l'app rapatriait sans
+la lire, et de loin la plus utile.
+
+**Les cinq conditions du E.2 regardent toutes en arrière** : la veille,
+l'avant-veille, la fraîcheur — elle-même en retard, puisqu'elle se calcule sur
+des charges déjà encaissées — le quota de la semaine, la charge du jour. Aucune
+ne regarde comment le corps va **ce matin**. Le seul signal du jour est le
+démenti de nuit du E.12, et c'est un tap.
+
+Or Garmin pousse vers intervals.icu la fréquence cardiaque de repos, le sommeil
+et la **variabilité nocturne (rMSSD)**, et tout cela arrive dans la réponse de
+`/wellness` que l'app lit déjà chaque jour. Comme la FTP estimée du E.24 :
+aucun appel supplémentaire.
+
+### La méthode, et pourquoi c'en est une
+
+La variabilité d'une seule nuit ne dit rien — elle bouge d'un jour à l'autre
+pour vingt raisons. Ce qui dit quelque chose est **sa moyenne glissante sur
+sept jours**, comparée à la normale de l'athlète lui-même :
+
+1. Chaque jour, le **logarithme naturel** du rMSSD. La mesure est asymétrique ;
+   son logarithme ne l'est pas, et c'est la forme sous laquelle la littérature
+   la traite.
+2. La **moyenne glissante sur sept jours** de ce logarithme : la normale du
+   moment.
+3. Sur les vingt-huit dernières moyennes glissantes, leur **moyenne et leur
+   écart-type** : la ligne de base.
+4. Le seuil est **la moitié d'un écart-type** sous cette ligne — le plus petit
+   changement qui vaille la peine d'être noté.
+
+Sous ce seuil, l'app ne propose pas d'intensité. Au-dessus, rien ne change.
+
+**Rien n'est calculé qui ne soit mesuré.** Un logarithme, une moyenne, un
+écart-type, une comparaison — la même arithmétique que la fraîcheur, qui est
+une soustraction. La variabilité vient de la montre, via intervals.icu.
+
+L'essai qui fonde la méthode a comparé, chez des cyclistes, un plan guidé par
+la variabilité à un plan fixe : puissance maximale, puissance au second seuil
+et contre-la-montre de quarante minutes, tous trois meilleurs dans le groupe
+guidé.
+
+### Une sixième condition au E.2
+
+Elle a la même forme que les cinq autres — un motif nommé, un refus, aucune
+dette — avec deux réserves qui lui sont propres.
+
+**Elle ne s'applique qu'à ce qui demande de l'intensité.** Un trajet n'est
+jamais refusé, une endurance ni une récupération non plus. Une variabilité
+basse dit « pas d'intensité aujourd'hui », jamais « ne bouge pas ».
+
+Reconnaître ce qui en demande prend deux formes, parce qu'il y a deux sortes de
+séances. Celle qui vient d'intervals.icu porte une charge, et le E.1 tranche.
+Celle que **Makigawa compose n'en a pas** — intervals.icu la calculerait depuis
+la structure, et l'app ne lui envoie plus rien (E.19) — donc elle le **déclare**
+elle-même, d'après sa zone. Sans cette déclaration, la règle n'aurait écarté
+que ce qui vient d'ailleurs, c'est-à-dire à peu près rien.
+
+**Et le plan redescend au lieu de disparaître.** Le planificateur ne propose
+plus, ce jour-là, que les deux zones qu'on peut faire quand le corps n'est pas
+prêt. Sans ce repli il proposait ses familles habituelles, la règle les refusait
+toutes, et l'app affichait « rien de prévu » — ce qui se lit « ne bouge pas »,
+exactement ce que la règle ne dit pas.
+
+**Elle ne parle qu'au-dessous.** Une variabilité au-dessus de la normale ne
+donne aucune permission supplémentaire : le plan ne devient pas plus ambitieux
+parce qu'une nuit a été bonne. Le projet monte de 10 % par semaine (E.20), et
+cette limite-là ne se négocie pas contre une mesure du matin.
+
+### Tant que la base n'est pas faite
+
+**L'app se tait, et dit combien de jours il lui manque.** Il faut quatorze
+moyennes glissantes pour qu'un écart-type veuille dire quelque chose, donc une
+vingtaine de nuits mesurées. Avant cela, la condition ne se déclenche jamais et
+le plan se comporte exactement comme avant.
+
+C'est la même prudence que partout : sans donnée, l'app ne devine pas. Et c'est
+une raison de commencer à mesurer tôt plutôt que d'attendre d'en avoir besoin.
+
+### Ce qui n'est pas repris
+
+**Le Body Battery et le Training Readiness de Garmin** arrivent dans la même
+réponse et ne sont pas lus. Ce sont des scores propriétaires dont la formule
+n'est publiée nulle part, et le projet s'interdit les chiffres qu'il ne
+comprend pas — c'est la règle qui interdit déjà de recalculer une charge. Les
+afficher serait sans danger ; les faire décider ne l'est pas.
+
+**La fréquence cardiaque de repos** est lue pour rien de plus qu'un affichage.
+Elle dérive lentement et dit à peu près ce que dit la variabilité, en moins
+sensible ; en faire une seconde condition ajouterait du bruit, pas du signal.
+
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1944,6 +2093,8 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 32 | La difficulté d'une proposition | **l'écart au niveau tenu**, dit en un mot : à ta portée, productive, un pari, inconnu (E.26) |
 | 33 | Trouver la séance | **le rayon, pas l'article** : l'app nomme la collection Zwift et la dose ; le catalogue s'ouvre pour choisir soi-même (E.27) |
 | 34 | La charge de la semaine | **ce qui est fait plus ce qui est prévu** — le passé ne se projette pas, et une proposition ne compte jamais d'avance (E.28) |
+| 35 | La répartition d'intensité | **trois bandes lues sur la courbe déjà téléchargée** — 150 et 175 bpm ; un constat, jamais une cible (E.29) |
+| 36 | La variabilité | **moyenne glissante sur 7 jours du ln(rMSSD)**, comparée à une demi-écart-type sous la ligne de base ; sixième condition du E.2, muette tant que la base n'est pas faite (E.30) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

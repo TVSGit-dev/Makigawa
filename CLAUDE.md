@@ -180,7 +180,7 @@ que tout événement du calendrier est une chose à faire.
 | FCmax | 202 bpm | relevée par intervals.icu sur l'historique |
 | FTP | 221 W dans le profil | **intervals.icu l'estime en continu, et l'app lit cette estimation** (E.24) ; Garmin donnait 240 W au 6 septembre 2026 — non confirmée par test |
 | LTHR (FC seuil) | 183 bpm | valeur d'intervals.icu, **origine à confirmer** |
-| `T_effort` | 150 bpm (74 % FCmax, 82 % LTHR) | seuil de travail |
+| `T_effort` | 150 bpm (74 % FCmax, 82 % LTHR) | seuil de travail — **sépare le facile du modéré depuis le E.29** ; il n'était employé nulle part avant |
 | `T_haut` | 175 bpm (87 % FCmax, 96 % LTHR) | seuil haut |
 
 **Aucune règle métier ne doit dépendre de la FTP.** Les seuils sont en
@@ -311,6 +311,19 @@ En bref :
   inconnu (E.26). C'est une soustraction entre deux nombres déjà connus, et
   elle sert au refus, qui se faisait sinon à l'aveugle. « Inconnu » n'est pas
   un avertissement : une zone vierge est normale au début.
+- **La variabilité du matin est la sixième condition du E.2** (E.30). Les cinq
+  autres regardent toutes en arrière ; celle-ci est le seul signal du jour.
+  Moyenne glissante sur sept jours du logarithme du rMSSD, comparée à une
+  demi-mesure de dispersion sous la ligne de base des vingt-huit dernières.
+  Elle ne parle qu'au-dessous — une bonne nuit ne donne aucune permission de
+  plus — et elle ferme l'intensité, pas la journée : le plan redescend sur
+  l'endurance et la récupération au lieu de disparaître. **Muette tant que la
+  base n'est pas faite**, soit une vingtaine de nuits mesurées.
+- **La répartition d'intensité se lit, elle ne se vise pas** (E.29). Trois
+  bandes — sous 150 bpm, entre 150 et 175, au-dessus — comptées sur les courbes
+  que l'app télécharge déjà. La recherche ne tranche pas entre polarisé et
+  pyramidal, donc l'app n'affiche aucun objectif : elle montre le piège réel du
+  cycliste peu disponible, celui où tout devient modéré.
 
 Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.

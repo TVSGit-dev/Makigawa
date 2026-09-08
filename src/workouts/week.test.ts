@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { familiesFor, planWeek } from './week'
-import type { Context } from '../rules/decide'
+import { refuse, type Context } from '../rules/decide'
 import type { DayRecord, PlannedSession } from '../rules/types'
 import { levelOf } from '../rules/scale'
 import { MAX_MINUTES, standingOf, STANDING_NAMES, ZONES, type Zone } from './levels'
@@ -388,5 +388,46 @@ describe('ce que vaut le cran proposé (E.26)', () => {
     for (const one of suggestions) {
       expect(Object.keys(STANDING_NAMES)).toContain(one.standing)
     }
+  })
+})
+
+describe('la variabilité basse écarte l’intensité (E.30)', () => {
+  it('ne propose plus rien de dur quand la variabilité est sous la normale', () => {
+    // Une séance composée n'a pas de charge — intervals.icu la calculerait
+    // depuis la structure, et l'app ne lui envoie plus rien (E.19) — donc le
+    // E.1 ne peut pas en juger. Elle déclare elle-même son intensité.
+    const bas = planWeek({
+      context: context({ lowVariability: true }),
+      today: '2026-09-07',
+      fitness: 45,
+    })
+    const cles = bas.map((one) => one.workout.family.key)
+
+    // Rien de dur ne passe…
+    expect(cles).not.toContain('navette')
+    expect(cles.filter((key) => key.startsWith('vo2'))).toEqual([])
+    expect(cles.filter((key) => key.startsWith('seuil'))).toEqual([])
+    expect(cles).not.toContain('sweet-spot')
+    expect(cles).not.toContain('tempo')
+
+    // …et la journée n'est pas perdue pour autant : ce qui reste est ce qu'on
+    // peut faire un jour où le corps n'est pas prêt. Un plan vide se lirait
+    // « ne bouge pas », ce que la règle ne dit précisément pas.
+    expect(cles.length).toBeGreaterThan(0)
+    for (const key of cles) expect(['recuperation', 'endurance']).toContain(key)
+  })
+
+  it('laisse passer tout le reste quand elle est normale', () => {
+    const normal = planWeek({ context: context(), today: '2026-09-07', fitness: 45 })
+    expect(normal.length).toBeGreaterThan(0)
+    expect(normal.some((one) => one.workout.family.key === 'navette')).toBe(true)
+  })
+
+  it('n’écarte jamais un trajet', () => {
+    // « Pas d'intensité aujourd'hui », jamais « ne bouge pas » : aller au
+    // travail à vélo reste possible un jour de variabilité basse.
+    const trajet = asPlannedCommute('hard', '2026-09-08')!
+    expect(refuse(trajet, '2026-09-08', context({ lowVariability: true, planned: [trajet] })))
+      .toBeNull()
   })
 })

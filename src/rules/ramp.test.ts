@@ -8,6 +8,8 @@ const day = (date: string, ctl: number): Wellness => ({
   atl: 20,
   sleepScore: null,
   sleepSeconds: null,
+  hrv: null,
+  restingHr: null,
   raw: {},
 })
 

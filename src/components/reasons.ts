@@ -34,6 +34,8 @@ export function explain(refusal: Refusal, intent: Intent, today: DayKey): string
       return 'Le lendemain est déjà une journée chargée.'
     case 'tsb-sous-plancher':
       return `Ta fraîcheur est à ${Math.round(refusal.tsb)}, sous le plancher de ${refusal.floor} du mode ${INTENT_NAMES[intent]}.`
+    case 'variabilite-basse':
+      return 'Ta variabilité cardiaque est sous ta normale : ce n’est pas le matin pour de l’intensité.'
     case 'quota-hebdomadaire':
       return `Cela ferait ${refusal.charged} journées chargées sur sept jours ; le mode ${INTENT_NAMES[intent]} en tient ${refusal.allowed}.`
     case 'une-seule-par-semaine':

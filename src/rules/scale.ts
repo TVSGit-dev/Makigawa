@@ -50,6 +50,18 @@ export const DEFAULT_SCALE: LoadScale = {
 export const PEAK_BPM = 175
 
 /**
+ * Le seuil de travail, en battements par minute — `T_effort` des constantes
+ * athlète (E.29).
+ *
+ * Il figurait dans `CLAUDE.md` depuis le premier jour, venait de l'esquisse de
+ * phase 2 abandonnée le 5 septembre, et n'était employé nulle part. Il sert
+ * ici, et c'est le seul emploi honnête qu'on puisse lui donner : il sépare un
+ * trajet électrique (~129 bpm) d'un aller-retour musculaire (~160 bpm), donc
+ * il sépare bien ce qui coûte de ce qui ne coûte pas.
+ */
+export const EFFORT_BPM = 150
+
+/**
  * Combien de temps au-dessus du seuil bascule une journée en chargée.
  *
  * Sans durée minimale, un unique battement suffisait, et un sprint de trente

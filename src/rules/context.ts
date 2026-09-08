@@ -14,6 +14,7 @@ import { dayKeyOf } from '../calendar/dates'
 import type { Context } from './decide'
 import type { Intent } from './intent'
 import type { DayKey, DayRecord, PlannedSession, SessionKind } from './types'
+import { addBands, NO_BANDS, type Bands } from './peak'
 
 /**
  * Ce qui compte comme une séance dans le calendrier.
@@ -122,28 +123,32 @@ export function toPlannedSessions(events: readonly CalendarEvent[]): PlannedSess
  */
 export function toDayRecords(
   activities: readonly Activity[],
-  peaks: Readonly<Record<string, number>> = {},
+  peaks: Readonly<Record<string, Bands>> = {},
 ): DayRecord[] {
   const loads = new Map<DayKey, number>()
-  const peaked = new Map<DayKey, number>()
+  const banded = new Map<DayKey, Bands>()
 
   for (const activity of activities) {
     const date = dayKeyOf(activity.startDateLocal)
     if (!date) continue
     loads.set(date, (loads.get(date) ?? 0) + (activity.trainingLoad ?? 0))
 
-    // Les pointes de la journée se cumulent, comme les charges : deux sorties
+    // Les bandes de la journée se cumulent, comme les charges : deux sorties
     // qui montent chacune une minute font une journée qui en fait deux.
-    const seconds = activity.id ? peaks[activity.id] : undefined
-    if (seconds !== undefined) peaked.set(date, (peaked.get(date) ?? 0) + seconds)
+    const bands = activity.id ? peaks[activity.id] : undefined
+    if (bands) banded.set(date, addBands(banded.get(date) ?? NO_BANDS, bands))
   }
 
   return [...loads.entries()]
-    .map(([date, observedLoad]) => ({
-      date,
-      observedLoad,
-      peakSeconds: peaked.get(date) ?? 0,
-    }))
+    .map(([date, observedLoad]) => {
+      const bands = banded.get(date) ?? NO_BANDS
+      return {
+        date,
+        observedLoad,
+        peakSeconds: bands.hard,
+        bands,
+      }
+    })
     .sort((a, b) => a.date.localeCompare(b.date))
 }
 
@@ -171,8 +176,8 @@ export type Sources = {
   activities: readonly Activity[]
   wellness: readonly Wellness[]
   intent: Intent
-  /** Les pics mesurés, par identifiant d'activité (E.21). */
-  peaks?: Readonly<Record<string, number>>
+  /** Les bandes mesurées, par identifiant d'activité (E.21, E.29). */
+  peaks?: Readonly<Record<string, Bands>>
 }
 
 /**

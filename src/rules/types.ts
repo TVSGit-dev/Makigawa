@@ -7,6 +7,7 @@
  */
 
 import type { DayKey } from '../calendar/dates'
+import type { Bands } from './peak'
 
 export type { DayKey }
 
@@ -58,6 +59,16 @@ export type PlannedSession = {
    * et l'app ne proposait plus rien parce que l'athlète était allé au travail.
    */
   commute?: boolean
+  /**
+   * La séance demande de l'**intensité** (E.30).
+   *
+   * Une séance venue d'intervals.icu porte une charge, et le E.1 suffit à dire
+   * si elle est de qualité. Une séance composée par Makigawa n'en a pas —
+   * intervals.icu la calculerait depuis la structure, et l'app ne lui envoie
+   * plus rien (E.19) — donc elle doit le déclarer, sans quoi la variabilité du
+   * matin ne pourrait écarter que ce qui vient d'ailleurs.
+   */
+  intensity?: boolean
 }
 
 /**
@@ -71,4 +82,12 @@ export type DayRecord = {
   observedLoad: number | null
   /** Secondes cumulées au-dessus du seuil de pic. */
   peakSeconds: number
+  /**
+   * Le temps passé dans chacune des trois bandes (E.29).
+   *
+   * `peakSeconds` en est la bande dure : il reste là parce que le E.1 s'en sert
+   * et n'a pas bougé. Absent quand la courbe n'a pas été lue — un relevé
+   * manquant vaut trois zéros, jamais une estimation.
+   */
+  bands?: Bands
 }

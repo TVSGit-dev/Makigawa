@@ -71,6 +71,18 @@ export function familiesFor(fitness: number | null): Family[] {
     .filter((family): family is Family => family !== undefined)
 }
 
+/**
+ * Une famille qu'on peut faire un jour où le corps n'est pas prêt (E.30).
+ *
+ * Les deux zones qui ne demandent pas d'intensité, et elles seules : c'est la
+ * même frontière que celle déclarée par `sessionFor`, et il vaut mieux qu'elle
+ * n'existe qu'à un endroit.
+ */
+export function isGentle(family: Family): boolean {
+  const zone = zoneOfFamily(family.key)
+  return zone === 'recuperation' || zone === 'endurance'
+}
+
 export type Suggestion = {
   date: DayKey
   workout: Workout
@@ -165,7 +177,14 @@ export function planWeek({
   // pas deux, la suivante repartira normalement.
   const weeks = decharge ? 1 : Math.max(1, Math.round(horizon / 7))
   const quota = INTENTS[context.intent].chargedDaysPerWeek * weeks
-  const available = familiesFor(fitness).filter((family) => !refused.includes(family.key))
+  const available = familiesFor(fitness)
+    .filter((family) => !refused.includes(family.key))
+    // Une variabilité basse ferme l'intensité, elle ne ferme pas la journée
+    // (E.30). Sans ce filtre, le planificateur ne proposait que des familles
+    // dures, le E.2 les refusait toutes, et l'app affichait « rien de prévu » —
+    // ce qui se lit comme « ne bouge pas », exactement ce que la règle ne dit
+    // pas.
+    .filter((family) => !context.lowVariability || isGentle(family))
   if (available.length === 0) return []
 
   // Un report déplace la fenêtre entière, il ne la rogne pas : le plan repart
@@ -289,7 +308,16 @@ function touchesTaken(date: DayKey, taken: readonly DayKey[]): boolean {
 function sessionFor(workout: Workout, date: DayKey): PlannedSession {
   // Toutes les familles composées sollicitent la filière aérobie : aucune
   // n'est du renfo, dont l'espacement du E.4 est plus large.
-  return { id: `${CANDIDATE_ID}:${workout.name}`, date, load: null, kind: 'endurance' }
+  return {
+    id: `${CANDIDATE_ID}:${workout.name}`,
+    date,
+    load: null,
+    kind: 'endurance',
+    // Ce qui demande de l'intensité au sens du E.30 : tout sauf les deux zones
+    // qu'on peut faire un jour où le corps n'est pas prêt. Une séance composée
+    // n'a pas de charge, donc le E.1 ne peut pas en juger — elle le dit.
+    intensity: !isGentle(workout.family),
+  }
 }
 
 /**

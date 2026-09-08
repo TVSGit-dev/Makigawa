@@ -1225,3 +1225,33 @@ p {
 .catalogue-zone {
   font-size: 0.75rem;
 }
+
+/* La répartition d'intensité (E.29). Trois segments dans le même rose, du plus
+   pâle au plus profond : c'est la sévérité qui monte, comme partout ailleurs
+   dans l'app. Aucune couleur d'alerte — ce n'est pas un objectif manqué. */
+.spread-line {
+  margin: 0.35rem 0;
+  line-height: 1.4;
+}
+
+.spread-number {
+  font-weight: 600;
+}
+
+.spread-fill {
+  display: block;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.spread-easy {
+  background: var(--tone-1);
+}
+
+.spread-moderate {
+  background: var(--tone-3);
+}
+
+.spread-hard {
+  background: var(--accent);
+}
