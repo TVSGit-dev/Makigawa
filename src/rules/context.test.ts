@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isQuality, weighDay } from './scale'
+import { NO_BANDS } from './peak'
 import type { Activity, CalendarEvent, Wellness } from '../api/intervals'
 import {
   buildContext,
@@ -43,6 +44,8 @@ const wellness = (over: Partial<Wellness> = {}): Wellness => ({
   atl: 22,
   sleepScore: null,
   sleepSeconds: null,
+  hrv: null,
+  restingHr: null,
   raw: {},
   ...over,
 })
@@ -115,7 +118,9 @@ describe('les journées observées', () => {
       activity({ id: 'aller', trainingLoad: 18 }),
       activity({ id: 'retour', trainingLoad: 17 }),
     ])
-    expect(days).toEqual([{ date: '2026-09-09', observedLoad: 35, peakSeconds: 0 }])
+    expect(days).toEqual([
+      { date: '2026-09-09', observedLoad: 35, peakSeconds: 0, bands: NO_BANDS },
+    ])
   })
 
   it('sépare les journées et les range dans l’ordre', () => {
@@ -169,7 +174,7 @@ describe('le décor complet', () => {
 
     expect(context).toEqual({
       today: '2026-09-10',
-      days: [{ date: '2026-09-09', observedLoad: 18, peakSeconds: 0 }],
+      days: [{ date: '2026-09-09', observedLoad: 18, peakSeconds: 0, bands: NO_BANDS }],
       planned: [{ id: 'e1', date: '2026-09-10', load: 55, kind: 'endurance', commute: false }],
       intent: 'normal',
       tsb: -4,

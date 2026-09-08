@@ -139,6 +139,7 @@ const REASONS: Record<Refusal['code'], string> = {
   'deux-jours-charges': 'les deux jours d’avant pesaient déjà',
   'lendemain-charge': 'le lendemain est chargé',
   'tsb-sous-plancher': 'la fraîcheur était sous le plancher',
+  'variabilite-basse': 'la variabilité était sous la normale',
   'quota-hebdomadaire': 'le quota de la semaine était atteint',
   'une-seule-par-semaine': 'le mode prudent n’en garde qu’une',
   'qualite-voisine': 'une autre séance de qualité était trop proche',

@@ -42,7 +42,9 @@ import type { DayRecord } from '../rules/types'
 import type { Credentials } from '../storage/credentials'
 import { rampOf, holdsLevel } from '../rules/ramp'
 import { doseOf } from '../rules/dose'
-import { peakSecondsOf } from '../rules/peak'
+import { spreadOf } from '../rules/spread'
+import { variabilityOf, type Variability } from '../rules/variability'
+import { bandsOf } from '../rules/peak'
 import { describeAge, loadRead, saveRead } from '../storage/cache'
 import { loadPeaks, savePeaks, type Peaks } from '../storage/peaks'
 import { loadJournal, recordRefusals, type Journal, type JournalEntry } from '../storage/journal'
@@ -128,6 +130,8 @@ export type Readout = {
   daysSinceQuality: number | null
   /** Le cycle 2:1 arrive à sa troisième semaine (E.18). */
   unloadSuggested: boolean
+  /** Où en est la variabilité du matin, et si la base tient encore (E.30). */
+  variability: Variability
 }
 
 type Props = {
@@ -260,7 +264,17 @@ export function Plan({
       .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
       .at(-1)?.ctl ?? null
 
-  const observed = state.status === 'ok' ? toDayRecords(state.data.activities) : []
+  // Les bandes mesurées entrent ici : sans elles, chaque journée en serait
+  // dépourvue et la répartition du E.29 n'aurait rien à additionner.
+  const observed = state.status === 'ok' ? toDayRecords(state.data.activities, peaks) : []
+
+  /**
+   * Où en est la variabilité ce matin (E.30).
+   *
+   * Elle voyage dans la réponse de `/wellness` que le plan lit déjà : aucun
+   * appel supplémentaire, comme la FTP estimée du E.24.
+   */
+  const variability = useMemo(() => variabilityOf(wellness, today), [wellness, today])
 
   // Ce que sont devenues les séances passées (E.15), et les niveaux qui s'y
   // lisent (E.16). Calculés avant le décor, parce que la reprise en dépend.
@@ -350,11 +364,12 @@ export function Plan({
       reprise,
       daysSinceQuality: sinceQuality,
       unloadSuggested,
+      variability,
     })
     // `observed` est reconstruit à chaque rendu ; c'est `wellness` et l'état
     // qui disent quand il a vraiment changé.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wellness, state, today, reprise, sinceQuality, unloadSuggested, onReadout])
+  }, [wellness, state, today, reprise, sinceQuality, unloadSuggested, variability, onReadout])
 
   // Seulement l'à-venir : une séance passée ne doit pas entrer dans
   // l'espacement du E.4 et bloquer les jours qui viennent. Le calendrier est lu
@@ -392,8 +407,14 @@ export function Plan({
       intent,
       peaks,
     })
-    return { ...base, planned: [...base.planned, ...commuteSessions] }
-  }, [state, today, intent, upcoming, commuteSessions, peaks])
+    return {
+      ...base,
+      planned: [...base.planned, ...commuteSessions],
+      // Le seul signal du jour dont le moteur dispose (E.30). Faux tant que la
+      // ligne de base n'est pas faite : sans donnée, l'app ne devine pas.
+      lowVariability: variability.low,
+    }
+  }, [state, today, intent, upcoming, commuteSessions, peaks, variability])
 
   /**
    * La charge de la semaine : ce qui est fait, ce qui est prévu, ce qu'il reste
@@ -403,6 +424,19 @@ export function Plan({
    * jauge affichait zéro six jours sur sept, alors que le E.2 pesait déjà ces
    * mêmes journées comme chargées.
    */
+  /**
+   * La répartition d'intensité (E.29), lue sur les courbes déjà mesurées.
+   *
+   * `observed` porte les bandes de chaque journée depuis que `measurePeaks`
+   * les compte : la répartition ne coûte donc aucune lecture de plus.
+   */
+  const spread = useMemo(
+    () => spreadOf(observed, today),
+    // Même raison que la dose : `observed` est reconstruit à chaque rendu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state, today, peaks],
+  )
+
   const dose = useMemo(
     () => doseOf({ days: observed, today, planned: context?.planned ?? [], hold }),
     // `observed` est reconstruit à chaque rendu ; c'est l'état qui dit quand
@@ -577,6 +611,7 @@ export function Plan({
         fitness={fitness}
         ramp={ramp}
         dose={dose}
+        spread={spread}
         ftp={state.data.ftp}
         activities={state.data.activities}
         refusing={hasPlanPreferences(choices)}
@@ -660,7 +695,7 @@ async function measurePeaks(
       batch.map(async (activity) => {
         const outcome = await fetchHeartRate(credentials, activity.id!)
         if (outcome.kind !== 'ok') return
-        measured[activity.id!] = peakSecondsOf(outcome.data, activity.movingTime)
+        measured[activity.id!] = bandsOf(outcome.data, activity.movingTime)
       }),
     )
   }

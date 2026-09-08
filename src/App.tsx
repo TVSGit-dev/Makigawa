@@ -11,6 +11,7 @@ import { intentAfterUnload } from './rules/decharge'
 import { answerUnload, forgetOldUnloads, unloadedWeeks } from './storage/decharge'
 import { mondayOf, toDayKey } from './calendar/dates'
 import type { Intent } from './rules/intent'
+import { NO_VARIABILITY } from './rules/variability'
 import { useDisplayMode } from './pwa/useDisplayMode'
 import { useInstallPrompt } from './pwa/useInstallPrompt'
 import { useOnline } from './pwa/useOnline'
@@ -52,6 +53,7 @@ export default function App() {
     reprise: false,
     daysSinceQuality: null,
     unloadSuggested: false,
+    variability: NO_VARIABILITY,
   })
 
   const handleReadout = useCallback((next: Readout) => setReadout(next), [])
@@ -129,6 +131,7 @@ export default function App() {
               unloadOffered={readout.unloadSuggested && unloadChoice === null}
               onAnswerUnload={(choice) => setUnloads(answerUnload(week, choice))}
               sleepScore={readout.sleepScore}
+              variability={readout.variability}
               onIntentChange={chooseIntent}
               onDenyNight={() => setNights(toggleDenial(today))}
             />

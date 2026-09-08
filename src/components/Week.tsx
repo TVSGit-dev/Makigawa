@@ -28,6 +28,7 @@ import { pointerFor } from '../workouts/zwift'
 import { DISTANCES, paceFor, wattsOf } from '../rides/outing'
 import { loadForDistance, pastWattsFor } from '../rides/history'
 import { perDay, type Dose } from '../rules/dose'
+import { SPREAD_DAYS, type Spread } from '../rules/spread'
 import type { Activity } from '../api/intervals'
 import { formatDayShort, formatDuration, type DayKey } from '../calendar/dates'
 import { Profile } from './Profile'
@@ -64,6 +65,8 @@ type Props = {
   ramp: Ramp | null
   /** La charge de la semaine : ce qui a été fait, ce qui reste (E.23). */
   dose: Dose
+  /** La répartition d'intensité des quatorze derniers jours (E.29). */
+  spread: Spread
   /** La FTP du profil, pour afficher les pourcentages en watts (E.23). */
   ftp: number | null
   /** L'historique, pour lire ce que les sorties ont réellement coûté (E.23). */
@@ -85,6 +88,7 @@ export function Week({
   fitness,
   ramp,
   dose,
+  spread,
   ftp,
   activities,
   refusing,
@@ -110,6 +114,8 @@ export function Week({
       {ramp ? <RampLine ramp={ramp} /> : null}
 
       <DoseBlock dose={dose} />
+
+      <SpreadBlock spread={spread} />
 
       {proposed.length === 0 && refusing ? (
         <p className="muted small">
@@ -364,6 +370,62 @@ function DoseBlock({ dose }: { dose: Dose }) {
       <p className="muted small">
         Les semaines précédentes :{' '}
         {dose.past.map((one) => (one.load > 0 ? one.load : '—')).join(', ')}.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * La répartition d'intensité (E.29).
+ *
+ * **Un constat, jamais une cible.** La recherche ne tranche pas entre polarisé
+ * et pyramidal, donc l'app ne dit pas laquelle viser. Ce qu'elle montre est le
+ * piège réel du cycliste peu disponible : que tout devienne modéré — jamais
+ * assez facile pour récupérer, jamais assez dur pour progresser.
+ */
+function SpreadBlock({ spread }: { spread: Spread }) {
+  if (!spread.shares) return null
+
+  const parts = [
+    { key: 'easy' as const, label: 'facile' },
+    { key: 'moderate' as const, label: 'modéré' },
+    { key: 'hard' as const, label: 'dur' },
+  ]
+
+  return (
+    <div className="dose">
+      <p className="now-label">Où est passé l’effort</p>
+
+      <p className="spread-line">
+        {parts.map((part, index) => (
+          <span key={part.key}>
+            {index > 0 ? <span className="muted"> · </span> : null}
+            <span className="spread-number">{spread.shares![part.key]} %</span>
+            <span className="muted"> {part.label}</span>
+          </span>
+        ))}
+      </p>
+
+      <span
+        className="dose-bar"
+        role="img"
+        aria-label={parts
+          .map((part) => `${spread.shares![part.key]} % ${part.label}`)
+          .join(', ')}
+      >
+        {parts.map((part) => (
+          <span
+            className={`spread-fill spread-${part.key}`}
+            key={part.key}
+            style={{ width: `${spread.shares![part.key]}%` }}
+          />
+        ))}
+      </span>
+
+      <p className="muted small">
+        Sous 150 bpm, entre 150 et 175, au-dessus — lu sur {spread.days} journée
+        {spread.days > 1 ? 's' : ''} des {SPREAD_DAYS} derniers jours. C’est un constat, pas
+        un objectif : la recherche ne dit pas quelle répartition viser.
       </p>
     </div>
   )

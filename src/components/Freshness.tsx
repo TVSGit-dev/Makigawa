@@ -12,6 +12,7 @@ import type { UnloadChoice } from '../storage/decharge'
 import { levelOf } from '../rules/scale'
 import { shiftDayKey, type DayKey } from '../calendar/dates'
 import type { DayRecord } from '../rules/types'
+import { driftOf, type Variability } from '../rules/variability'
 
 const ORDER: Intent[] = ['prudent', 'normal', 'ambitieux']
 
@@ -44,6 +45,8 @@ type Props = {
   unloadOffered: boolean
   onAnswerUnload: (choice: UnloadChoice | null) => void
   sleepScore: number | null
+  /** Où en est la variabilité du matin, et si la base tient encore (E.30). */
+  variability: Variability
   onIntentChange: (intent: Intent) => void
   onDenyNight: () => void
 }
@@ -62,6 +65,7 @@ export function Freshness({
   unloadOffered,
   onAnswerUnload,
   sleepScore,
+  variability,
   onIntentChange,
   onDenyNight,
 }: Props) {
@@ -114,6 +118,8 @@ export function Freshness({
           Les trois chiffres viennent d’intervals.icu. Tape l’un d’eux pour voir d’où il sort.
         </p>
       ) : null}
+
+      <Variabilite variability={variability} />
 
       <Night denied={nightDenied} score={sleepScore} onDeny={onDenyNight} />
 
@@ -382,4 +388,49 @@ function freshnessTone(freshness: number | null, intent: Intent): string {
 /** Le mode réellement appliqué cette semaine, garde-fou compris. */
 export function effectiveIntent(wanted: Intent, previousWeeks: readonly Intent[]): Intent {
   return allowedIntent(wanted, previousWeeks)
+}
+
+/**
+ * Où en est la variabilité ce matin (E.30).
+ *
+ * C'est le seul signal du jour de l'app : les cinq conditions du E.2 regardent
+ * toutes en arrière. Quand elle passe sous la normale, le moteur n'a rien de
+ * dur à proposer — et il vaut mieux le lire ici que le découvrir dans un refus.
+ *
+ * **Tant que la base n'est pas faite, l'app dit combien de nuits il lui
+ * manque** plutôt que de se taire : c'est une raison de porter la montre la
+ * nuit, et elle n'a pas d'autre moyen de la donner.
+ */
+function Variabilite({ variability }: { variability: Variability }) {
+  if (variability.missing > 0) {
+    // Rien à dire avant d'avoir mesuré. Mais dire qu'on mesure vaut mieux que
+    // de laisser l'écran muet.
+    if (variability.nights === 0) return null
+    return (
+      <p className="muted small">
+        Variabilité cardiaque : {variability.nights} nuit
+        {variability.nights > 1 ? 's' : ''} mesurée{variability.nights > 1 ? 's' : ''}. Encore{' '}
+        {variability.missing} avant qu’elle puisse servir.
+      </p>
+    )
+  }
+
+  const drift = driftOf(variability)
+
+  return (
+    <p className={variability.low ? 'notice small' : 'muted small'}>
+      {variability.low ? (
+        <>
+          <strong>Variabilité sous ta normale</strong>
+          {drift === null ? '' : ` (${drift} %)`}. Pas d’intensité aujourd’hui — le reste ne
+          bouge pas.
+        </>
+      ) : (
+        <>
+          Variabilité dans ta normale{drift === null ? '' : ` (${drift > 0 ? '+' : ''}${drift} %)`}
+          . Rien ne s’y oppose.
+        </>
+      )}
+    </p>
+  )
 }

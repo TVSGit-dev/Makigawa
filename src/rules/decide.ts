@@ -33,6 +33,7 @@ export type Refusal =
   | { code: 'deux-jours-charges' }
   | { code: 'lendemain-charge' }
   | { code: 'tsb-sous-plancher'; tsb: number; floor: number }
+  | { code: 'variabilite-basse' }
   | { code: 'quota-hebdomadaire'; charged: number; allowed: number }
   | { code: 'une-seule-par-semaine' }
   | { code: 'qualite-voisine'; date: DayKey }
@@ -55,6 +56,14 @@ export type Context = {
   intent: Intent
   /** Le TSB du jour, tel que le donne intervals.icu. */
   tsb: number
+  /**
+   * La variabilité du matin est sous la normale de l'athlète (E.30).
+   *
+   * Le seul signal du jour dont dispose le moteur : les cinq autres conditions
+   * regardent toutes en arrière. Faux tant que la ligne de base n'est pas
+   * faite — sans donnée, l'app ne devine pas.
+   */
+  lowVariability?: boolean
   scale?: LoadScale
 }
 
@@ -108,6 +117,21 @@ export function refuse(
   if (context.tsb < rules.tsbFloor) {
     return { code: 'tsb-sous-plancher', tsb: context.tsb, floor: rules.tsbFloor }
   }
+
+  // E.2 (6) — la variabilité du matin est sous la normale (E.30). Juste après
+  // la fraîcheur, parce que les deux disent la même chose dans deux temps
+  // différents : celle-ci sait ce matin ce que celle-là saura demain.
+  //
+  // Elle ne parle qu'au-dessous : une bonne nuit ne donne aucune permission de
+  // plus, et le plafond du E.20 garde le dernier mot.
+  //
+  // « Pas d'intensité aujourd'hui », jamais « ne bouge pas » — d'où les deux
+  // façons de reconnaître ce qui en demande. Une séance venue d'intervals.icu
+  // porte une charge et le E.1 tranche ; une séance composée n'en a pas et le
+  // déclare elle-même. Un trajet n'est ni l'un ni l'autre, donc il passe
+  // toujours.
+  const intense = session.intensity ?? isQuality(session, scale)
+  if (context.lowVariability && intense) return { code: 'variabilite-basse' }
 
   // E.2 (4) — en mode prudent, une seule séance de qualité par semaine.
   if (rules.oneQualityPerWeek && countQualityInWeek(date, others, scale) >= 1) {

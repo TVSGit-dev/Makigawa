@@ -8,6 +8,8 @@ const day = (date: string, raw: Record<string, unknown> = {}): Wellness => ({
   atl: null,
   sleepScore: null,
   sleepSeconds: null,
+  hrv: null,
+  restingHr: null,
   raw,
 })
 

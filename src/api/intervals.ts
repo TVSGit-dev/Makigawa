@@ -90,6 +90,16 @@ export type Wellness = {
   sleepScore: number | null
   /** Durée de sommeil, en secondes. */
   sleepSeconds: number | null
+  /**
+   * La variabilité cardiaque nocturne, en rMSSD (E.30).
+   *
+   * Garmin la pousse vers intervals.icu avec le sommeil et la fréquence de
+   * repos ; l'app la rapatriait sans la lire. C'est le seul signal du jour
+   * qu'elle possède — les cinq conditions du E.2 regardent toutes en arrière.
+   */
+  hrv: number | null
+  /** La fréquence cardiaque de repos. Affichée, elle ne décide rien (E.30). */
+  restingHr: number | null
   raw: Record<string, unknown>
 }
 
@@ -348,6 +358,8 @@ function toWellness(raw: Record<string, unknown>): Wellness {
     atl: count(raw.atl),
     sleepScore: count(raw.sleepScore),
     sleepSeconds: count(raw.sleepSecs),
+    hrv: count(raw.hrv),
+    restingHr: count(raw.restingHR),
     raw,
   }
 }
