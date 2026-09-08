@@ -81,6 +81,16 @@ import { explainTest } from './reasons'
 
 /** Deux semaines devant : l'horizon de planification annoncé par le projet. */
 const AHEAD_DAYS = 14
+
+/**
+ * Les lectures vides, d'identité stable.
+ *
+ * Un `[]` littéral est un objet neuf à chaque rendu. Placé dans les dépendances
+ * d'un effet qui remonte quelque chose au parent, il suffit à faire boucler le
+ * rendu indéfiniment. Une constante coupe le problème à la racine.
+ */
+const NOTHING_READ: readonly Wellness[] = []
+const NO_DAYS: readonly DayRecord[] = []
 /**
  * Six semaines derrière.
  *
@@ -257,7 +267,13 @@ export function Plan({
 
   // La forme remonte vers App, qui la donne à l'en-tête : une seule lecture
   // du réseau sert les deux écrans.
-  const wellness = state.status === 'ok' ? state.data.wellness : []
+  //
+  // **La lecture vide est une constante, et ce n'est pas cosmétique.** Écrite
+  // `: []`, elle changeait d'identité à chaque rendu ; l'effet qui remonte la
+  // lecture en dépend, il rappelait `onReadout`, `App` rangeait un objet neuf,
+  // et le rendu repartait. La boucle tournait tant que la lecture n'aboutissait
+  // pas — au chargement, et sans fin sur l'écran d'erreur.
+  const wellness = state.status === 'ok' ? state.data.wellness : NOTHING_READ
   const fitness =
     wellness
       .filter((day) => day.date !== null && day.date <= today && day.ctl !== null)
@@ -266,7 +282,13 @@ export function Plan({
 
   // Les bandes mesurées entrent ici : sans elles, chaque journée en serait
   // dépourvue et la répartition du E.29 n'aurait rien à additionner.
-  const observed = state.status === 'ok' ? toDayRecords(state.data.activities, peaks) : []
+  //
+  // Mémorisé : depuis le E.29 cette lecture agrège trois nombres par activité,
+  // et la refaire à chaque rendu ne servait à rien.
+  const observed = useMemo(
+    () => (state.status === 'ok' ? toDayRecords(state.data.activities, peaks) : NO_DAYS),
+    [state, peaks],
+  )
 
   /**
    * Où en est la variabilité ce matin (E.30).

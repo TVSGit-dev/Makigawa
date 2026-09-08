@@ -13,9 +13,18 @@
  * Comme tout le reste du dossier, rien n'en part vers intervals.icu.
  */
 
-import { NO_BANDS, type Bands } from '../rules/peak'
+import type { Bands } from '../rules/peak'
 
 const KEY = 'makigawa.bandes'
+
+/**
+ * La clé d'avant le E.29, quand le relevé n'était qu'un nombre.
+ *
+ * Elle ne se convertit pas — une seconde au-dessus de 175 ne dit rien des deux
+ * autres bandes — mais la laisser traînerait des données mortes dans le
+ * téléphone jusqu'à la fin des temps. On la retire au premier passage.
+ */
+const OLD_KEY = 'makigawa.pics'
 
 /** Un mois : au-delà, une activité ne pèse plus sur aucune décision. */
 const KEEP = 200
@@ -43,6 +52,7 @@ function bandsFrom(value: unknown): Bands | null {
 
 export function loadPeaks(): Peaks {
   try {
+    localStorage.removeItem(OLD_KEY)
     const raw = localStorage.getItem(KEY)
     if (!raw) return {}
     const parsed: unknown = JSON.parse(raw)
@@ -59,10 +69,6 @@ export function loadPeaks(): Peaks {
   }
 }
 
-/** Le relevé d'une activité, ou trois zéros quand elle n'en a pas. */
-export function bandsOfActivity(peaks: Peaks, id: string | null): Bands {
-  return (id ? peaks[id] : undefined) ?? NO_BANDS
-}
 
 /**
  * Retient les relevés mesurés, et oublie les plus anciens.
