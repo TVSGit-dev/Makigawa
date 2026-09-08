@@ -60,6 +60,15 @@ export type Family = {
   maxBlock: number
   /** Les ouvertures courtes à l'échauffement, que les séances dures exigent. */
   openers: boolean
+  /**
+   * Une séance qui ne doit rien coûter : ni rampe, ni remise en route (E.25).
+   *
+   * L'échauffement commun monte jusqu'à 90 % par paliers, et la remise en route
+   * qui précède le retour au calme est à 65 %. Sur une récupération active à
+   * 50 %, les deux sont **plus durs que le travail lui-même** — la séance
+   * cesserait d'être ce qu'elle prétend être.
+   */
+  gentle?: boolean
 }
 
 /** La longueur d'un bloc de travail, pour un nombre de répétitions donné. */
@@ -111,12 +120,40 @@ export const WARMUP_SHORT: Block[] = [
 
 export const COOLDOWN: Block[] = [{ seconds: 300, percent: 45 }]
 
+/**
+ * L'échauffement d'une séance qui ne doit rien coûter (E.25).
+ *
+ * Pas de rampe : rouler facile *est* déjà l'échauffement. Cinq minutes pour
+ * marquer le début, et c'est tout.
+ */
+export const WARMUP_EASY: Block[] = [{ seconds: 300, percent: 45 }]
+
+/** Le même, quand la séance est courte. */
+export const WARMUP_EASY_SHORT: Block[] = [{ seconds: 180, percent: 45 }]
+
 export const COOLDOWN_SHORT: Block[] = [{ seconds: 180, percent: 45 }]
 
 /** La récupération qui précède immédiatement le retour au calme. */
 export const SETTLE: Block = { seconds: 240, percent: 65 }
 
 export const FAMILIES: readonly Family[] = [
+  {
+    key: 'recuperation',
+    name: 'Récupération',
+    purpose:
+      'Fait tourner les jambes sans rien coûter. Le seul motif qui ne construit rien, et c’est ce qu’on lui demande.',
+    // Cinquante pour cent : sous le plancher de travail de toutes les autres
+    // zones. Une intensité plus haute en ferait une petite endurance, ce
+    // qu'elle n'est pas.
+    pattern: [{ seconds: 600, percent: 50 }],
+    reps: [1],
+    sets: [1, 2, 3, 4],
+    between: 0,
+    betweenPercent: 50,
+    maxBlock: 3600,
+    openers: false,
+    gentle: true,
+  },
   {
     key: 'endurance',
     name: 'Endurance',
@@ -192,6 +229,23 @@ export const FAMILIES: readonly Family[] = [
     openers: false,
   },
   {
+    key: 'seuil-continu',
+    name: 'Seuil continu',
+    purpose:
+      'Le même travail que l’over-under, sans les pointes. Le motif le plus répandu, et celui qu’on retrouve le plus facilement ailleurs.',
+    // 98 % : dans la bande du seuil (95-105 %) et sous les 100 %, parce qu'un
+    // bloc de vingt minutes ne se tient pas au-dessus de la FTP.
+    pattern: [{ seconds: 300, percent: 98 }],
+    reps: [2, 3, 4],
+    sets: [1, 2, 3],
+    // La coupure est franche, comme sur les blocs continus du coach : après
+    // vingt minutes à 98 %, on ne récupère pas en roulant à 65 %.
+    between: 300,
+    betweenPercent: 55,
+    maxBlock: 1200,
+    openers: false,
+  },
+  {
     key: 'vo2-30-30',
     name: 'VO2 max 30/30',
     purpose:
@@ -220,6 +274,24 @@ export const FAMILIES: readonly Family[] = [
     between: 240,
     betweenPercent: 65,
     maxBlock: 540,
+    openers: true,
+  },
+  {
+    key: 'vo2-long',
+    name: 'VO2 max long',
+    purpose:
+      'Trois minutes suffisent à installer la consommation maximale, là où trente secondes ne font que tenir le cœur haut.',
+    // Récupération aussi longue que l'effort : c'est ce qui permet de tenir la
+    // dernière répétition à la même intensité que la première.
+    pattern: [
+      { seconds: 180, percent: 110 },
+      { seconds: 180, percent: 55 },
+    ],
+    reps: [2, 3, 4, 5],
+    sets: [1, 2],
+    between: 300,
+    betweenPercent: 55,
+    maxBlock: 1800,
     openers: true,
   },
   {

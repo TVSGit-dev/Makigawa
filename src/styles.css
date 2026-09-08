@@ -1109,3 +1109,100 @@ p {
 .routine-how {
   margin-top: 0.2rem;
 }
+
+/* Ce que vaut le cran proposé (E.26). Un mot, dans le rose du projet — la
+   profondeur dit la difficulté, comme partout ailleurs. « Inconnu » reste gris :
+   ce n'est pas un avertissement, c'est une absence de réponse. */
+.standing {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+
+.standing-portee {
+  color: var(--muted);
+}
+
+.standing-productive {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.standing-pari {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.standing-inconnu {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+/* Le rayon de Zwift où chercher (E.27). Un panneau indicateur : le chemin en
+   petit, ce qu'on y cherche en dessous. Pas un bouton — rien n'est cliquable,
+   l'app ne sait pas si la séance existe. */
+.pointer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+}
+
+.pointer-path {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.pointer-hint {
+  color: var(--muted);
+}
+
+/* Tout le catalogue, replié par défaut (E.27). Il est là pour le jour où le
+   plan se trompe, pas pour être lu tous les jours. */
+.catalogue {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+
+.catalogue > summary {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.catalogue-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.catalogue-item {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  background: var(--surface);
+}
+
+.catalogue-name {
+  margin: 0;
+  font-weight: 500;
+}
+
+.catalogue-purpose,
+.catalogue-zone {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.catalogue-zone {
+  font-size: 0.75rem;
+}

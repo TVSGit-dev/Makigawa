@@ -87,9 +87,24 @@ Deux garde-fous en découlent, tenus par des tests :
 
 Les motifs eux-mêmes sont **relevés sur les séances réelles de l'athlète**,
 dans `src/workouts/families.ts` : sweet spot en over-under, seuil en
-over-under, 30/30, 30/15, navette lactate. Deux familles y ont été ajoutées,
-endurance et tempo, parce qu'un catalogue qui ne contient que du seuil et
-au-dessus est inutilisable une semaine de décharge.
+over-under, 30/30, 30/15, navette lactate.
+
+**Cinq familles y ont été ajoutées**, et toujours pour la même raison : un trou
+dans le catalogue empêchait une règle de répondre. Endurance et tempo d'abord,
+parce qu'un catalogue qui ne contient que du seuil et au-dessus est
+inutilisable une semaine de décharge. Puis, le 8 septembre (E.25), après
+comparaison avec les catalogues de TrainerRoad et de Zwift : **récupération
+active**, parce que rien n'existait sous l'endurance ; **seuil continu**, parce
+que le seuil n'existait qu'en over-under ; **VO2 max long**, parce que trente
+secondes tiennent le cœur haut sans installer la consommation maximale.
+
+La limite tient : **on ajoute une famille quand un trou bloque une règle,
+jamais pour la variété.** Les sprints neuromusculaires ne franchissent pas ce
+test et ne sont pas dans le catalogue.
+
+**La récupération est la seule zone dont on ne monte pas.** Faire plus long à
+50 % ne prouve rien ; elle existe pour que le plan ait un mot à dire les jours
+où il ne faut rien demander.
 
 **Les quatre styles de l'athlète**, relevés le 6 septembre, organisent
 l'interface :
@@ -158,7 +173,7 @@ que tout événement du calendrier est une chose à faire.
 |---|---|---|
 | Poids | 80 kg | confirmé |
 | FCmax | 202 bpm | relevée par intervals.icu sur l'historique |
-| FTP | 221 W dans le profil | **Garmin estime 3,0 W/kg au 6 septembre 2026, soit 240 W** — non confirmée par test |
+| FTP | 221 W dans le profil | **intervals.icu l'estime en continu, et l'app lit cette estimation** (E.24) ; Garmin donnait 240 W au 6 septembre 2026 — non confirmée par test |
 | LTHR (FC seuil) | 183 bpm | valeur d'intervals.icu, **origine à confirmer** |
 | `T_effort` | 150 bpm (74 % FCmax, 82 % LTHR) | seuil de travail |
 | `T_haut` | 175 bpm (87 % FCmax, 96 % LTHR) | seuil haut |
@@ -286,6 +301,11 @@ En bref :
 - **Le cycle 2:1 se propose enfin.** Après deux semaines qui ont porté une
   séance tenue, l'app propose d'alléger : une seule séance, moitié moins de
   travail, la même intensité. Rien de retiré ne compte comme manqué.
+- **Une proposition dit ce qu'elle vaut** : l'écart entre le niveau tenu dans
+  la zone et celui qu'elle vise, en un mot — à ta portée, productive, un pari,
+  inconnu (E.26). C'est une soustraction entre deux nombres déjà connus, et
+  elle sert au refus, qui se faisait sinon à l'aveugle. « Inconnu » n'est pas
+  un avertissement : une zone vierge est normale au début.
 
 Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.
@@ -314,6 +334,18 @@ musculaire**, où le gris dit « ce ne sont pas tes jambes » et le rose dit
 7 septembre 2026. La carte « Aujourd'hui » est retirée : elle existait pour
 poser la question du trajet, et cette question ne se pose plus (E.17 révisé).
 Aujourd'hui est simplement la première ligne du calendrier, et c'est assez.
+
+**Elle nomme le rayon, pas l'article** — 8 septembre 2026 (E.27). Zwift range
+ses séances dans des collections qui portent le même vocabulaire que les zones
+du projet ; l'app nomme la bonne et dit quoi y chercher. C'est un panneau
+indicateur, pas une recette : la frontière du E.9 tient, et l'app ne prétend
+pas que la séance existe.
+
+**Le catalogue s'ouvre.** L'athlète ne voyait jamais que ce qui lui était
+proposé. Les onze familles sont désormais lisibles, avec ce que chacune
+construit et le niveau tenu dans sa zone — le E.7 poussé d'un cran : s'il n'est
+d'accord avec rien, il choisit lui-même au lieu de refuser trois fois. Ce n'est
+pas un éditeur de séance : rien ne s'y compose et rien ne s'y écrit.
 
 L'application doit être **tolérante, pas culpabilisante**. C'est une
 contrainte technique, pas une intention :
@@ -445,7 +477,9 @@ son nom, `Hard Commute`, celui que l'athlète leur donne dans Garmin.
 - [x] Vélo électrique configuré, charge confirmée depuis le cardio
 - [x] Données vérifiées, pas de doublons
 - [x] Zwift connecté — doublon avec Garmin à surveiller à la première séance
-- [ ] Test FTP fait
+- [ ] Test FTP fait — **l'app dit maintenant à quel point il presse** : elle
+      compare la FTP du profil à l'estimation d'intervals.icu et se tait sous
+      5 % d'écart (E.24). Elle ne corrige rien : c'est le test qui tranche
 - [x] Clé API générée, connexion établie depuis le téléphone
 - [x] Écriture dans le calendrier confirmée depuis le navigateur — le
       contrôle CORS des méthodes d'écriture passe, l'app reste sans serveur

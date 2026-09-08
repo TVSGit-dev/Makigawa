@@ -21,8 +21,10 @@ import type { Intent } from '../rules/intent'
 import type { DayWeight } from '../rules/types'
 import type { Ramp } from '../rules/ramp'
 import type { Suggestion } from '../workouts/week'
-import { toNotation } from '../workouts/compose'
+import { toNotation, type Workout } from '../workouts/compose'
 import { shapeOf } from '../workouts/shape'
+import { STANDING_NAMES } from '../workouts/levels'
+import { pointerFor } from '../workouts/zwift'
 import { DISTANCES, paceFor, wattsOf } from '../rides/outing'
 import { loadForDistance, pastWattsFor } from '../rides/history'
 import { perDay, type Dose } from '../rules/dose'
@@ -207,6 +209,26 @@ function Load({ weight }: { weight: DayWeight }) {
   )
 }
 
+/**
+ * Où chercher cette séance dans Zwift (E.27).
+ *
+ * L'app nomme un rayon, pas un article : elle ne prétend pas que la séance
+ * existe telle quelle. Si rien dans ce rayon ne ressemble à la dose proposée,
+ * c'est le catalogue de Zwift qui décide, et l'athlète choisit au plus près —
+ * c'était déjà sa méthode avant qu'elle en parle.
+ */
+function Pointer({ workout }: { workout: Workout }) {
+  const pointer = pointerFor(workout)
+  if (!pointer) return null
+
+  return (
+    <p className="pointer">
+      <span className="pointer-path">Zwift → Workouts → {pointer.collection}</span>
+      <span className="pointer-hint">{pointer.hint}</span>
+    </p>
+  )
+}
+
 /** Une séance que Makigawa propose. Elle n'existe que dans l'app. */
 function Proposed({
   suggestion,
@@ -230,7 +252,14 @@ function Proposed({
           {formatDuration(suggestion.workout.seconds)}
         </span>
       </p>
-      <p className="suggested-why">{suggestion.because}</p>
+      <p className="suggested-why">
+        {suggestion.because}{' '}
+        {/* Ce que vaut le cran proposé, par rapport au niveau tenu dans la
+            zone (E.26). Sans ce mot, un refus se fait à l'aveugle. */}
+        <span className={`standing standing-${suggestion.standing}`}>
+          {STANDING_NAMES[suggestion.standing]}
+        </span>
+      </p>
 
       <Profile blocks={suggestion.workout.blocks} />
 
@@ -242,6 +271,10 @@ function Proposed({
           <li key={line}>{line}</li>
         ))}
       </ul>
+
+      {/* Le rayon, pas l'article (E.27). Zwift range ses séances sous les mêmes
+          noms de zones ; nommer le bon évite de chercher à l'aveugle. */}
+      <Pointer workout={suggestion.workout} />
 
       <div className="suggested-refuse">
         <Copy notation={toNotation(suggestion.workout)} />

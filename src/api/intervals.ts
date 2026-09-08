@@ -293,6 +293,54 @@ function toActivity(raw: Record<string, unknown>): Activity {
   }
 }
 
+/**
+ * La FTP **estimée** par intervals.icu pour un sport, lue sur une journée de
+ * bien-être (E.24).
+ *
+ * intervals.icu la déduit en continu des efforts maximaux déjà produits, et la
+ * range par sport dans la réponse de `/wellness` — que l'app rapatrie déjà tous
+ * les jours. Aucun appel supplémentaire, donc : elle lisait ce champ sans le
+ * savoir.
+ *
+ * **La lecture est volontairement prudente.** La forme exacte du champ n'a pas
+ * été constatée sur la vraie réponse, seulement documentée ; on accepte donc
+ * les deux formes plausibles — un tableau par sport, ou un objet indexé — et on
+ * rend `null` dès que rien ne correspond. L'absence n'est pas une panne : sans
+ * estimation, l'app affiche la FTP du profil comme avant.
+ */
+export function estimatedFtpOf(day: Wellness, sport = 'Ride'): number | null {
+  const info = day.raw.sportInfo
+  const entries = Array.isArray(info) ? info.map(asRecord) : [asRecord(asRecord(info)?.[sport])]
+
+  for (const entry of entries) {
+    if (!entry) continue
+    // Un tableau porte son sport ; un objet indexé l'a déjà perdu en chemin.
+    if (Array.isArray(info) && text(entry.type) !== sport) continue
+    const eftp = count(entry.eftp)
+    if (eftp !== null && eftp > 0) return eftp
+  }
+  return null
+}
+
+/**
+ * La dernière estimation disponible sur une fenêtre de journées.
+ *
+ * intervals.icu ne la recalcule qu'après un effort qui la dépasse : la journée
+ * la plus récente peut donc n'en porter aucune, alors que l'avant-veille en
+ * portait une. On remonte le temps jusqu'à en trouver une.
+ */
+export function latestEstimatedFtp(wellness: readonly Wellness[], sport = 'Ride'): number | null {
+  const byDate = [...wellness]
+    .filter((day) => day.date !== null)
+    .sort((a, b) => (a.date! < b.date! ? 1 : -1))
+
+  for (const day of byDate) {
+    const eftp = estimatedFtpOf(day, sport)
+    if (eftp !== null) return eftp
+  }
+  return null
+}
+
 function toWellness(raw: Record<string, unknown>): Wellness {
   return {
     date: text(raw.id) ?? text(raw.date),

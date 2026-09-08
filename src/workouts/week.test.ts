@@ -3,7 +3,7 @@ import { familiesFor, planWeek } from './week'
 import type { Context } from '../rules/decide'
 import type { DayRecord, PlannedSession } from '../rules/types'
 import { levelOf } from '../rules/scale'
-import { MAX_MINUTES, ZONES, type Zone } from './levels'
+import { MAX_MINUTES, standingOf, STANDING_NAMES, ZONES, type Zone } from './levels'
 import { asPlannedCommute } from '../actions/commute'
 
 const observed = (date: string, load: number): DayRecord => ({
@@ -29,7 +29,7 @@ describe('ce que la forme ouvre', () => {
     // Le risque n'est pas de manquer de forme, c'est de se sentir capable
     // avant d'être prêt : les tissus se réadaptent plus lentement.
     const keys = familiesFor(17).map((family) => family.key)
-    expect(keys).toEqual(['endurance', 'tempo', 'sweet-spot'])
+    expect(keys).toEqual(['recuperation', 'endurance', 'tempo', 'sweet-spot'])
   })
 
   it('ouvre le seuil, puis le VO2 max, à mesure que la forme monte', () => {
@@ -39,7 +39,12 @@ describe('ce que la forme ouvre', () => {
   })
 
   it('reste prudent quand la forme est inconnue', () => {
-    expect(familiesFor(null).map((f) => f.key)).toEqual(['endurance', 'tempo', 'sweet-spot'])
+    expect(familiesFor(null).map((f) => f.key)).toEqual([
+      'recuperation',
+      'endurance',
+      'tempo',
+      'sweet-spot',
+    ])
   })
 })
 
@@ -134,7 +139,7 @@ describe('refuser, ou repousser (E.14)', () => {
 
   it('ne repêche jamais une famille refusée', () => {
     // Redemander ce qu'on vient de refuser serait ne pas avoir entendu.
-    expect(refuse(['endurance', 'tempo', 'sweet-spot'])).toEqual([])
+    expect(refuse(['recuperation', 'endurance', 'tempo', 'sweet-spot'])).toEqual([])
   })
 
   it('recule le plan entier derrière un report', () => {
@@ -199,7 +204,7 @@ describe('refuser, ou repousser (E.14)', () => {
       fitness: 45,
       refused: ['navette'],
     })
-    expect(apres[0]?.workout.family.key).toBe('vo2-30-15')
+    expect(apres[0]?.workout.family.key).toBe('vo2-long')
   })
 })
 
@@ -337,6 +342,51 @@ describe('ce que le planning respecte', () => {
     for (const suggestion of plan()) {
       expect(suggestion.workout).not.toHaveProperty('load')
       expect(levelOf(0)).toBe(0)
+    }
+  })
+})
+
+describe('ce que vaut le cran proposé (E.26)', () => {
+  it('dit « productive » un cran au-dessus de ce qui a été tenu', () => {
+    expect(standingOf(4, 5)).toBe('productive')
+  })
+
+  it('dit « à ta portée » au niveau tenu ou en dessous', () => {
+    expect(standingOf(6, 6)).toBe('portee')
+    expect(standingOf(6, 3)).toBe('portee')
+  })
+
+  it('dit « un pari » deux crans au-dessus', () => {
+    expect(standingOf(4, 6)).toBe('pari')
+  })
+
+  it('dit « inconnu » quand rien n’a été tenu dans la zone', () => {
+    // Ce n'est pas un avertissement : une zone vierge est normale au début.
+    expect(standingOf(0, 1)).toBe('inconnu')
+    expect(standingOf(0, 5)).toBe('inconnu')
+  })
+
+  it('dit « inconnu » au-delà de deux crans', () => {
+    expect(standingOf(2, 6)).toBe('inconnu')
+  })
+
+  it('tient une récupération toujours à portée', () => {
+    // Elle ne progresse pas : la déclarer inconnue faute d'historique n'aurait
+    // aucun sens (E.25).
+    expect(standingOf(0, 1, 'recuperation')).toBe('portee')
+  })
+
+  it('accompagne chaque proposition du plan', () => {
+    // Sans ce mot, refuser se fait à l'aveugle (E.14).
+    const suggestions = planWeek({
+      context: context(),
+      today: '2026-09-07',
+      fitness: 45,
+      levels: { vo2: 3 },
+    })
+    expect(suggestions.length).toBeGreaterThan(0)
+    for (const one of suggestions) {
+      expect(Object.keys(STANDING_NAMES)).toContain(one.standing)
     }
   })
 })

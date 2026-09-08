@@ -1628,6 +1628,203 @@ Quand l'historique ne contient rien de comparable, l'app ne dit rien plutôt
 qu'un chiffre inventé. C'est la règle du projet, et c'est aussi la seule
 réponse honnête.
 
+## E.24 La FTP estimée
+
+Décidé le 8 septembre 2026, en regardant ce que font les concurrents.
+
+**Le test FTP est la seule case jamais cochée du projet.** Il l'est depuis le
+premier jour, et le E.11 a beau savoir dire quel jour conviendrait, il ne s'est
+toujours pas fait. Pendant ce temps toutes les séances sont écrites en
+pourcentage d'une FTP de 221 W posée à la main, dont on sait depuis le
+6 septembre qu'elle est probablement 8 % trop basse.
+
+TrainerRoad a résolu ça en estimant la FTP à partir des efforts déjà produits,
+plutôt qu'en attendant un test. **intervals.icu le fait aussi**, et l'app le
+lisait déjà sans le savoir : la réponse de `/wellness` porte, par sport, une
+FTP estimée à côté de la forme et de la fatigue. Makigawa rapatrie cette
+réponse chaque jour et en garde le contenu brut.
+
+**Donc l'app ne demande rien de plus. Elle lit ce qu'elle avait déjà.**
+
+### Ce qu'elle en dit
+
+Un seul énoncé, et seulement quand il y a quelque chose à dire :
+
+> Ton profil dit **221 W**. Tes efforts disent **240 W**.
+> Tes séances sont donc **8 % trop douces**.
+
+Trois règles l'encadrent :
+
+- **L'écart doit valoir la peine.** En dessous de 5 %, l'app se tait : c'est le
+  bruit d'une estimation, pas une nouvelle.
+- **Elle ne corrige rien.** La FTP du profil appartient à intervals.icu ;
+  l'app la lit, la compare, et laisse l'athlète décider. C'est la frontière du
+  projet, appliquée à la donnée la plus tentante à corriger.
+- **Elle ne remplace pas le test.** Une estimation lue sur des efforts qui
+  n'étaient pas maximaux reste un plancher, exactement comme les 175 W de juin.
+  Le E.11 garde son rôle ; l'estimation dit seulement s'il devient urgent.
+
+### Pourquoi ça ne casse aucune règle
+
+`CLAUDE.md` interdit qu'une règle métier dépende de la FTP, et cette interdiction
+tient toujours : **l'estimation ne touche que l'affichage**. Les quatre
+conditions du E.2 comparent des bpm bruts et des charges d'intervals.icu ; les
+niveaux du E.16 comptent des secondes de travail ; la dose du E.23 somme des
+charges. Aucun de ces trois n'a jamais vu une FTP, et aucun ne la verra.
+
+**Et elle ne change même pas les watts affichés.** La tentation était là : le
+E.23 affiche « 95 % (210 W) », et résoudre ce pourcentage par l'estimation
+donnerait 228 W. Ce serait corriger la FTP sans le dire — exactement ce que la
+règle du dessus interdit — et donner un nombre qui ne correspond à rien de ce
+que l'athlète voit ailleurs, ni dans intervals.icu ni dans Zwift.
+
+Les watts restent donc résolus par la FTP du profil. **L'estimation ne fait
+qu'une chose : dire qu'il est temps de faire le test.** Elle se range à côté du
+E.11, pas dans les séances.
+
+### Quand elle est absente
+
+L'estimation vient d'un champ qu'on n'a pas encore constaté sur la vraie
+réponse. Le projet a une habitude pour ça : **lire prudemment, et ne rien
+casser quand ce n'est pas là**. Sans estimation, l'app affiche la FTP du profil
+comme elle le fait depuis le début. C'est exactement le comportement du pic
+avant le E.21 — l'absence de donnée n'est jamais une panne.
+
+## E.25 Les trois familles qui manquaient
+
+Décidé le 8 septembre 2026, après avoir comparé le catalogue de l'app à celui
+de TrainerRoad, de Zwift et de FasCat.
+
+Les huit familles du E.9 sont **relevées sur les séances réelles de l'athlète**,
+et c'est ce qui leur donne leur autorité. Trois trous s'y voient pourtant, et
+chacun empêche l'app de répondre à une question qu'elle se pose elle-même.
+
+### Récupération active
+
+Il n'y a **rien sous l'endurance**. Le jour où il ne faut rien demander, le
+catalogue n'a donc aucun mot — au mieux une endurance raccourcie, qui n'est pas
+la même chose. Une demi-heure à 50 % ne construit rien et ne coûte rien ; c'est
+précisément son intérêt, et aucune des huit familles ne le fait.
+
+**Elle ne remplace pas la décharge du E.18**, qui garde son principe — moitié
+moins de travail, intensité inchangée. Elle existe pour les jours où même ça
+serait trop, et c'est l'athlète qui la prend, dans le catalogue du E.27. Le
+plan la propose seulement quand il descend jusqu'au barreau le plus doux.
+
+### Seuil continu
+
+Le `seuil` de l'app n'existe qu'en **over-under** — 120 s à 95 %, 30 s à 110 %.
+C'est bien le motif de l'athlète, et il reste. Mais le bloc continu — 2 × 20 min
+à 98 % — est le motif le plus répandu du monde entier, et c'est celui qui
+remplit les collections « Threshold » de Zwift. Tant qu'il manque, l'app ne peut
+pas proposer ce que l'athlète trouvera le plus facilement.
+
+### VO2 long
+
+`vo2-30-30` et `vo2-30-15` sont des **intermittents** : le cœur reste haut, mais
+trente secondes ne suffisent pas à installer la consommation maximale. Les blocs
+de 3 à 5 minutes le font, et l'échelle de la zone `vo2` le montre en creux —
+elle monte jusqu'à 1080 s de travail, toujours par tranches de trente secondes.
+
+### Ce que cette décision coûte
+
+**Ces trois motifs ne sont pas relevés chez l'athlète.** C'est une entorse à la
+règle du E.9, et elle est assumée pour la même raison que la première : deux
+familles y avaient déjà été ajoutées — endurance et tempo — parce qu'un
+catalogue troué rend le plan incapable de répondre.
+
+La limite reste la même. On ajoute une famille **quand un trou empêche une
+règle de fonctionner**, jamais pour la variété. La quatrième candidate, les
+sprints neuromusculaires, ne franchit pas ce test : l'anaérobie a déjà la
+navette lactate, et rien dans le projet ne réclame un sprint isolé. Elle
+n'est pas retenue.
+
+### La zone de récupération
+
+L'échelle des zones du E.16 en gagne une, la première : `recuperation`. Elle a
+sa propre échelle de niveaux, et elle est **la seule dont on ne cherche pas à
+monter**. Un niveau de récupération n'a pas de sens comme progression ; la zone
+existe pour que le plan ait un mot à dire les jours où il ne faut rien
+demander.
+
+Conséquence sur le E.16 : la règle « la séance suivante vise un cran au-dessus »
+**ne s'applique pas** à cette zone. Elle propose toujours la même chose.
+
+## E.26 Dire ce que vaut le cran proposé
+
+Décidé le 8 septembre 2026, emprunté aux *Difficulty Levels* de TrainerRoad.
+
+Le E.16 sait deux choses qu'il ne dit pas : le niveau que l'athlète a **tenu**
+dans une zone, et le niveau de la séance **proposée**. Il propose un cran
+au-dessus sans jamais dire ce que ce cran vaut.
+
+Or l'écart entre les deux est toute l'information. Un cran au-dessus d'un
+niveau tenu la semaine dernière, ce n'est pas la même chose qu'un cran au-dessus
+d'un niveau tenu il y a cinq semaines, ni qu'une proposition dans une zone où
+rien n'a jamais été tenu.
+
+**Quatre mots suffisent**, lus sur cet écart seul :
+
+| Écart au niveau tenu | Ce que l'app dit |
+|---|---|
+| au niveau ou en dessous | **à ta portée** |
+| un cran au-dessus | **productive** |
+| deux crans | **un pari** |
+| trois ou plus, ou rien de tenu | **inconnu** |
+
+Ce n'est pas une mesure de plus : c'est une **soustraction** entre deux nombres
+que l'app connaît déjà. Aucune donnée nouvelle, aucun appel supplémentaire.
+
+**Ça sert au refus.** Le E.14 permet d'écarter une famille ou de repousser un
+jour, mais l'athlète refuse à l'aveugle : rien ne lui dit si la proposition est
+raisonnable ou ambitieuse. Un mot le lui dit, et le refus devient un choix.
+
+**« Inconnu » n'est pas un avertissement.** Une zone où rien n'a été tenu est
+une zone normale au début, et l'app ne doit pas en faire un reproche — ce serait
+la culpabilisation que `CLAUDE.md` interdit. Le mot est descriptif : elle ne
+sait pas, elle le dit.
+
+## E.27 Où chercher, et tout le catalogue
+
+Décidé le 8 septembre 2026.
+
+### Le panneau indicateur
+
+Le E.23 a fait de la proposition une **intention** : un style, une dose, la
+forme des blocs. L'athlète va ensuite chercher l'équivalent dans Zwift. Cette
+dernière étape, l'app la laisse entièrement à sa charge.
+
+Elle n'a pourtant rien à inventer pour l'aider. **Zwift range ses séances dans
+des collections qui portent exactement le même vocabulaire** que les zones du
+projet : Recovery, Endurance, Tempo, Sweet Spot, Threshold, VO2 Max. Il suffit
+de nommer la bonne, et de dire quoi y chercher :
+
+> **Zwift → Workouts → Sweet Spot**
+> vise ~45 min, des blocs de 10 à 15 min
+
+Ce n'est pas une recette — la frontière du E.9 tient, l'app ne dicte toujours
+aucun contenu. C'est un **panneau indicateur**, et il est du côté Makigawa de
+la frontière : le *quand* et le *où*, jamais le *quoi*.
+
+**L'app ne prétend pas que la séance existe.** Elle nomme un rayon, pas un
+article. Si rien dans ce rayon ne ressemble à la dose proposée, c'est le
+catalogue de Zwift qui décide, et l'athlète choisit au plus près — c'était déjà
+sa méthode avant que l'app en parle.
+
+### Parcourir soi-même
+
+L'athlète ne voit jamais que ce qui lui est proposé. Les onze familles existent,
+l'app en connaît le rôle, et rien de tout cela ne lui est accessible.
+
+**Le catalogue s'ouvre.** Chaque famille avec ce à quoi elle sert, le niveau
+tenu dans sa zone, et où la chercher dans Zwift. C'est le E.7 poussé d'un cran :
+l'app propose, l'athlète confirme — et s'il n'est d'accord avec rien, il choisit
+lui-même au lieu de refuser trois fois.
+
+Ce n'est pas un éditeur de séance : rien ne s'y compose et rien ne s'y écrit. On
+y lit ce que l'app sait déjà, dans l'ordre où elle le sait.
+
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -1671,6 +1868,10 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 27 | Le pic et le journal | **le pic se mesure** sur la courbe cardiaque ; l'app note ses propres refus, jamais les séances manquées (E.21) |
 | 28 | Reconnaître une séance proposée | **par le jour et la durée** — 85 % du temps proposé et une charge de qualité ; seule sur-estimation acceptée du projet, et elle est bornée (E.22) |
 | 29 | Ce que le plan dit | **un style, une dose, la forme des blocs** — plus de notation à recopier ; les watts sont affichés, jamais décidés ; la charge d'une sortie se lit dans l'historique (E.23) |
+| 30 | La FTP estimée | **lue sur `/wellness`**, comparée au profil, jamais corrigée ; elle ne touche que l'affichage (E.24) |
+| 31 | Les trous du catalogue | **trois familles ajoutées** — récupération active, seuil continu, VO2 long ; une famille s'ajoute quand un trou bloque une règle, jamais pour la variété (E.25) |
+| 32 | La difficulté d'une proposition | **l'écart au niveau tenu**, dit en un mot : à ta portée, productive, un pari, inconnu (E.26) |
+| 33 | Trouver la séance | **le rayon, pas l'article** : l'app nomme la collection Zwift et la dose ; le catalogue s'ouvre pour choisir soi-même (E.27) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

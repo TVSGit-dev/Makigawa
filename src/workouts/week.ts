@@ -17,7 +17,15 @@ import { shiftDayKey, type DayKey } from '../calendar/dates'
 import { CANDIDATE_ID, type PlannedSession } from '../rules/types'
 import { type Workout } from './compose'
 import { familyOf, type Family } from './families'
-import { composeAtLevel, nextLevel, unloadLevel, zoneOfFamily, type Zone } from './levels'
+import {
+  composeAtLevel,
+  nextLevel,
+  standingOf,
+  unloadLevel,
+  zoneOfFamily,
+  type Standing,
+  type Zone,
+} from './levels'
 
 /** L'horizon sur lequel l'app propose. Le même que le plan. */
 export const HORIZON_DAYS = 14
@@ -33,11 +41,25 @@ export const HORIZON_DAYS = 14
  * d'être prêt.
  */
 export const LADDER: readonly { fitness: number; families: readonly string[] }[] = [
-  { fitness: 0, families: ['endurance', 'tempo', 'sweet-spot'] },
-  { fitness: 25, families: ['endurance', 'tempo', 'sweet-spot', 'seuil'] },
+  { fitness: 0, families: ['recuperation', 'endurance', 'tempo', 'sweet-spot'] },
+  {
+    fitness: 25,
+    families: ['recuperation', 'endurance', 'tempo', 'sweet-spot', 'seuil-continu', 'seuil'],
+  },
   {
     fitness: 40,
-    families: ['endurance', 'tempo', 'sweet-spot', 'seuil', 'vo2-30-30', 'vo2-30-15', 'navette'],
+    families: [
+      'recuperation',
+      'endurance',
+      'tempo',
+      'sweet-spot',
+      'seuil-continu',
+      'seuil',
+      'vo2-30-30',
+      'vo2-30-15',
+      'vo2-long',
+      'navette',
+    ],
   },
 ]
 
@@ -54,6 +76,11 @@ export type Suggestion = {
   workout: Workout
   /** Pourquoi cette séance-là, ce jour-là. */
   because: string
+  /**
+   * Ce que vaut le cran proposé, par rapport au niveau tenu dans la zone
+   * (E.26). Le planificateur connaît les deux nombres ; personne d'autre.
+   */
+  standing: Standing
 }
 
 export type WeekOptions = {
@@ -160,7 +187,7 @@ export function planWeek({
     const zone = zoneOfFamily(family.key)
     const level = zone ? (levels[zone] ?? 0) : 0
     const target =
-      decharge && zone ? unloadLevel(zone, level) : nextLevel(level, reprise || hold)
+      decharge && zone ? unloadLevel(zone, level) : nextLevel(level, reprise || hold, zone)
     const workout = composeAtLevel(family, target)
 
     const placed = firstFittingDay(
@@ -178,6 +205,7 @@ export function planWeek({
       date: placed,
       workout,
       because: reasonFor(family, index, fitness, level, reprise, decharge, hold),
+      standing: standingOf(level, target, zone),
     })
     planned = [...planned, sessionFor(workout, placed)]
     taken.push(placed)

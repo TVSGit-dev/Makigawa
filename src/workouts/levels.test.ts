@@ -16,6 +16,7 @@ import {
   zoneOfName,
   ZONES,
   type Held,
+  FLAT_ZONE,
 } from './levels'
 import { familyOf } from './families'
 import { compose, toNotation } from './compose'
@@ -220,8 +221,30 @@ describe('ce qui compte comme tenu', () => {
 
   it('ne fait rien monter sur une structure ambiguë', () => {
     // Faire monter le mauvais niveau serait pire que de n'en monter aucun.
-    const molle = event({ name: 'Bloc 3', description: '- 20m 40%' })
+    // Cinq minutes molles ne sont ni du travail, ni une récupération : trop
+    // court pour l'une, trop doux pour l'autre.
+    const molle = event({ name: 'Bloc 3', description: '- 5m 40%' })
     expect(heldFrom([completion({ event: molle })])).toEqual([])
+  })
+
+  it('reconnaît une récupération active (E.25)', () => {
+    // Vingt minutes molles, en revanche, sont exactement ce que la famille
+    // « Récupération » fait — et rien d'autre dans le catalogue ne le fait.
+    const douce = event({ name: 'Bloc 3', description: '- 20m 50%' })
+    expect(heldFrom([completion({ event: douce })])[0]?.zone).toBe('recuperation')
+  })
+
+  it('sépare un seuil continu d’un sweet spot (E.25)', () => {
+    // Les deux culminent sous 100 % et n'ont aucune pointe : c'est l'absence
+    // d'alternance qui dit lequel.
+    const continu = event({ name: 'Bloc 3', description: '- 20m 98%' })
+    expect(heldFrom([completion({ event: continu })])[0]?.zone).toBe('seuil')
+
+    const overUnder = event({
+      name: 'Bloc 3',
+      description: ['- 5m 95%', '- 5m 85%', '- 5m 95%', '- 5m 85%'].join('\n'),
+    })
+    expect(heldFrom([completion({ event: overUnder })])[0]?.zone).toBe('sweet-spot')
   })
 
   it('ignore une séance sans structure lisible', () => {
@@ -232,8 +255,9 @@ describe('ce qui compte comme tenu', () => {
 
 describe('le niveau d’une semaine de décharge (E.18)', () => {
   it('vise à peu près la moitié du travail tenu', () => {
-    // Le C.4 demande −40 à −60 %.
-    for (const zone of ZONES) {
+    // Le C.4 demande −40 à −60 %. La récupération en est exclue : elle ne
+    // charge rien, donc il n'y a rien à alléger (E.25).
+    for (const zone of ZONES.filter((one) => one !== FLAT_ZONE)) {
       for (let level = 4; level <= LEVELS; level += 1) {
         const allege = unloadLevel(zone, level)
         const part = LADDERS[zone][allege - 1]! / LADDERS[zone][level - 1]!

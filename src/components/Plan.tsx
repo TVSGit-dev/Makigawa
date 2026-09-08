@@ -17,6 +17,7 @@ import {
   fetchActivities,
   fetchCalendarEvents,
   fetchFtp,
+  latestEstimatedFtp,
   fetchHeartRate,
   fetchWellness,
   type Activity,
@@ -69,6 +70,8 @@ import { asPlannedCommute } from '../actions/commute'
 import { commuteOn, cycleCommute, forgetOldCommutes, type CommuteMarks } from '../storage/commutes'
 import { planWeek } from '../workouts/week'
 import { firstTestDay, ftpTest, FTP_TEST_NAME } from '../workouts/ftp-test'
+import { readFtp, saySoftness } from '../rules/ftp'
+import { Catalogue } from './Catalogue'
 import { toNotation } from '../workouts/compose'
 import { Profile } from './Profile'
 import { type DeleteState } from './SessionCard'
@@ -578,7 +581,18 @@ export function Plan({
         onDelete={(id) => void remove(id)}
       />
 
-      {context ? <TestDay today={today} context={context} /> : null}
+      {/* Le catalogue s'ouvre : l'app propose, mais si rien ne convient
+          l'athlète choisit lui-même au lieu de refuser trois fois (E.27). */}
+      <Catalogue levels={levels} ftp={state.data.ftp} />
+
+      {context ? (
+        <TestDay
+          today={today}
+          context={context}
+          ftp={state.data.ftp}
+          estimated={latestEstimatedFtp(wellness)}
+        />
+      ) : null}
 
       <p className="muted small">
         La pastille de chaque jour dit ton trajet — <strong>É</strong> pour électrique,
@@ -648,15 +662,32 @@ async function measurePeaks(
 }
 
 /**
- * Le jour du test FTP (E.11), dit et non posé.
+ * Le jour du test FTP (E.11), dit et non posé — et ce que les efforts en disent
+ * déjà (E.24).
  *
- * Il reste la dernière inconnue du projet : la FTP du profil est à 221 W,
- * Garmin en estime 240, et toutes les séances composées sont écrites en
- * pourcentage — corriger le profil les recalibre toutes d'un coup.
+ * Il reste la dernière inconnue du projet, et toutes les séances composées sont
+ * écrites en pourcentage de cette FTP : corriger le profil les recalibre toutes
+ * d'un coup.
+ *
+ * L'estimation d'intervals.icu ne corrige rien et ne change aucun watt affiché.
+ * Elle dit seulement de combien le profil a dérivé, donc à quel point le test
+ * devient urgent.
  */
-function TestDay({ today, context }: { today: DayKey; context: ReturnType<typeof buildContext> }) {
+function TestDay({
+  today,
+  context,
+  ftp,
+  estimated,
+}: {
+  today: DayKey
+  context: ReturnType<typeof buildContext>
+  ftp: number | null
+  estimated: number | null
+}) {
   const found = firstTestDay(today, AHEAD_DAYS, context)
   const protocole = ftpTest()
+  const reading = readFtp(ftp, estimated)
+  const softness = saySoftness(reading)
 
   return (
     <div className="now">
@@ -667,10 +698,17 @@ function TestDay({ today, context }: { today: DayKey; context: ReturnType<typeof
         {'date' in found
           ? `Il tiendrait ${formatRelativeDay(found.date, today)}.`
           : explainTest(found.refusal)}{' '}
-        Ta FTP est à 221 W dans le profil et Garmin en estime 240 : le jour où tu la
-        corriges, toutes les séances proposées se recalibrent d’un coup, puisqu’elles sont
-        écrites en pourcentage.
+        Le jour où tu corriges ta FTP, toutes les séances proposées se recalibrent d’un
+        coup, puisqu’elles sont écrites en pourcentage.
       </p>
+
+      {softness ? (
+        <p className="muted small">
+          Ton profil dit <strong>{reading.profile} W</strong>. Tes efforts disent{' '}
+          <strong>{Math.round(reading.estimated!)} W</strong>. {softness} C’est une
+          estimation d’intervals.icu, pas une mesure : elle ne corrige rien toute seule.
+        </p>
+      ) : null}
 
       <Profile blocks={protocole.blocks} />
 
