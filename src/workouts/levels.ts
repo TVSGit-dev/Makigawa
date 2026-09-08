@@ -17,9 +17,17 @@ import { compose, type Workout } from './compose'
 import type { Block, Family } from './families'
 import { blocksOf } from './read'
 
-export type Zone = 'endurance' | 'tempo' | 'sweet-spot' | 'seuil' | 'vo2' | 'anaerobie'
+export type Zone =
+  | 'recuperation'
+  | 'endurance'
+  | 'tempo'
+  | 'sweet-spot'
+  | 'seuil'
+  | 'vo2'
+  | 'anaerobie'
 
 export const ZONES: readonly Zone[] = [
+  'recuperation',
   'endurance',
   'tempo',
   'sweet-spot',
@@ -28,7 +36,18 @@ export const ZONES: readonly Zone[] = [
   'anaerobie',
 ]
 
+/**
+ * La seule zone dont on ne cherche pas à monter (E.25).
+ *
+ * Un niveau de récupération n'a pas de sens comme progression : faire plus
+ * long à 50 % ne prouve rien et ne construit rien. La zone existe pour que le
+ * plan ait un mot à dire les jours où il ne faut rien demander, pas pour
+ * mesurer quoi que ce soit.
+ */
+export const FLAT_ZONE: Zone = 'recuperation'
+
 export const ZONE_NAMES: Record<Zone, string> = {
+  recuperation: 'Récupération',
   endurance: 'Endurance',
   tempo: 'Tempo',
   'sweet-spot': 'Sweet spot',
@@ -42,13 +61,16 @@ export const ZONE_NAMES: Record<Zone, string> = {
  * même chose, et tenir un 30/15 prouve quelque chose sur le 30/30.
  */
 const ZONE_OF_FAMILY: Record<string, Zone> = {
+  recuperation: 'recuperation',
   endurance: 'endurance',
   tempo: 'tempo',
   'sweet-spot': 'sweet-spot',
   'sweet-spot-continu': 'sweet-spot',
   seuil: 'seuil',
+  'seuil-continu': 'seuil',
   'vo2-30-30': 'vo2',
   'vo2-30-15': 'vo2',
+  'vo2-long': 'vo2',
   navette: 'anaerobie',
 }
 
@@ -66,6 +88,8 @@ export function zoneOfFamily(key: string): Zone | null {
  */
 const NAME_MARKS: readonly (readonly [string, Zone])[] = [
   ['navette', 'anaerobie'],
+  ['recuperation', 'recuperation'],
+  ['recovery', 'recuperation'],
   ['vo2', 'vo2'],
   ['sweet spot', 'sweet-spot'],
   ['sweetspot', 'sweet-spot'],
@@ -98,10 +122,11 @@ export function zoneOfName(name: string | null): Zone | null {
  *
  * Deux paires se ressemblent trop pour l'intensité seule :
  *
- * - le **sweet spot** et le **seuil** culminent tous deux vers 95 % ; c'est la
- *   pointe au-dessus de 100 % qui les sépare ;
+ * - le **sweet spot** et le **seuil** culminent tous deux vers 95 % ; c'est
+ *   l'alternance qui les sépare — un over-under sweet spot redescend à 85 %
+ *   entre ses pointes, un bloc de seuil reste en haut ;
  * - le **seuil** et le **VO2 max** portent tous deux des pointes au-dessus de
- *   100 % ; c'est le long travail à 95 % que seul le seuil possède.
+ *   100 % ; c'est le long travail sous 100 % que seul le seuil possède.
  *
  * Moins sûr qu'un nom, donc c'est un recours et non la règle : le nom garde
  * la priorité, et une structure ambiguë ne renvoie rien plutôt que de faire
@@ -122,18 +147,29 @@ function secondsIn(blocks: readonly Block[], from: number, to: number): number {
 export function zoneOfBlocks(blocks: readonly Block[]): Zone | null {
   if (secondsIn(blocks, 120, Infinity) > 0) return 'anaerobie'
 
-  const auSeuil = secondsIn(blocks, 88, 101)
+  // Le « under » d'un over-under sweet spot, et le haut du seuil. Un
+  // over-under a beaucoup des deux ; un bloc de seuil continu n'a que le
+  // second, et l'unique minute à 90 % de la rampe ne suffit pas à le déguiser.
+  const sousLeSeuil = secondsIn(blocks, WORK_FLOOR['sweet-spot'], 95)
+  const auSeuil = secondsIn(blocks, 95, 101)
 
   if (secondsIn(blocks, 101, 120) > 0) {
-    return auSeuil >= BAND_MIN_SECONDS ? 'seuil' : 'vo2'
+    return sousLeSeuil + auSeuil >= BAND_MIN_SECONDS ? 'seuil' : 'vo2'
   }
 
-  if (secondsIn(blocks, WORK_FLOOR['sweet-spot'], 101) >= BAND_MIN_SECONDS) return 'sweet-spot'
+  if (auSeuil >= BAND_MIN_SECONDS && sousLeSeuil < BAND_MIN_SECONDS) return 'seuil'
+  if (sousLeSeuil + auSeuil >= BAND_MIN_SECONDS) return 'sweet-spot'
   if (secondsIn(blocks, WORK_FLOOR.tempo, WORK_FLOOR['sweet-spot']) >= BAND_MIN_SECONDS) {
     return 'tempo'
   }
   if (secondsIn(blocks, WORK_FLOOR.endurance, WORK_FLOOR.tempo) >= BAND_MIN_SECONDS) {
     return 'endurance'
+  }
+  // Rien qui atteigne le plancher de l'endurance, mais un vrai temps passé à
+  // rouler : c'est une récupération active (E.25). Le seuil est haut — un quart
+  // d'heure — pour qu'un échauffement isolé ne soit pas pris pour une séance.
+  if (secondsIn(blocks, WORK_FLOOR.recuperation, WORK_FLOOR.endurance) >= 900) {
+    return 'recuperation'
   }
 
   return null
@@ -147,6 +183,10 @@ export function zoneOfBlocks(blocks: readonly Block[]): Zone | null {
  * bas ; la récupération d'un 30/30 est à 65 %, donc il est bien plus haut.
  */
 export const WORK_FLOOR: Record<Zone, number> = {
+  // La récupération n'a pas de plancher au sens des autres zones : tout ce
+  // qu'on y fait est du travail, puisque sa dose est sa durée. Quarante pour
+  // cent laisse dehors l'arrêt complet, rien d'autre.
+  recuperation: 40,
   endurance: 56,
   tempo: 76,
   'sweet-spot': 84,
@@ -197,6 +237,9 @@ export const LEVELS = 10
  * dépassent ce plafond, et c'est le plafond qui gagne.
  */
 export const LADDERS: Record<Zone, readonly number[]> = {
+  // Vingt à quarante-cinq minutes. L'échelle existe pour que `composeAtLevel`
+  // ait une cible ; on n'y monte jamais (voir `FLAT_ZONE`).
+  recuperation: [1200, 1350, 1500, 1650, 1800, 1950, 2100, 2250, 2400, 2700],
   endurance: [1200, 1500, 1800, 2100, 2400, 2700, 3000, 3300, 3600, 4000],
   tempo: [600, 780, 960, 1140, 1320, 1500, 1680, 1860, 1980, 2040],
   'sweet-spot': [720, 900, 1140, 1380, 1620, 1860, 2100, 2340, 2580, 2760],
@@ -265,8 +308,48 @@ export function levelsFrom(held: readonly Held[]): Record<Zone, number> {
  * semaine du E.5. Pendant une reprise, on repart au niveau tenu sans le cran —
  * on reprend là où on s'était arrêté, on ne progresse pas le premier jour.
  */
-export function nextLevel(level: number, reprise = false): number {
+export function nextLevel(level: number, reprise = false, zone: Zone | null = null): number {
+  // La récupération ne progresse pas (E.25) : faire plus long à 50 % ne prouve
+  // rien. Elle propose toujours le premier échelon.
+  if (zone === FLAT_ZONE) return 1
   return Math.min(LEVELS, Math.max(1, reprise ? level : level + 1))
+}
+
+/**
+ * Ce que vaut le cran proposé, par rapport à ce qui a été tenu (E.26).
+ *
+ * Emprunté aux *Difficulty Levels* de TrainerRoad. Le E.16 sait deux choses
+ * qu'il ne disait pas : le niveau tenu dans la zone, et celui que la séance
+ * proposée vise. L'écart entre les deux est toute l'information — un cran
+ * au-dessus d'un niveau tenu la semaine dernière n'est pas un cran au-dessus
+ * d'une zone où rien n'a jamais été tenu.
+ *
+ * Ce n'est pas une mesure de plus : c'est une soustraction entre deux nombres
+ * déjà connus. Elle sert au refus du E.14, qui se fait sinon à l'aveugle.
+ */
+export type Standing = 'portee' | 'productive' | 'pari' | 'inconnu'
+
+export const STANDING_NAMES: Record<Standing, string> = {
+  portee: 'à ta portée',
+  productive: 'productive',
+  pari: 'un pari',
+  inconnu: 'inconnu',
+}
+
+export function standingOf(held: number, proposed: number, zone: Zone | null = null): Standing {
+  // Une récupération est toujours à portée : c'est sa définition, et la
+  // déclarer « inconnue » faute d'historique n'aurait aucun sens (E.25).
+  if (zone === FLAT_ZONE) return 'portee'
+  // Rien de tenu dans la zone : l'app ne sait pas, et le dit. Ce n'est pas un
+  // avertissement — une zone vierge est normale au début, et en faire un
+  // reproche serait la culpabilisation que le projet s'interdit.
+  if (held <= 0) return 'inconnu'
+
+  const gap = proposed - held
+  if (gap <= 0) return 'portee'
+  if (gap === 1) return 'productive'
+  if (gap === 2) return 'pari'
+  return 'inconnu'
 }
 
 /**
@@ -281,6 +364,9 @@ export function nextLevel(level: number, reprise = false): number {
  * pas descendre en dessous de la plus petite séance qui existe.
  */
 export function unloadLevel(zone: Zone, level: number): number {
+  // Une récupération ne s'allège pas : elle ne charge rien à alléger. Elle
+  // reste au premier échelon, comme partout ailleurs (E.25).
+  if (zone === FLAT_ZONE) return 1
   if (level <= 1) return 1
 
   const ladder = LADDERS[zone]

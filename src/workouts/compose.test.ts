@@ -15,12 +15,26 @@ import {
   FAMILIES,
   OPENERS,
   WARMUP,
+  WARMUP_EASY,
+  WARMUP_EASY_SHORT,
   WARMUP_SHORT,
 } from './families'
+import {
+  composeAtLevel,
+  MAX_MINUTES,
+  MIN_WORK_BLOCK,
+  nextLevel,
+  WORK_FLOOR,
+  zoneOfBlocks,
+  zoneOfFamily,
+} from './levels'
 
 const sweetSpot = familyOf('sweet-spot')!
 const vo2 = familyOf('vo2-30-30')!
 const endurance = familyOf('endurance')!
+const recuperation = familyOf('recuperation')!
+const seuilContinu = familyOf('seuil-continu')!
+const vo2Long = familyOf('vo2-long')!
 
 describe('la division des rôles', () => {
   it('n’écrit jamais une intensité en watts', () => {
@@ -81,7 +95,15 @@ describe('composer une séance', () => {
     for (const family of FAMILIES) {
       for (const minutes of durationsFor(family)) {
         const { blocks, long } = compose(family, minutes)
-        const attendu = long ? WARMUP : WARMUP_SHORT
+        // Une famille douce a le sien, sans rampe : la rampe monte à 90 %, ce
+        // qui serait plus dur que son travail (E.25).
+        const attendu = family.gentle
+          ? long
+            ? WARMUP_EASY
+            : WARMUP_EASY_SHORT
+          : long
+            ? WARMUP
+            : WARMUP_SHORT
         expect(blocks.slice(0, attendu.length), `${family.name} ${minutes}`).toEqual(attendu)
         expect(blocks.at(-1)?.percent, `${family.name} ${minutes}`).toBe(45)
       }
@@ -187,5 +209,62 @@ describe('la forme d’une séance', () => {
     // sweet spot. L'app organise, elle ne réécrit pas le motif.
     const notation = toNotation(compose(familyOf('sweet-spot')!, 45))
     expect(notation).toContain('- 90s 95%\n- 90s 85%')
+  })
+})
+
+describe('les trois familles qui manquaient (E.25)', () => {
+  it('ne met rien de dur dans une récupération', () => {
+    // C'est toute la définition de la famille : si un seul bloc dépasse le
+    // plancher de l'endurance, la séance n'est plus une récupération. La rampe
+    // de l'échauffement commun monte à 90 %, d'où son propre échauffement.
+    for (const minutes of durationsFor(recuperation)) {
+      const { blocks } = compose(recuperation, minutes)
+      const dur = blocks.filter((block) => block.percent >= WORK_FLOOR.endurance)
+      expect(dur, `${minutes} min`).toEqual([])
+    }
+  })
+
+  it('écrit le seuil continu d’un seul tenant', () => {
+    // Quatre unités de cinq minutes se lisent « 20m 98% », comme le coach de
+    // l'athlète l'écrit — c'est la fusion des blocs voisins.
+    const long = composeAtLevel(seuilContinu, 9)
+    expect(toNotation(long)).toContain('- 20m 98%')
+    expect(zoneOfBlocks(long.blocks)).toBe('seuil')
+  })
+
+  it('donne au VO2 long des blocs de trois minutes', () => {
+    const seance = compose(vo2Long, 60)
+    // Les ouvertures sont à 200 % mais ne durent que quinze secondes : ce
+    // n'est pas du travail.
+    const travail = seance.blocks.filter(
+      (block) => block.percent >= WORK_FLOOR.vo2 && block.seconds >= MIN_WORK_BLOCK,
+    )
+    expect(travail.length).toBeGreaterThan(0)
+    expect(travail.every((block) => block.seconds === 180)).toBe(true)
+    expect(zoneOfBlocks(seance.blocks)).toBe('vo2')
+  })
+
+  it('range les trois dans les zones qu’on attend', () => {
+    expect(zoneOfFamily('recuperation')).toBe('recuperation')
+    expect(zoneOfFamily('seuil-continu')).toBe('seuil')
+    expect(zoneOfFamily('vo2-long')).toBe('vo2')
+  })
+
+  it('ne fait jamais monter le niveau de récupération', () => {
+    // Faire plus long à 50 % ne prouve rien : la zone reste au premier
+    // échelon, quel que soit ce qui a été tenu.
+    expect(nextLevel(6, false, 'recuperation')).toBe(1)
+    expect(nextLevel(6, false, 'endurance')).toBe(7)
+  })
+
+  it('tient toutes les trois sous le plafond de temps', () => {
+    for (const family of [recuperation, seuilContinu, vo2Long]) {
+      for (let level = 1; level <= 10; level += 1) {
+        const seance = composeAtLevel(family, level)
+        expect(seance.seconds / 60, `${family.name} niveau ${level}`).toBeLessThanOrEqual(
+          MAX_MINUTES,
+        )
+      }
+    }
   })
 })

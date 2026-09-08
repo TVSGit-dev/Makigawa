@@ -39,10 +39,16 @@ export function shapeOf(workout: Workout, ftp: number | null): string[] {
   const { family, sets, reps } = workout
   const lines: string[] = []
 
-  const work = duration(blockSeconds(family, reps))
   // « de travail », parce que l'en-tête annonce la durée totale : sans ce mot,
-  // « 29 min » et « 15 min » sur deux lignes voisines se contredisent.
-  const bloc = sets > 1 ? `${sets} × ${work} de travail` : `${work} de travail`
+  // « 29 min » et « 15 min » sur deux lignes voisines se contredisent. Une
+  // famille douce ne travaille pas, elle roule — et le dire autrement serait
+  // annoncer une séance qu'elle n'est pas (E.25).
+  const quoi = family.gentle ? 'de roulage' : 'de travail'
+  // Sans récupération entre les blocs, ils se suivent sans coupure : les
+  // compter séparément annoncerait un fractionné là où il n'y en a pas.
+  const continu = family.between === 0
+  const work = duration(blockSeconds(family, reps) * (continu ? sets : 1))
+  const bloc = sets > 1 && !continu ? `${sets} × ${work} ${quoi}` : `${work} ${quoi}`
 
   if (family.pattern.length === 1) {
     // Un seul palier : tout tient sur une ligne.

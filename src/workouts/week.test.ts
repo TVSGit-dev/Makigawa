@@ -29,7 +29,7 @@ describe('ce que la forme ouvre', () => {
     // Le risque n'est pas de manquer de forme, c'est de se sentir capable
     // avant d'être prêt : les tissus se réadaptent plus lentement.
     const keys = familiesFor(17).map((family) => family.key)
-    expect(keys).toEqual(['endurance', 'tempo', 'sweet-spot'])
+    expect(keys).toEqual(['recuperation', 'endurance', 'tempo', 'sweet-spot'])
   })
 
   it('ouvre le seuil, puis le VO2 max, à mesure que la forme monte', () => {
@@ -39,7 +39,12 @@ describe('ce que la forme ouvre', () => {
   })
 
   it('reste prudent quand la forme est inconnue', () => {
-    expect(familiesFor(null).map((f) => f.key)).toEqual(['endurance', 'tempo', 'sweet-spot'])
+    expect(familiesFor(null).map((f) => f.key)).toEqual([
+      'recuperation',
+      'endurance',
+      'tempo',
+      'sweet-spot',
+    ])
   })
 })
 
@@ -134,7 +139,7 @@ describe('refuser, ou repousser (E.14)', () => {
 
   it('ne repêche jamais une famille refusée', () => {
     // Redemander ce qu'on vient de refuser serait ne pas avoir entendu.
-    expect(refuse(['endurance', 'tempo', 'sweet-spot'])).toEqual([])
+    expect(refuse(['recuperation', 'endurance', 'tempo', 'sweet-spot'])).toEqual([])
   })
 
   it('recule le plan entier derrière un report', () => {
@@ -199,7 +204,7 @@ describe('refuser, ou repousser (E.14)', () => {
       fitness: 45,
       refused: ['navette'],
     })
-    expect(apres[0]?.workout.family.key).toBe('vo2-30-15')
+    expect(apres[0]?.workout.family.key).toBe('vo2-long')
   })
 })
 

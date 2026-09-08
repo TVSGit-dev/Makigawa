@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { intensity, shapeOf } from './shape'
-import { compose } from './compose'
+import { build, compose } from './compose'
 import { familyOf, FAMILIES } from './families'
 
 const shape = (key: string, minutes = 45, ftp: number | null = 221) =>
@@ -66,5 +66,30 @@ describe('la forme d’une séance', () => {
     for (const family of FAMILIES) {
       expect(shape(family.key, 45, null).join(' '), family.name).not.toContain('W')
     }
+  })
+})
+
+describe('les familles ajoutées (E.25)', () => {
+  const recuperation = familyOf('recuperation')!
+  const seuilContinu = familyOf('seuil-continu')!
+
+  it('dit « roulage » plutôt que « travail » sur une récupération', () => {
+    const lignes = shapeOf(compose(recuperation, 30), 221)
+    expect(lignes[0]).toContain('de roulage')
+    expect(lignes[0]).not.toContain('de travail')
+  })
+
+  it('ne coupe pas en blocs ce qui se suit sans coupure', () => {
+    // Deux fois dix minutes sans récupération entre les deux, c'est vingt
+    // minutes. Annoncer « 2 × 10 min » ferait croire à un fractionné.
+    const lignes = shapeOf(build(recuperation, 2, 1), 221)
+    expect(lignes[0]).toContain('20 min')
+    expect(lignes[0]).not.toContain('×')
+  })
+
+  it('garde les blocs séparés quand il y a une récupération entre eux', () => {
+    const lignes = shapeOf(build(seuilContinu, 2, 4), 221)
+    expect(lignes[0]).toContain('2 × 20 min de travail')
+    expect(lignes.join(' ')).toContain('Récup')
   })
 })

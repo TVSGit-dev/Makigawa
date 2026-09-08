@@ -21,6 +21,8 @@ import {
   OPENERS,
   SETTLE,
   WARMUP,
+  WARMUP_EASY,
+  WARMUP_EASY_SHORT,
   WARMUP_SHORT,
   type Block,
   type Family,
@@ -49,7 +51,16 @@ export const DURATIONS = [30, 45, 60, 75] as const
 
 /** La séance qu'on obtient pour un nombre de blocs et de répétitions donné. */
 export function build(family: Family, sets: number, reps: number, long = true): Workout {
-  const blocks: Block[] = [...(long ? WARMUP : WARMUP_SHORT)]
+  // Une séance douce n'a ni rampe ni remise en route : les deux passeraient
+  // au-dessus de son travail, et elle cesserait d'être douce (E.25).
+  const warmup = family.gentle
+    ? long
+      ? WARMUP_EASY
+      : WARMUP_EASY_SHORT
+    : long
+      ? WARMUP
+      : WARMUP_SHORT
+  const blocks: Block[] = [...warmup]
   if (family.openers) blocks.push(...OPENERS, { seconds: 120, percent: 65 })
 
   for (let set = 0; set < sets; set += 1) {
@@ -60,7 +71,8 @@ export function build(family: Family, sets: number, reps: number, long = true): 
     }
   }
 
-  blocks.push(SETTLE, ...(long ? COOLDOWN : COOLDOWN_SHORT))
+  if (!family.gentle) blocks.push(SETTLE)
+  blocks.push(...(long ? COOLDOWN : COOLDOWN_SHORT))
 
   const seconds = blocks.reduce((total, block) => total + block.seconds, 0)
 
