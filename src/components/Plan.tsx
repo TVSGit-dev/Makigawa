@@ -71,6 +71,7 @@ import { commuteOn, cycleCommute, forgetOldCommutes, type CommuteMarks } from '.
 import { planWeek } from '../workouts/week'
 import { firstTestDay, ftpTest, FTP_TEST_NAME } from '../workouts/ftp-test'
 import { readFtp, saySoftness } from '../rules/ftp'
+import { Catalogue } from './Catalogue'
 import { toNotation } from '../workouts/compose'
 import { Profile } from './Profile'
 import { type DeleteState } from './SessionCard'
@@ -579,6 +580,10 @@ export function Plan({
         onReset={() => setChoices(resetPlanPreferences())}
         onDelete={(id) => void remove(id)}
       />
+
+      {/* Le catalogue s'ouvre : l'app propose, mais si rien ne convient
+          l'athlète choisit lui-même au lieu de refuser trois fois (E.27). */}
+      <Catalogue levels={levels} ftp={state.data.ftp} />
 
       {context ? (
         <TestDay
