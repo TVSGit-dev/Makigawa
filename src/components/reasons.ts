@@ -123,3 +123,54 @@ export function explainTest(refusal: TestRefusal): string {
       return 'Les règles habituelles s’y opposent déjà — une séance de qualité trop proche, ou le quota de la semaine.'
   }
 }
+
+
+/**
+ * Le même motif, en quelques mots.
+ *
+ * `explain` écrit une phrase entière, qui est ce qu'il faut sous une séance.
+ * Ici on le glisse dans une phrase déjà commencée — « samedi, parce que <…> » —
+ * et il en existait déjà une copie dans l'écran de progression. Une seule
+ * source, donc : deux listes de motifs finiraient par diverger.
+ */
+export const REASONS: Record<Refusal['code'], string> = {
+  'jour-deja-charge': 'la journée était déjà chargée',
+  'veille-chargee': 'la veille avait été chargée',
+  'deux-jours-charges': 'les deux jours d’avant pesaient déjà',
+  'lendemain-charge': 'le lendemain est chargé',
+  'tsb-sous-plancher': 'la fraîcheur était sous le plancher',
+  'variabilite-basse': 'la variabilité était sous la normale',
+  'quota-hebdomadaire': 'le quota de la semaine était atteint',
+  'une-seule-par-semaine': 'le mode prudent n’en garde qu’une',
+  'qualite-voisine': 'une autre séance de qualité était trop proche',
+  'force-trop-proche': 'du renfo était trop proche',
+  'renfo-sur-journee-chargee': 'du renfo sur une journée chargée',
+}
+
+/**
+ * Quand le jour demandé n'est pas celui qu'on obtient (E.14).
+ *
+ * Un jour choisi est un souhait, pas un ordre : il devient le premier jour
+ * acceptable, et le E.2 garde le dernier mot. **Glisser en silence serait le
+ * seul vrai défaut possible ici** — l'athlète a demandé jeudi, il voit samedi,
+ * et rien ne le lui explique.
+ *
+ * Rien à dire quand le souhait est exaucé : une app qui commente ce qui s'est
+ * bien passé fait du bruit.
+ */
+export function explainSlip(
+  wanted: DayKey,
+  got: DayKey | null,
+  code: Refusal['code'] | null,
+  today: DayKey,
+): string | null {
+  if (got === wanted) return null
+
+  const demande = `Tu as repoussé jusqu’à ${formatRelativeDay(wanted, today)}.`
+  if (got === null) {
+    return `${demande} Rien ne se place d’ici la fin des deux semaines.`
+  }
+
+  const pose = `Le plan la pose ${formatRelativeDay(got, today)}`
+  return code ? `${demande} ${pose}, parce que ${REASONS[code]}.` : `${demande} ${pose}.`
+}

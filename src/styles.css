@@ -1807,3 +1807,57 @@ p {
   font-size: 0.75rem;
   color: var(--dim);
 }
+
+/* La liste des jours où reporter (E.14, révisé le 9 septembre 2026). Le geste
+   unique ne repoussait que d'un jour et se répétait : atteindre samedi depuis
+   un mardi demandait quatre taps. */
+.picker {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--border);
+}
+
+.picker > p {
+  margin: 0 0 0.5rem;
+}
+
+.picker-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.picker-day {
+  flex: none;
+  min-width: 2.75rem;
+  padding: 0.3125rem 0.375rem;
+  font-family: var(--serif);
+  font-size: 0.75rem;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.picker-day b {
+  display: block;
+  font-weight: 600;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--dim);
+}
+
+.picker-day:hover,
+.picker-day:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.picker-day:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

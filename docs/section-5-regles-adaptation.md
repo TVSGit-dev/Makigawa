@@ -973,8 +973,41 @@ séparément, et confondre les deux rendrait l'app sourde.
   jour plus tard, et l'athlète aurait raison de croire qu'on ne l'a pas
   entendu.
 - **« Plus tard »** repousse le *jour*, pas la séance. Le plan ne commence pas
-  avant le lendemain de la proposition repoussée. Le geste se répète : deux
-  taps repoussent de deux jours.
+  avant le jour choisi.
+
+### Repousser, mais jusqu'où — révisé le 9 septembre 2026
+
+Le geste unique de septembre ne repoussait que d'un jour, et se répétait :
+deux taps repoussaient de deux jours. Demandé et abandonné le même jour, pour
+une raison simple — *« soit demain, soit un autre jour, et qu'une liste
+apparaisse pour mettre le jour précis »*. Repousser à samedi depuis un mardi
+demandait quatre taps, et rien à l'écran ne disait où l'on en était.
+
+**Deux gestes, donc, là où il n'y en avait qu'un :**
+
+- **« Demain »** — le cas courant, en un tap. Le libellé nomme le jour réel
+  quand la proposition n'est pas aujourd'hui : « demain » à côté d'une séance
+  proposée jeudi serait un mensonge.
+- **« Un autre jour »** ouvre la liste des jours restants de l'horizon, et il
+  en désigne un.
+
+### Un jour choisi est un souhait, pas un ordre
+
+C'est le point qui décide, et il découle du E.7 : **l'app propose, l'athlète
+confirme** — pas l'inverse. Le jour choisi devient le premier jour acceptable,
+et le plan repart de là. Quand le E.2 dit oui, la séance tombe exactement là ;
+quand il dit non — une journée déjà chargée, une fraîcheur sous le plancher —
+elle glisse au premier jour suivant qui convient.
+
+**Et l'app le dit.** Glisser en silence serait le seul vrai défaut possible
+ici : l'athlète a demandé jeudi, il voit samedi, et rien ne le lui explique.
+Une ligne nomme donc le jour demandé, le jour obtenu, et le motif — celui-là
+même que le journal enregistre déjà (E.21), pas une phrase écrite pour
+l'occasion.
+
+Forcer le jour serait l'autre solution, et le projet ne la prend pas : elle
+reviendrait à poser une séance de qualité sur une journée que les règles
+refusent, c'est-à-dire à faire taire le E.2 d'un tap.
 
 ### L'adaptation du reste
 
@@ -985,7 +1018,9 @@ coûte quelques millisecondes et ne peut pas se contredire.
 
 Le report déplace la fenêtre entière : l'horizon des quatorze jours repart du
 premier jour encore acceptable, de sorte que repousser ne réduit jamais ce
-qu'on peut proposer.
+qu'on peut proposer. C'est vrai du jour choisi dans la liste comme du
+lendemain : les deux gestes posent le même plancher, ils ne diffèrent que par
+le nombre de taps.
 
 ### Ce qu'un refus ne fait pas
 
@@ -2307,7 +2342,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 16 | Le test FTP | **un seul jour proposé**, sous quatre conditions plus strictes que le E.2 (E.11) |
 | 17 | Effet du démenti de nuit | **force le mode prudent pour la journée**, rien de plus (E.12) |
 | 18 | Trajets et souplesse | **se posent d'avance**, sans structure ; la souplesse au niveau 0 (E.13) |
-| 19 | Refuser une proposition | **deux gestes** — écarter la famille, ou repousser le jour ; le plan est recalculé en entier (E.14) |
+| 19 | Refuser une proposition | **deux gestes** — écarter la famille, ou repousser le jour ; le plan est recalculé en entier (E.14). *Révisé le 9 septembre* : repousser offre « demain » ou une liste de jours, et le jour choisi est un souhait que l'app honore ou explique |
 | 20 | Savoir ce qui a été fait | **le lien d'intervals.icu d'abord**, le jour et la nature ensuite ; 85 % du prévu vaut tenue (E.15) |
 | 21 | Progresser | **un niveau par zone**, lu sur le temps de travail tenu en six semaines, et la séance suivante vise un cran au-dessus (E.16) |
 | 22 | Le choix du trajet | **le E.2 y répond**, sur trois réponses relevées : aller-retour musculaire, un seul, ou électrique (E.17) |

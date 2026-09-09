@@ -4,6 +4,7 @@ import {
   hasPlanPreferences,
   loadPlanPreferences,
   postponePlan,
+  postponePlanTo,
   refuseFamily,
   refusedKeys,
   resetPlanPreferences,
@@ -47,6 +48,25 @@ describe('écarter une famille', () => {
 describe('repousser le plan', () => {
   it('vise le lendemain de la proposition repoussée', () => {
     expect(postponePlan('2026-09-07').notBefore).toBe('2026-09-08')
+  })
+
+  it('pose le jour choisi tel quel, sans y ajouter un lendemain', () => {
+    // « Un autre jour » désigne le jour où l'on veut la voir, pas la veille.
+    expect(postponePlanTo('2026-09-12').notBefore).toBe('2026-09-12')
+  })
+
+  it('remplace le report précédent plutôt que de s’y ajouter', () => {
+    // Deux choix successifs sont deux avis, pas deux crans : le second gagne,
+    // et il peut ramener la séance plus tôt que le premier.
+    postponePlanTo('2026-09-12')
+    expect(postponePlanTo('2026-09-09').notBefore).toBe('2026-09-09')
+  })
+
+  it('n’oublie pas les familles écartées en repoussant', () => {
+    refuseFamily('seuil', '2026-09-07')
+    const apres = postponePlanTo('2026-09-12')
+    expect(apres.refused).toHaveProperty('seuil')
+    expect(apres.notBefore).toBe('2026-09-12')
   })
 
   it('se répète', () => {

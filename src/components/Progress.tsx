@@ -15,7 +15,7 @@
  */
 
 import type { Completion } from '../rules/done'
-import type { Refusal } from '../rules/decide'
+import { REASONS } from './reasons'
 import { countByReason, JOURNAL_DAYS, type Journal } from '../storage/journal'
 import { AFTER, BEFORE, mobilitySeconds, ROUTINE, STRENGTH, type Movement } from '../workouts/mobility'
 import { LEVELS, ZONE_NAMES, ZONES, type Zone } from '../workouts/levels'
@@ -133,19 +133,6 @@ function Refusals({ journal }: { journal: Journal }) {
 }
 
 /** Chaque motif en trois mots. La phrase entière vit dans `reasons.ts`. */
-const REASONS: Record<Refusal['code'], string> = {
-  'jour-deja-charge': 'la journée était déjà chargée',
-  'veille-chargee': 'la veille avait été chargée',
-  'deux-jours-charges': 'les deux jours d’avant pesaient déjà',
-  'lendemain-charge': 'le lendemain est chargé',
-  'tsb-sous-plancher': 'la fraîcheur était sous le plancher',
-  'variabilite-basse': 'la variabilité était sous la normale',
-  'quota-hebdomadaire': 'le quota de la semaine était atteint',
-  'une-seule-par-semaine': 'le mode prudent n’en garde qu’une',
-  'qualite-voisine': 'une autre séance de qualité était trop proche',
-  'force-trop-proche': 'du renfo était trop proche',
-  'renfo-sur-journee-chargee': 'du renfo sur une journée chargée',
-}
 
 /**
  * La souplesse (E.13), en lecture.
