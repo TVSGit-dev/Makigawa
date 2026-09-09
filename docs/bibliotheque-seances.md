@@ -51,6 +51,15 @@ Avec la FTP réglée à 221 W :
 > entier, et **le test FTP de la phase 5 est ce qui le lèvera**. En attendant :
 > si une séance en z4 paraît impossible à tenir, ce n'est pas un manque de
 > forme, c'est probablement la FTP qui est trop haute.
+>
+> **Corrigé le 9 septembre 2026 : c'est l'inverse.** Le trajet mesuré ce
+> jour-là passe **11 % de son temps à zéro watt** — c'est précisément ce qui
+> tire un « meilleur 20 minutes » vers le bas, et cela se chiffre désormais au
+> lieu de se supposer. Sa puissance normalisée, elle, tient **217 W sur 36 min,
+> deux fois dans la journée**. Les 175 et 161 W sont donc des planchers de
+> trajet et non des plafonds de forme : **la FTP du profil est trop basse
+> d'environ 8 %**, pas trop haute, et les séances en z4 et z5 de ce catalogue
+> sont plutôt trop douces que trop dures.
 
 ---
 

@@ -63,6 +63,13 @@
 > quotidien. Avec 183, cela fait 87 %, un effort tempo exigeant mais
 > répétable. L'usage réel penche donc plutôt vers 183 que vers 168. Ce n'est
 > pas une preuve, c'est un argument de vraisemblance.
+>
+> **Tranché le 9 septembre 2026, et ce n'en est plus une.** Les deux trajets du
+> jour portent la même puissance moyenne — 178,8 W à l'aller, 178,5 W au
+> retour — pour 172 puis 163 bpm. Avec un seuil à 169, l'aller se ferait
+> *au-dessus* du seuil pendant 36 min, et le retour du soir serait impossible.
+> Avec 183, l'aller fait 94 % du seuil et le retour 89 % : exigeant, et
+> répétable dans la journée. **183 tient, 169 non.**
 
 ---
 
@@ -81,13 +88,26 @@ l'historique sera calculé avec des valeurs par défaut fausses.
       intervals.icu estime de son côté une **eFTP à 205 W**, plus basse
       encore : l'intuition de viser bas est confortée. À confirmer par le
       test de 20 min.
+
+      > **Révisé le 9 septembre 2026, et dans l'autre sens.** Les trajets
+      > mesurés tiennent 217 W normalisés pendant 36 min, deux fois dans la
+      > journée. À 221 W de FTP ce serait deux tests maximaux en neuf heures ;
+      > à 205 W, une impossibilité. L'eFTP est basse parce que l'athlète ne
+      > teste jamais : elle ne voit que ce qu'il produit, donc c'est un
+      > plancher et non une estimation. Les six semaines sans sortie
+      > musculaire qui justifiaient de viser bas sont derrière.
+      > **Estimation retenue : 240 W** — le test de 20 min reste ce qui
+      > tranche.
 - [x] **LTHR : 183 bpm**, valeur affichée par intervals.icu après avoir
       rendu le réglage plutôt que de le choisir. C'est **15 bpm au-dessus**
       des 168-172 attendus, et 90,6 % de la FCmax — haut pour un seuil.
       **Reste à confirmer** : intervals.icu présente-t-il 183 comme une
       estimation sur données, ou comme une valeur par défaut ? Le champ
       « HRRc Min FC » affiche le même nombre, ce qui pourrait indiquer une
-      valeur liée plutôt qu'estimée.
+      valeur liée plutôt qu'estimée. **Confirmée par l'usage le 9 septembre
+      2026** : quelle que soit son origine, 183 est la seule des deux
+      hypothèses compatible avec un aller-retour musculaire tenu dans la
+      journée — voir la phase 1.
 - [x] Zones cardio observées, sans ajustement préalable cette fois — et
       **le contrôle échoue**. Avec une LTHR de 183, 150 bpm tombe en bas de
       Z2 Aérobie (148-162) et non en bas de tempo (163-171) ; 175 bpm tombe
@@ -138,6 +158,8 @@ Ne pas passer à la suite avant que ça soit vérifié.
       avec puissance et cardio (~160 bpm). intervals.icu affiche la
       puissance **normalisée** : attendre **~220 W**, et non les ~182 W
       de la reconstitution initiale. Les deux décrivent la même sortie.
+      **Mesuré le 9 septembre 2026 : 217,4 W normalisés pour 178,8 W de
+      moyenne.** L'attente était juste.
 - [x] Les Chill Commutes apparaissent en `EBikeRide` avec cardio
       (~129 bpm) et **sans puissance aberrante**.
 - [x] La sortie du 27 juillet est là (35,9 km, 1 h 25, 387 m D+).

@@ -117,8 +117,10 @@ l'interface :
 1. **Sortie longue** — dehors, sans structure, une charge visée.
 2. **Séance Zwift** — 30 à 75 min, composée par Makigawa, pour tout donner.
 3. **Zwift libre** — sur le home-trainer, sans consigne, une charge visée.
-4. **Trajets** — 17 km et 200 m D+ entre Stockel et Wavre, aller et retour.
-   Ils ne se posent pas : ils arrivent de Garmin. Leur charge compte toujours.
+4. **Trajets** — 15,6 km et 180 à 190 m D+ entre Stockel et Wavre, aller et
+   retour. Mesurés le 9 septembre 2026 ; les 17 km et 200 m annoncés d'abord
+   étaient estimés. Ils ne se posent pas : ils arrivent de Garmin. Leur charge
+   compte toujours.
 
 **La sortie ouverte est la seule séance sans structure que Makigawa crée** —
 décision du 6 septembre 2026, spécifiée en E.8. *Dormante depuis le
@@ -178,8 +180,8 @@ que tout événement du calendrier est une chose à faire.
 |---|---|---|
 | Poids | 80 kg | confirmé |
 | FCmax | 202 bpm | relevée par intervals.icu sur l'historique |
-| FTP | 221 W dans le profil | **intervals.icu l'estime en continu, et l'app lit cette estimation** (E.24) ; Garmin donnait 240 W au 6 septembre 2026 — non confirmée par test |
-| LTHR (FC seuil) | 183 bpm | valeur d'intervals.icu, **origine à confirmer** |
+| FTP | 221 W au profil, **~240 W en réalité** | Le profil est trop bas d'environ 8 %. Garmin donnait 240 W, et les trajets mesurés du 9 septembre 2026 y ramènent par un chemin indépendant ; intervals.icu estime 205 W, mais c'est un plancher (E.24). **Aucun des trois n'est un test** |
+| LTHR (FC seuil) | 183 bpm | valeur d'intervals.icu, **confirmée par l'usage le 9 septembre 2026** : 36 min à 172 bpm, refaites le soir à 163 bpm pour la même puissance — impossible si le seuil était à 169 |
 | `T_effort` | 150 bpm (74 % FCmax, 82 % LTHR) | seuil de travail — **sépare le facile du modéré depuis le E.29** ; il n'était employé nulle part avant |
 | `T_haut` | 175 bpm (87 % FCmax, 96 % LTHR) | seuil haut |
 
@@ -194,7 +196,9 @@ depuis juillet. À 80 kg cela fait **240 W**, soit 8 % au-dessus du profil.
 Cela lève la contradiction apparente avec les 175 W de meilleure puissance
 de 20 minutes relevés en juin et juillet : ces sorties n'étaient pas des
 tests, donc ce chiffre est un **plancher observé**, pas une estimation. Il ne
-disait rien de ce que l'athlète peut produire en cherchant.
+disait rien de ce que l'athlète peut produire en cherchant. Le plancher a
+d'ailleurs monté depuis, sans qu'aucun test soit fait : **188 W le
+9 septembre 2026**.
 
 Une réserve subsiste : on ne sait pas si Garmin exclut les trajets
 électriques de son estimation. La règle critique du projet les exclut par
@@ -202,6 +206,26 @@ principe ; rien ne garantit que Garmin fasse pareil. **Le test de la phase 5
 reste ce qui tranche**, et il tranche d'autant plus vite que les séances
 composées sont écrites en pourcentage de FTP : corriger le profil les
 recalibre toutes d'un coup.
+
+**Ce que les trajets mesurés en disent** — 9 septembre 2026, aller-retour
+musculaire, puissance réelle au capteur. L'aller tient **217 W normalisés
+pendant 36 min** ; le retour refait la même puissance moyenne neuf heures plus
+tard, à **9 bpm de moins**. Ce doublé élimine deux des trois nombres :
+
+| Si la FTP valait | l'aller vaudrait | ce que ça voudrait dire |
+|---|---|---|
+| 205 W (eFTP) | IF 1,06 | intenable, même une seule fois |
+| 221 W (profil) | IF 0,98 | un test maximal — puis répété le soir, ce qui est impossible |
+| 240 W | IF 0,91 | un tempo exigeant et répétable : c'est ce qui s'est passé |
+
+Le cardio borne dans l'autre sens : le retour à 163 bpm, soit 89 % de la LTHR,
+est un tempo et non un seuil. **L'estimation retenue est donc 240 W**, et elle
+retombe sur la courbe Garmin sans rien lui emprunter.
+
+Deux conséquences à connaître avant de corriger le profil : les séances étant
+écrites en pourcentage, elles **se durcissent toutes de 8 %** ; et intervals.icu
+recalculant l'historique, la Fitness affichée **baissera** sans que rien n'ait
+changé dans les jambes.
 
 **Les zones d'intervals.icu ne portent aucune règle non plus.** La
 classification des journées compare des bpm bruts à 150 et 175, jamais un
@@ -213,11 +237,12 @@ en bas de tempo (163-171) comme le supposait la phase 2 ; 175 bpm tombe en
 Z4 SubThreshold. Le contrôle de cohérence prévu échoue donc, **sans qu'aucune
 règle ne bouge**. La justification « 150 bpm = bas de zone tempo » ne tient
 plus ; le seuil, lui, reste à 150 bpm et garde son rôle : il sépare un trajet
-électrique (~129 bpm) d'un aller-retour musculaire (~160 bpm).
+électrique (~129 bpm) d'un aller-retour musculaire (163 à 172 bpm).
 
 Le contrôle qui vaut est celui de la phase 6, sur des journées réelles : un
 aller-retour électrique doit sortir en légère, un aller-retour musculaire en
-chargée. Tant qu'il n'a pas été fait, ne pas déplacer les seuils.
+chargée. **Fait le 9 septembre 2026** : l'aller-retour musculaire pèse 116, soit
+le niveau 3 — chargée, comme attendu. Les seuils tiennent ; ne pas les déplacer.
 
 ## Sources de données
 
@@ -262,9 +287,11 @@ sortie, intervals.icu affiche par défaut la puissance **normalisée**,
 systématiquement plus élevée que la moyenne arithmétique. Elle pondère les
 à-coups, qui coûtent plus cher physiologiquement qu'un effort régulier de
 même moyenne — d'où un écart d'autant plus grand que le parcours est haché.
-Sur le Hard Commute de référence : **220 W normalisés**, contre ~182 W
-relevés dans la reconstitution initiale. Les deux nombres décrivent la même
-sortie ; les comparer entre eux n'a pas de sens.
+Sur le Hard Commute mesuré le 9 septembre 2026 : **217 W normalisés** contre
+**179 W de moyenne**, soit un facteur de variabilité de **1,22**. L'écart vient
+du parcours lui-même — **11 % du trajet se passe à zéro watt**, en descente ou à
+l'arrêt. Les deux nombres décrivent la même sortie ; les comparer entre eux n'a
+pas de sens.
 
 ## Règles d'adaptation
 

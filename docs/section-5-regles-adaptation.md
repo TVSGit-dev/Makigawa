@@ -258,7 +258,7 @@ pas l'arrêter.
 
 **Tu n'as donc pas à choisir un modèle — tu en subis déjà un.** Tes trajets
 électriques (~129 bpm) forment une large base facile ; tes allers-retours
-musculaires (~160 bpm) forment une couche de tempo. **C'est un pyramidal,
+musculaires (163 à 172 bpm) forment une couche de tempo. **C'est un pyramidal,
 imposé par ta vie plutôt que choisi.**
 
 > **La proposition :** ne pas lutter contre. Considérer la base comme
@@ -1696,7 +1696,8 @@ Trois règles l'encadrent :
   l'app la lit, la compare, et laisse l'athlète décider. C'est la frontière du
   projet, appliquée à la donnée la plus tentante à corriger.
 - **Elle ne remplace pas le test.** Une estimation lue sur des efforts qui
-  n'étaient pas maximaux reste un plancher, exactement comme les 175 W de juin.
+  n'étaient pas maximaux reste un plancher, exactement comme les 175 W de juin,
+  devenus 188 W le 9 septembre sans qu'aucun test ait été fait.
   Le E.11 garde son rôle ; l'estimation dit seulement s'il devient urgent.
 
 ### Pourquoi ça ne casse aucune règle
@@ -1952,7 +1953,8 @@ Et les bornes existent depuis le premier jour, dans les constantes athlète :
 le début, elle vient de l'esquisse de phase 2 abandonnée le 5 septembre, et
 elle n'apparaissait nulle part dans le code. Elle retrouve ici un emploi, et
 c'est le seul honnête : elle sépare un trajet électrique (~129 bpm) d'un
-aller-retour musculaire (~160 bpm), donc elle sépare bien le facile du modéré.
+aller-retour musculaire (163 à 172 bpm), donc elle sépare bien le facile du
+modéré.
 
 ### Un constat, jamais une cible
 
@@ -1971,8 +1973,14 @@ raccourcis. La partie B garde ses sources ; le E.29 n'en tire aucune règle.
 
 Le piège du cycliste peu disponible n'est pas de mal doser le polarisé : c'est
 que **tout devienne modéré**. Jamais assez facile pour récupérer, jamais assez
-dur pour progresser. Avec cinq trajets par semaine entre 129 et 160 bpm, c'est
+dur pour progresser. Avec cinq trajets par semaine entre 129 et 172 bpm, c'est
 le risque réel, et rien dans l'app ne permettait de le voir.
+
+**Mesuré le 9 septembre 2026, et c'est exactement ça.** L'aller-retour
+musculaire du jour tourne à 172 puis 163 bpm de moyenne : les deux trajets
+tombent presque entiers dans la bande du milieu. Ce ne sont pas les trajets qui
+sont mal faits — c'est qu'ils occupent à eux seuls la zone où l'on progresse le
+moins, et c'est ce que les trois pourcentages servent à voir.
 
 Trois pourcentages le montrent d'un coup d'œil. L'athlète en fait ce qu'il
 veut : le document ne lui dit pas quoi en penser.
