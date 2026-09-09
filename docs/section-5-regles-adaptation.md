@@ -2327,6 +2327,38 @@ Une liste pré-remplie aurait été l'erreur : elle aurait mis dans son placard
 des affaires qu'il n'a pas, et l'app se serait mise à conseiller des
 couvre-chaussures imaginaires.
 
+#### Amendé le 9 septembre 2026 : ce que « pré-remplie » interdisait vraiment
+
+L'athlète a fini par donner ses pièces, une par une, en photos et en listes.
+Elles sont dans `docs/garde-robe.md`, et l'app démarre désormais **avec**.
+
+Ce n'est pas un revirement, parce que **la règle ne portait pas sur le
+remplissage, elle portait sur son auteur**. Ce qui était interdit, c'est que
+l'app *devine* — qu'elle décide qu'il possède des couvre-chaussures parce que
+la plupart des cyclistes en ont. Ce qui est écrit maintenant vient
+intégralement de lui : chacun des dix-neuf noms a été relevé sur ses photos ou
+sa liste, et la vingtième case reste vide **parce qu'il n'a pas la pièce**, pas
+parce qu'on hésite à la remplir. Aucun nom n'a été supposé, et le seul qui a
+failli l'être — un sous-vêtement mi-saison poussé dans la case thermique — a
+été refusé après vérification chez le fabricant.
+
+Trois garde-fous tiennent la frontière, et un test tient chacun :
+
+- **Une seule fois.** La déclaration est écrite au premier démarrage, jamais
+  après. L'app ne repasse pas derrière lui.
+- **Il gagne toujours.** Renommer, déclarer absente, ou effacer une pièce
+  l'emporte définitivement — une case qu'il vide ne se remplit pas à nouveau
+  au rechargement suivant. C'est ce qui distingue une valeur de départ d'une
+  valeur imposée.
+- **Rien ne s'invente en chemin.** Le vocabulaire reste celui des guides, et
+  la déclaration ne peut nommer que des catégories existantes.
+
+Ce qui n'a pas bougé : l'app n'a toujours **aucun avis** sur ce qu'il devrait
+posséder. Elle ne conseille pas d'achat, ne remplace pas une pièce manquante
+par une autre, et ne déplace aucune bande. La case vide du sous-vêtement
+thermique en est la démonstration : l'app la propose sous 8 °C, dit qu'elle
+manque, et n'en tire rien d'autre.
+
 **Elles sont vingt depuis le 9 septembre 2026**, et non plus seize. Les quatre
 ajoutées — bas de pluie, couvre-orteils, couvre-chaussures d'hiver, tour de cou
 d'hiver — ne sortent pas d'une envie de complétude : elles sortent du placard
