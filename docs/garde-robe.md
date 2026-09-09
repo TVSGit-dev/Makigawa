@@ -28,12 +28,12 @@ Dans l'ordre des bandes, de la plus douce à la plus froide, la pluie à la fin.
 | Maillot manches courtes | Castelli Espresso 2 Jersey | 4526011-010, Black, XL | 16 °C et plus |
 | Cuissard | Assos Mille GT C2 | — | 8 °C et plus |
 | Manchettes / gilet | Castelli Nano Flex 3G Armwarmer | 4519529-010, Black, L | 16 à 20 °C |
-| Sous-vêtement technique | Assos Spring Fall LS Skin Layer P1 | — | 8 à 16 °C |
+| Sous-vêtement technique | Assos Spring Fall LS Skin Layer P1 | donné 12 à 20 °C par Assos | 8 à 16 °C |
 | Maillot manches longues | Castelli Espresso Thermal Jersey | 4524508-085, Light Black, XL | sous 16 °C |
-| Jambières | *à préciser — les chaudes* | — | 8 à 16 °C |
+| Jambières | jambières chaudes Van Rysel | — | 8 à 16 °C |
 | Gants légers | Castelli Perfetto RoS | — | 8 à 16 °C |
 | Couvre-orteils | Assos Spring Fall P1 | — | 8 à 16 °C |
-| Sous-vêtement thermique | *à préciser — l'Assos* | — | sous 8 °C |
+| Sous-vêtement thermique | **aucune** — voir ci-dessous | — | sous 8 °C |
 | Collant thermique | Gorewear Spinshift thermique à bretelles | GOW682305, XL | sous 8 °C |
 | Gants fermés | Castelli Perfetto Max | — | 3 à 8 °C |
 | Tour de cou | Assos Spring Fall Neck Warmer P1 | — | 3 à 8 °C |
@@ -46,9 +46,20 @@ Dans l'ordre des bandes, de la plus douce à la plus froide, la pluie à la fin.
 | Veste imperméable | Castelli Emergency 3 Rain Jacket | Brilliant Orange, XL | pluie annoncée |
 | Bas de pluie | Vaude Kuro Pro | VAU744935, noir, L | pluie annoncée |
 
-**Deux noms restent à préciser** : les jambières chaudes et le sous-vêtement
-thermique Assos. Ils sont volontairement laissés vides plutôt que devinés —
-une case non remplie garde son nom générique, ce qui est le comportement prévu.
+**Le sous-vêtement thermique n'a pas de pièce, et ce n'est pas un oubli.**
+L'athlète a d'abord désigné l'**Assos Spring Fall LS Skin Layer P1** pour cette
+case. Vérification faite chez le fabricant, c'est une pièce de **mi-saison,
+donnée 12 à 20 °C** : elle occupe donc la case « sous-vêtement technique »
+(bande 8 à 16 °C), où elle figure déjà, et elle n'a rien à faire dans une bande
+qui commence sous 8.
+
+L'y mettre produirait exactement le défaut corrigé le même jour : une pièce de
+mi-saison conseillée par −2 °C. Assos vend séparément un **Winter LS Skin
+Layer P1**, taillé pour les températures à un chiffre — c'est lui qui
+remplirait la case, s'il l'a ou l'achète un jour.
+
+En attendant, la case garde son nom générique et continue d'être proposée.
+C'est le comportement prévu du E.32 : une case vide ne casse rien.
 
 **Le Perfetto Max occupe deux cases**, et c'est volontaire : c'est le seul gant
 fermé du placard, et il couvre honnêtement 3 à 8 °C comme en dessous. Rien
@@ -105,6 +116,18 @@ décision à part, pas un ajout de catégorie.
 
 ## Ce qui reste à faire
 
-- Préciser les deux noms manquants.
-- Recopier les vingt lignes dans l'écran « Ma garde-robe » du téléphone. Rien
-  ne le fait automatiquement, et c'est voulu.
+- **Dix-neuf cases sur vingt sont nommées.** La vingtième, le sous-vêtement
+  thermique, attend une pièce que l'athlète ne possède pas encore — un Assos
+  Winter LS Skin Layer P1 ou l'équivalent d'une autre marque.
+- Recopier les dix-neuf lignes dans l'écran « Ma garde-robe » du téléphone.
+  Rien ne le fait automatiquement, et c'est voulu.
+
+## Sources
+
+Les plages de température citées viennent du fabricant et de la presse, pas
+d'une estimation du projet :
+
+- [ASSOS Spring Fall LS Skin Layer P1](https://www.assos.com/int/spring-fall-ls-skin-layer-p1-p11-40-453-1p.html)
+- [Essai du Spring Fall LS Skin Layer P1, *Cyclist*](https://www.cyclist.co.uk/reviews/assos-spring-fall-ls-skin-layer-p1-long-sleeve-base-layer-review)
+- [ASSOS Winter LS Skin Layer P1](https://www.assos.com/us/winter-ls-skin-layer-p1-p11-40-454-18.html)
+- [Essai du Winter LS Skin Layer P1, *Cyclingnews*](https://www.cyclingnews.com/reviews/assos-winter-ls-skin-layer-review-supreme-comfort-but-does-it-justify-the-high-retail-price/)
