@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { BANDS, bagWeight, dressFor, toCarry, type Sky } from './dress'
+import { BANDS, RAIN_WEAR, bagWeight, dressFor, toCarry, type Sky } from './dress'
 import { GARMENTS, answered, garmentOf, isOwned, lacks, nameOf, type Wardrobe } from './garments'
 
 const ciel = (over: Partial<Sky> = {}): Sky => ({
@@ -23,8 +23,9 @@ describe('le vocabulaire des pièces', () => {
   it('couvre tout ce que les bandes demandent, et rien de plus', () => {
     // Une bande qui nommerait une catégorie absente du vocabulaire donnerait
     // une tenue que la garde-robe ne peut pas remplir.
-    const parBandes = new Set(BANDS.flatMap((band) => band.wear))
-    parBandes.add('impermeable')
+    // La pluie n'appartient à aucune bande : elle s'ajoute par-dessus, et
+    // `RAIN_WEAR` est la seule liste qui la dise.
+    const parBandes = new Set([...BANDS.flatMap((band) => band.wear), ...RAIN_WEAR])
     const connues = new Set(GARMENTS.map((one) => one.key))
 
     for (const key of parBandes) expect(connues.has(key), key).toBe(true)
@@ -74,11 +75,11 @@ describe('la tenue quand la garde-robe est connue', () => {
   it('cesse de proposer ce qu’il n’a pas, et le dit', () => {
     // Conseiller des couvre-chaussures qu'il n'a pas n'habille personne ; les
     // taire sans rien dire lui laisserait croire qu'il est couvert.
-    const garde: Wardrobe = { 'couvre-chaussures': null }
+    const garde: Wardrobe = { 'couvre-chaussures-hiver': null }
     const tenue = dressFor(ciel({ felt: -5 }), 'hard', garde)!
 
-    expect(tenue.wear).not.toContain('couvre-chaussures')
-    expect(tenue.missing).toEqual(['couvre-chaussures'])
+    expect(tenue.wear).not.toContain('couvre-chaussures-hiver')
+    expect(tenue.missing).toEqual(['couvre-chaussures-hiver'])
   })
 
   it('ne remplace jamais une pièce manquante par une autre', () => {
@@ -88,7 +89,9 @@ describe('la tenue quand la garde-robe est connue', () => {
     const tenue = dressFor(ciel({ felt: 12, code: 61 }), 'hard', garde)!
 
     expect(tenue.missing).toEqual(['impermeable'])
-    expect(tenue.wear).toEqual(tenue.band.wear)
+    // La bande est intacte et le bas de pluie reste : rien n'a pris la place
+    // de la veste, ni une pièce de la bande ni l'autre moitié de la pluie.
+    expect(tenue.wear).toEqual([...tenue.band.wear, 'bas-pluie'])
   })
 
   it('ne change pas la bande : la garde-robe n’entre pas dans le calcul', () => {

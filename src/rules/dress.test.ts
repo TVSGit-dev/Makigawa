@@ -12,6 +12,7 @@ import {
   wordOf,
   type Sky,
 } from './dress'
+import { garmentOf, type GarmentKey } from './garments'
 import type { WeatherHour } from '../api/weather'
 
 const heure = (time: string, over: Partial<WeatherHour> = {}): WeatherHour => ({
@@ -102,6 +103,54 @@ describe('s’habiller pour l’eau', () => {
     // Un ciel « couvert » à 60 % de pluie mouille autant qu'un ciel « pluie ».
     expect(isWet(ciel({ code: 3, rainChance: RAIN_LIKELY }))).toBe(true)
     expect(isWet(ciel({ code: 3, rainChance: RAIN_LIKELY - 1 }))).toBe(false)
+  })
+})
+
+describe('ce qu’une bande plus froide a le droit de retirer', () => {
+  /**
+   * La version plus chaude de chaque pièce, quand la bande suivante la
+   * remplace au lieu de la garder.
+   *
+   * C'est la seule sortie légitime : un gant léger devient un gant fermé, un
+   * cuissard et des jambières deviennent un collant. Tout le reste doit
+   * rester. Une pièce qui n'est ni gardée ni remplacée **disparaît quand il
+   * fait plus froid**, ce qui n'a jamais de sens et s'était produit trois fois
+   * avant le 9 septembre 2026 — le maillot manches longues et le tour de cou
+   * sous 3 °C, et le cuissard dès 20 °C.
+   */
+  const PLUS_CHAUD: Partial<Record<GarmentKey, GarmentKey>> = {
+    'manches-courtes': 'manches-longues',
+    manchettes: 'manches-longues',
+    'sous-technique': 'sous-thermique',
+    cuissard: 'collant',
+    jambieres: 'collant',
+    'gants-legers': 'gants',
+    gants: 'gants-hiver',
+    'tour-de-cou': 'tour-de-cou-hiver',
+    'couvre-orteils': 'couvre-chaussures',
+    'couvre-chaussures': 'couvre-chaussures-hiver',
+  }
+
+  it('ne laisse aucune pièce s’évaporer d’une bande à la suivante', () => {
+    for (let i = 1; i < BANDS.length; i += 1) {
+      const douce = BANDS[i - 1]!
+      const froide = BANDS[i]!
+      for (const piece of douce.wear) {
+        const gardee = froide.wear.includes(piece)
+        const remplacee = froide.wear.includes(PLUS_CHAUD[piece]!)
+        expect(gardee || remplacee, `${douce.name} → ${froide.name} : ${piece}`).toBe(true)
+      }
+    }
+  })
+
+  it('couvre le buste, les jambes et les mains dans chaque bande', () => {
+    // Une tenue sans bas n'est pas une tenue : c'est ce qui manquait entre
+    // 8 et 20 °C, où le cuissard n'était nommé nulle part.
+    for (const band of BANDS) {
+      const parts = new Set(band.wear.map((key) => garmentOf(key).part))
+      expect(parts.has('buste'), `${band.name} : rien sur le buste`).toBe(true)
+      expect(parts.has('jambes'), `${band.name} : rien sur les jambes`).toBe(true)
+    }
   })
 })
 
@@ -222,12 +271,13 @@ describe('ce qu’il faut emporter', () => {
     expect(toCarry(null, dressFor(ciel(), 'hard'))).toEqual([])
   })
 
-  it('emporte l’imperméable quand seul le soir est mouillé', () => {
+  it('emporte la pluie entière quand seul le soir est mouillé', () => {
     // Même bande de froid des deux côtés, mais la pluie n'arrive que le soir :
-    // c'est le cas où une comparaison de bandes seule ne suffirait pas.
+    // c'est le cas où une comparaison de bandes seule ne suffirait pas. Les
+    // deux pièces partent ensemble — la veste ne sert à rien sans le bas.
     const matin = dressFor(ciel({ felt: -8, rainChance: 0, code: 0 }), 'hard')
     const soir = dressFor(ciel({ felt: -8, rainChance: 90, code: 61 }), 'hard')
     expect(matin?.rank).toBe(soir?.rank)
-    expect(toCarry(matin, soir)).toEqual(['impermeable'])
+    expect(toCarry(matin, soir)).toEqual(['impermeable', 'bas-pluie'])
   })
 })

@@ -11,6 +11,13 @@
  * comportement du premier temps, celui d'avant la garde-robe. Une catégorie
  * qu'il déclare ne pas posséder **cesse d'être proposée** : lui conseiller des
  * couvre-chaussures qu'il n'a pas ne l'aide pas à s'habiller.
+ *
+ * **Elles sont vingt depuis le 9 septembre 2026**, et non plus seize. Les
+ * quatre ajoutées — bas de pluie, couvre-orteils, couvre-chaussures d'hiver,
+ * tour de cou d'hiver — viennent du placard réel de l'athlète, où elles
+ * n'avaient aucune case. Le sens de lecture compte : la garde-robe n'a pas été
+ * pliée pour entrer dans les catégories, ce sont les catégories qui ont été
+ * corrigées là où elles décrivaient mal ce qu'il porte.
  */
 
 export type GarmentKey =
@@ -21,15 +28,19 @@ export type GarmentKey =
   | 'manches-longues'
   | 'jambieres'
   | 'gants-legers'
+  | 'couvre-orteils'
   | 'sous-thermique'
   | 'collant'
   | 'gants'
   | 'tour-de-cou'
+  | 'couvre-chaussures'
   | 'coupe-vent'
   | 'gants-hiver'
-  | 'couvre-chaussures'
+  | 'tour-de-cou-hiver'
+  | 'couvre-chaussures-hiver'
   | 'bonnet'
   | 'impermeable'
+  | 'bas-pluie'
 
 /** Où la pièce se porte. Sert à ranger l'écran, pas à décider. */
 export type Part = 'buste' | 'jambes' | 'extremites' | 'dessus'
@@ -102,6 +113,13 @@ export const GARMENTS: readonly Garment[] = [
     bulk: 'poche',
   },
   {
+    key: 'couvre-orteils',
+    name: 'couvre-orteils',
+    part: 'extremites',
+    what: 'ce qui couvre le bout du pied sans couvrir la chaussure, de 8 à 16 °C',
+    bulk: 'poche',
+  },
+  {
     key: 'sous-thermique',
     name: 'sous-vêtement thermique',
     part: 'buste',
@@ -126,8 +144,15 @@ export const GARMENTS: readonly Garment[] = [
     key: 'tour-de-cou',
     name: 'tour de cou',
     part: 'extremites',
-    what: 'ce qui ferme le col, sous 8 °C',
+    what: 'ce qui ferme le col, de 3 à 8 °C',
     bulk: 'poche',
+  },
+  {
+    key: 'couvre-chaussures',
+    name: 'couvre-chaussures',
+    part: 'extremites',
+    what: 'ce qui coupe le vent aux pieds, de 3 à 8 °C',
+    bulk: 'sac',
   },
   {
     key: 'coupe-vent',
@@ -144,10 +169,17 @@ export const GARMENTS: readonly Garment[] = [
     bulk: 'sac',
   },
   {
-    key: 'couvre-chaussures',
-    name: 'couvre-chaussures',
+    key: 'tour-de-cou-hiver',
+    name: 'tour de cou d’hiver',
     part: 'extremites',
-    what: 'ce qui protège les pieds du vent et de l’eau, sous 3 °C',
+    what: 'le cache-cou épais, sous 3 °C',
+    bulk: 'poche',
+  },
+  {
+    key: 'couvre-chaussures-hiver',
+    name: 'couvre-chaussures d’hiver',
+    part: 'extremites',
+    what: 'ce qui protège les pieds du froid et de l’eau, sous 3 °C',
     bulk: 'sac',
   },
   {
@@ -162,6 +194,13 @@ export const GARMENTS: readonly Garment[] = [
     name: 'veste imperméable',
     part: 'dessus',
     what: 'la veste de pluie, dès que la pluie est annoncée',
+    bulk: 'sac',
+  },
+  {
+    key: 'bas-pluie',
+    name: 'bas de pluie',
+    part: 'jambes',
+    what: 'le sur-pantalon, dès que la pluie est annoncée',
     bulk: 'sac',
   },
 ]

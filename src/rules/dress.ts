@@ -135,6 +135,18 @@ export function isWet(sky: Sky): boolean {
  * s'arrêtent à « sous 8 °C » ; à Bruxelles cela couvre tout l'hiver, et un
  * matin à 1 °C ne demande pas la même chose qu'un matin à 7. La coupure ne
  * change rien au-dessus de 8.
+ *
+ * **Chaque bande énonce sa tenue en entier, et c'est une correction.** La
+ * spécification écrivait pour « sous 3 » : *tout cela, plus la veste*. Ce
+ * renvoi ne se programme pas, et la liste écrite ici avait perdu en route le
+ * maillot manches longues et le tour de cou : à −2 °C l'app habillait le cou
+ * nu, alors que la même ligne finissait par « rien de découvert ». Une bande
+ * ne renvoie donc plus à la précédente.
+ *
+ * Ce qu'une bande plus froide a le droit de faire, c'est **remplacer une pièce
+ * par sa version plus chaude** — les gants deviennent des gants d'hiver, le
+ * tour de cou et les couvre-chaussures passent à leur version d'hiver. Une
+ * pièce qui disparaît quand il fait plus froid est un défaut, jamais un choix.
  */
 export type Band = {
   /** Le ressenti à partir duquel la bande s'applique, en °C. */
@@ -151,26 +163,42 @@ export type Band = {
 
 export const BANDS: readonly Band[] = [
   { from: 20, name: 'Doux', wear: ['manches-courtes', 'cuissard'] },
-  { from: 16, name: 'Frais léger', wear: ['manches-courtes', 'manchettes'] },
+  { from: 16, name: 'Frais léger', wear: ['manches-courtes', 'manchettes', 'cuissard'] },
   {
     from: 8,
     name: 'Frais',
-    wear: ['sous-technique', 'manches-longues', 'jambieres', 'gants-legers'],
+    wear: [
+      'sous-technique',
+      'manches-longues',
+      'cuissard',
+      'jambieres',
+      'gants-legers',
+      'couvre-orteils',
+    ],
   },
   {
     from: 3,
     name: 'Froid',
-    wear: ['sous-thermique', 'manches-longues', 'collant', 'gants', 'tour-de-cou'],
+    wear: [
+      'sous-thermique',
+      'manches-longues',
+      'collant',
+      'gants',
+      'tour-de-cou',
+      'couvre-chaussures',
+    ],
   },
   {
     from: -50,
     name: 'Grand froid',
     wear: [
       'sous-thermique',
-      'coupe-vent',
+      'manches-longues',
       'collant',
+      'coupe-vent',
       'gants-hiver',
-      'couvre-chaussures',
+      'tour-de-cou-hiver',
+      'couvre-chaussures-hiver',
       'bonnet',
     ],
   },
@@ -212,8 +240,24 @@ export const ELECTRIC_DEGREES = 3
  * L'imperméable s'ajoute par-dessus sans que rien ne soit compté deux fois :
  * les guides recommandent les deux ensemble, la bande **et** la veste. Le vent,
  * lui, est déjà dans la température ressentie et n'entre pas ici.
+ *
+ * **Le bas de pluie s'ajoute avec elle**, et à toute température comme elle.
+ * La correction valait sept degrés en n'habillant que le buste, ce qui était
+ * son plus gros déséquilibre. Le porter par 18 °C se défend ici mieux
+ * qu'ailleurs : il ne s'agit pas de rouler mais d'**arriver au bureau**, et
+ * arriver les jambes trempées est exactement ce qu'il évite.
  */
 export const RAIN_DEGREES = 7
+
+/**
+ * Ce que la pluie ajoute, quelle que soit la bande.
+ *
+ * Nommé ici plutôt qu'écrit dans la tenue : ces deux pièces n'appartiennent à
+ * aucune bande, donc le garde-fou qui vérifie que le vocabulaire couvre
+ * exactement les bandes devait les rajouter à la main — et n'en connaissait
+ * qu'une. Une seule liste, et les deux endroits la lisent.
+ */
+export const RAIN_WEAR: readonly GarmentKey[] = ['impermeable', 'bas-pluie']
 
 export type Dressing = {
   band: Band
@@ -291,7 +335,7 @@ export function dressFor(
 
   const index = bandIndex(effective)
   const band = BANDS[index]!
-  const asked: GarmentKey[] = wet ? [...band.wear, 'impermeable'] : [...band.wear]
+  const asked: GarmentKey[] = wet ? [...band.wear, ...RAIN_WEAR] : [...band.wear]
 
   return {
     band,
