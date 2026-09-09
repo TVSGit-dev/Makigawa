@@ -22,6 +22,7 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { useCallback, useRef, useState } from 'react'
 import { Plan, type Readout } from './Plan'
 import { GARMENTS } from '../rules/garments'
+import { DECLARED } from '../storage/wardrobe'
 import type { Credentials } from '../storage/credentials'
 
 const credentials: Credentials = { athleteId: 'i1', apiKey: 'k' }
@@ -415,20 +416,23 @@ describe('la météo du trajet (E.31, E.32)', () => {
 })
 
 describe('ma garde-robe (E.32, second temps)', () => {
-  it('propose toutes les catégories, et aucune n’est remplie au départ', async () => {
+  it('propose toutes les catégories, et démarre sur ce qu’il a déclaré', async () => {
     // « Que tu n'inventes pas » : l'app fournit le vocabulaire, jamais les
-    // pièces. Une garde-robe pré-remplie serait exactement ce qu'il a exclu.
+    // pièces. Ce qui s'affiche au départ vient de lui, pièce par pièce — et la
+    // case qu'il ne possède pas reste vide, ce qui est la preuve que rien
+    // n'est deviné.
     serve({ weather: true })
     const { container } = plan()
     await waitFor(() => expect(container.querySelector('.wardrobe')).not.toBeNull())
 
     expect(container.querySelectorAll('.piece')).toHaveLength(GARMENTS.length)
     expect(container.querySelector('.wardrobe > summary')?.textContent).toContain(
-      `0 sur ${GARMENTS.length}`,
+      `${Object.keys(DECLARED).length} sur ${GARMENTS.length}`,
     )
-    for (const champ of container.querySelectorAll<HTMLInputElement>('.piece-edit input')) {
-      expect(champ.value).toBe('')
-    }
+    const remplis = [...container.querySelectorAll<HTMLInputElement>('.piece-edit input')].filter(
+      (champ) => champ.value.length > 0,
+    )
+    expect(remplis).toHaveLength(Object.keys(DECLARED).length)
   })
 
   it('nomme les pièces de l’athlète dans le plan dès qu’il les a dites', async () => {
@@ -457,12 +461,16 @@ describe('ma garde-robe (E.32, second temps)', () => {
     expect(bloc.querySelector('.win-wear')?.textContent).not.toContain('jambières')
   })
 
-  it('garde le nom générique tant qu’il n’a rien dit', async () => {
-    // Une garde-robe vide ne casse rien : c'est le premier temps du E.32.
+  it('garde le nom générique pour une case qu’il n’a pas remplie', async () => {
+    // Une case vide ne casse rien : c'est le premier temps du E.32, et il
+    // survit à la déclaration. Le sous-vêtement thermique est la seule case
+    // qu'elle laisse vide, parce que l'athlète n'a pas la pièce.
     serve({ weather: true })
     const { container } = plan()
     await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
-    expect(container.querySelector('.weather')?.textContent).toContain('gants légers')
+    expect(container.querySelector('.weather')?.textContent).toContain(
+      'sous-vêtement thermique',
+    )
   })
 
   it('retient ce qu’il tape, et le plan s’en sert aussitôt', async () => {
