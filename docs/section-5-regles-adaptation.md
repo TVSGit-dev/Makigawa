@@ -2336,6 +2336,13 @@ catégories, ce sont les catégories qui ont été corrigées là où elles
 décrivaient mal ce qu'il porte. Une pièce qu'il ne possède pas ne crée pas de
 catégorie ; une catégorie qu'il remplit et que l'app n'avait pas, si.
 
+Le relevé lui-même est dans **`docs/garde-robe.md`** : les vingt pièces avec
+leurs références, les arbitrages là où plusieurs candidats se disputaient une
+case, et ce qui reste délibérément hors des catégories. **Ce document n'est lu
+par aucune ligne de code** — ce serait la liste pré-remplie que le E.32
+interdit. C'est une trace, pour recopier sans rechercher et pour racheter sans
+se tromper de modèle.
+
 **Trois réponses par catégorie, et la troisième compte autant que les deux
 autres.**
 
