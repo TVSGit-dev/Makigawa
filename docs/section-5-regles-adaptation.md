@@ -2219,12 +2219,60 @@ les prend tels quels au lieu d'en inventer :
 Tous répètent la même chose sur le départ : *dress for fifteen minutes in, not
 the car park*.
 
-### Ce que l'app ne sait pas encore
+### La garde-robe — le second temps
 
-**Elle ne connaît pas sa garde-robe.** Elle nomme des catégories de vêtement,
-pas les siens : « un coupe-vent », pas « le coupe-vent noir ». Piocher dans ses
-affaires réelles suppose de les avoir relevées une à une, ce qui reste à faire
-et ne se devine pas — le projet n'invente pas les données de l'athlète.
+Demandé en même temps que le reste, et livré le 9 septembre 2026.
+
+**L'app fournit les catégories, l'athlète fournit les pièces.** C'est la seule
+répartition qui respecte sa consigne — *ne rien inventer, ne rien proposer au
+hasard*. Les catégories sont exactement celles que nomment les guides, celles
+dont les bandes se servaient déjà ; ce qu'il possède dans chacune, lui seul le
+sait, et il le dit dans l'écran « Ma garde-robe ».
+
+Une liste pré-remplie aurait été l'erreur : elle aurait mis dans son placard
+des affaires qu'il n'a pas, et l'app se serait mise à conseiller des
+couvre-chaussures imaginaires.
+
+**Trois réponses par catégorie, et la troisième compte autant que les deux
+autres.**
+
+| Ce qu'il répond | Ce que l'app en fait |
+|---|---|
+| Il **nomme** sa pièce | C'est son nom qui s'affiche dans le plan : « gants Rogelli noirs », pas « gants légers » |
+| Il déclare **ne pas l'avoir** | Elle **cesse de la proposer**, et le dit — « il te manque : jambières » |
+| Il **ne dit rien** | La pièce garde son nom générique, ce qui est le comportement du premier temps |
+
+Une garde-robe vide ne casse donc rien : c'est l'état de départ, et l'app
+conseille pendant ce temps-là comme elle le faisait avant l'écran.
+
+### Ce qu'une pièce manquante ne déclenche pas
+
+**Aucun remplacement.** L'app ne sait pas si son coupe-vent vaut un
+imperméable, et le supposer serait exactement ce qu'elle s'interdit ailleurs.
+Elle retire la pièce de la tenue, la nomme à part, et s'arrête là.
+
+**Aucun conseil d'achat.** Elle n'a pas d'avis sur ce qu'il devrait posséder,
+seulement sur ce qu'il fait froid. Un test lit le bloc du jour et refuse le
+moindre « achète » ou « il te faudrait ».
+
+**Aucun changement de bande.** Les degrés décident, la garde-robe ne fait que
+filtrer ce qui en sort. Une pièce absente ne réchauffe ni ne refroidit le
+raisonnement.
+
+### Ce que le sac va peser
+
+Chaque catégorie porte un encombrement — **poche** ou **sac** — parce que
+l'athlète se change au bureau mais ne transporte pas grand-chose. Quand ce que
+le soir demande en plus tient dans une poche, l'app le dit ; sinon elle se
+tait, parce qu'elle ne connaît ni la taille de son sac ni ce qu'il y met déjà.
+C'est tout ce qu'elle peut affirmer honnêtement d'un encombrement.
+
+### Ce qui reste hors de portée
+
+**Elle ne sait pas ce qu'il a déjà porté cette semaine**, ni ce qui est au
+lavage. Une garde-robe dit ce qu'on possède, pas ce qui est propre, et l'app
+n'a aucun moyen de l'apprendre sans le lui demander tous les jours — ce qui
+serait un compteur de plus, exactement ce que le projet refuse.
 
 
 ---
@@ -2279,6 +2327,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 36 | La variabilité | **moyenne glissante sur 7 jours du ln(rMSSD)**, comparée à une demi-écart-type sous la ligne de base ; sixième condition du E.2, muette tant que la base n'est pas faite (E.30) |
 | 37 | La météo du trajet | **Open-Meteo, sans clé**, sur les fenêtres 8-9 h et 17-18 h ; sept jours au plus, et elle ne décide rien (E.31) |
 | 38 | Comment s'habiller | **des bandes de ressenti relevées dans les guides** (20 / 16 / 8) ; deux corrections en degrés sur la même échelle — trois pour l'électrique, le seul nombre estimé, sept pour la pluie, qui est publié (E.32) |
+| 39 | La garde-robe | **l'app fournit les catégories, l'athlète les pièces** ; ce qu'il déclare ne pas avoir cesse d'être proposé, sans remplacement ni conseil d'achat (E.32) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

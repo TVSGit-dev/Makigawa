@@ -15,6 +15,7 @@ import type { WeatherHour } from '../api/weather'
 import { COMMUTE_LABELS, type CommuteKind } from '../actions/commute'
 import type { DayKey } from '../calendar/dates'
 import {
+  bagWeight,
   dressFor,
   signOf,
   skyOf,
@@ -23,6 +24,17 @@ import {
   type Sky,
   type Window,
 } from '../rules/dress'
+import { nameOf, type GarmentKey, type Wardrobe } from '../rules/garments'
+
+/**
+ * Les pièces, nommées comme il les nomme.
+ *
+ * Une catégorie qu'il n'a pas remplie garde son nom générique : c'est ce que
+ * l'app disait avant la garde-robe, et une garde-robe vide ne casse rien.
+ */
+function listOf(wardrobe: Wardrobe, keys: readonly GarmentKey[]): string {
+  return keys.map((key) => nameOf(wardrobe, key)).join(', ')
+}
 
 /** Le degré, arrondi. Une décimale sur un ressenti donnerait une fausse précision. */
 function degrees(value: number | null): string {
@@ -77,15 +89,17 @@ function WindowLine({
   sky,
   window,
   commute,
+  wardrobe,
   same,
 }: {
   sky: Sky | null
   window: Window
   commute: CommuteKind
+  wardrobe: Wardrobe
   same?: boolean
 }) {
   if (!sky) return null
-  const dressing = dressFor(sky, commute)
+  const dressing = dressFor(sky, commute, wardrobe)
   const shifted = dressing !== null && Math.round(dressing.effective) !== Math.round(sky.felt ?? 0)
 
   return (
@@ -107,7 +121,7 @@ function WindowLine({
       {dressing ? (
         <p className="win-wear">
           <strong>{dressing.band.name}</strong> —{' '}
-          {same ? 'même tenue qu’au matin' : dressing.wear.join(', ')}
+          {same ? 'même tenue qu’au matin' : listOf(wardrobe, dressing.wear)}
           {/* Le pont entre les deux nombres. Sans lui, « 12° » à côté d'une
               tenue de 9° passe pour une erreur de l'app plutôt que pour la
               correction qu'elle est. */}
@@ -121,6 +135,14 @@ function WindowLine({
             </span>
           ) : null}
         </p>
+      ) : null}
+
+      {/* Ce qu'il a déclaré ne pas avoir. Le taire lui laisserait croire qu'il
+          est couvert ; l'app ne propose pas de remplacement pour autant, elle
+          ne sait pas ce que ses affaires valent les unes par rapport aux
+          autres. */}
+      {dressing && dressing.missing.length > 0 && !same ? (
+        <p className="win-missing">Il te manque : {listOf(wardrobe, dressing.missing)}.</p>
       ) : null}
     </div>
   )
@@ -138,17 +160,19 @@ export function DayWeather({
   hours,
   date,
   commute,
+  wardrobe,
 }: {
   hours: readonly WeatherHour[]
   date: DayKey
   commute: CommuteKind
+  wardrobe: Wardrobe
 }) {
   const matin = skyOf(hours, date, 'matin')
   const soir = skyOf(hours, date, 'soir')
   if (!matin && !soir) return null
 
-  const tenueMatin = dressFor(matin, commute)
-  const tenueSoir = dressFor(soir, commute)
+  const tenueMatin = dressFor(matin, commute, wardrobe)
+  const tenueSoir = dressFor(soir, commute, wardrobe)
   const carry = toCarry(tenueMatin, tenueSoir)
 
   // « Même tenue » plutôt que la même liste deux fois : c'est la même chose,
@@ -156,7 +180,8 @@ export function DayWeather({
   const identique =
     tenueMatin !== null &&
     tenueSoir !== null &&
-    tenueMatin.wear.join('|') === tenueSoir.wear.join('|')
+    tenueMatin.wear.join('|') === tenueSoir.wear.join('|') &&
+    tenueMatin.missing.join('|') === tenueSoir.missing.join('|')
 
   return (
     <section className="weather">
@@ -164,12 +189,26 @@ export function DayWeather({
         {commute === 'aucun' ? 'Aucun trajet marqué — la météo seule' : `Trajet ${COMMUTE_LABELS[commute]}`}
       </p>
 
-      <WindowLine sky={matin} window="matin" commute={commute} />
-      <WindowLine sky={soir} window="soir" commute={commute} same={identique} />
+      <WindowLine sky={matin} window="matin" commute={commute} wardrobe={wardrobe} />
+      <WindowLine
+        sky={soir}
+        window="soir"
+        commute={commute}
+        wardrobe={wardrobe}
+        same={identique}
+      />
 
+      {/* Ce qui doit tenir dans le sac, et ce que ça va peser. Deux pièces de
+          poche ne se remarquent pas ; un collant thermique, si — c'est tout ce
+          que l'app peut dire honnêtement d'un encombrement, elle ne connaît ni
+          son sac ni ce qu'il y met déjà. */}
       {carry.length > 0 ? (
         <p className="weather-carry">
-          <strong>Dans le sac :</strong> {carry.join(', ')}.
+          <strong>Dans le sac :</strong> {listOf(wardrobe, carry)}
+          {bagWeight(carry) === 'poche' ? (
+            <span className="muted"> — ça tient dans une poche</span>
+          ) : null}
+          .
         </p>
       ) : null}
 

@@ -35,6 +35,7 @@ import { Profile } from './Profile'
 import { SessionCard, type DeleteState } from './SessionCard'
 import { DayWeather } from './Weather'
 import type { WeatherHour } from '../api/weather'
+import type { Wardrobe as Closet } from '../rules/garments'
 
 /**
  * Le poids d'une journée, en un mot.
@@ -72,6 +73,8 @@ type Props = {
   activities: readonly Activity[]
   /** La prévision du trajet, sur les sept jours qu'elle couvre (E.31). */
   weather: readonly WeatherHour[]
+  /** Ce que l'athlète possède, pour nommer ses pièces plutôt que des catégories. */
+  wardrobe: Closet
   /** Vrai si l'athlète a écarté ou repoussé quelque chose (E.14). */
   refusing: boolean
   removals: Record<string, DeleteState>
@@ -96,6 +99,7 @@ export function Week({
   ftp,
   activities,
   weather,
+  wardrobe,
   refusing,
   removals,
   selected,
@@ -154,6 +158,7 @@ export function Week({
         intent={intent}
         ftp={ftp}
         weather={weather}
+        wardrobe={wardrobe}
         first={first?.date === selected}
         removals={removals}
         onRefuse={onRefuse}
@@ -206,6 +211,7 @@ function DaySheet({
   intent,
   ftp,
   weather,
+  wardrobe,
   first,
   removals,
   onRefuse,
@@ -217,6 +223,7 @@ function DaySheet({
   intent: Intent
   ftp: number | null
   weather: readonly WeatherHour[]
+  wardrobe: Closet
   first: boolean
   removals: Record<string, DeleteState>
   onRefuse: (familyKey: string) => void
@@ -234,7 +241,12 @@ function DaySheet({
         <Load weight={day.weight} />
       </p>
 
-      <DayWeather hours={weather} date={day.date} commute={day.commute} />
+      <DayWeather
+        hours={weather}
+        date={day.date}
+        commute={day.commute}
+        wardrobe={wardrobe}
+      />
 
       {day.items.map(({ event, proposal }) => {
         const id = event.id ?? ''

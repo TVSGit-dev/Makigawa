@@ -48,6 +48,9 @@ import { bandsOf } from '../rules/peak'
 import { describeAge, loadRead, saveRead } from '../storage/cache'
 import { fetchWeather, type WeatherHour } from '../api/weather'
 import { isFresh, loadWeather, saveWeather } from '../storage/weather'
+import { loadWardrobe } from '../storage/wardrobe'
+import type { Wardrobe as Closet } from '../rules/garments'
+import { Wardrobe } from './Wardrobe'
 import { loadPeaks, savePeaks, type Peaks } from '../storage/peaks'
 import { loadJournal, recordRefusals, type Journal, type JournalEntry } from '../storage/journal'
 import {
@@ -200,6 +203,14 @@ export function Plan({
   const [weather, setWeather] = useState<readonly WeatherHour[]>(
     () => loadWeather()?.hours ?? [],
   )
+
+  /**
+   * Ce que l'athlète possède (E.32, second temps).
+   *
+   * Vide au départ, et c'est un état normal : les pièces gardent alors leur
+   * nom générique, ce que l'app faisait avant cet écran.
+   */
+  const [wardrobe, setWardrobe] = useState<Closet>(() => loadWardrobe())
 
   const today = toDayKey(new Date())
 
@@ -678,6 +689,7 @@ export function Plan({
         ftp={state.data.ftp}
         activities={state.data.activities}
         weather={weather}
+        wardrobe={wardrobe}
         refusing={hasPlanPreferences(choices)}
         removals={removals}
         onCommute={(date) => setCommutes(cycleCommute(date))}
@@ -690,6 +702,10 @@ export function Plan({
       {/* Le catalogue s'ouvre : l'app propose, mais si rien ne convient
           l'athlète choisit lui-même au lieu de refuser trois fois (E.27). */}
       <Catalogue levels={levels} ftp={state.data.ftp} />
+
+      {/* Sa garde-robe, repliée comme le catalogue : on la remplit une fois,
+          pas tous les matins (E.32). */}
+      <Wardrobe wardrobe={wardrobe} onChange={setWardrobe} />
 
       {context ? (
         <TestDay

@@ -14,6 +14,7 @@
 import type { CommuteKind } from '../actions/commute'
 import type { WeatherHour } from '../api/weather'
 import type { DayKey } from '../calendar/dates'
+import { garmentOf, lacks, type GarmentKey, type Wardrobe } from './garments'
 
 /** Les heures que couvre chaque fenêtre, dans le fuseau de la prévision. */
 export const MORNING_HOURS = [8, 9] as const
@@ -139,47 +140,38 @@ export type Band = {
   /** Le ressenti à partir duquel la bande s'applique, en °C. */
   from: number
   name: string
-  wear: readonly string[]
+  /**
+   * Les catégories de pièces, jamais des noms libres.
+   *
+   * C'est ce qui permet à la garde-robe de s'y brancher : l'app dit la
+   * catégorie, l'athlète dit laquelle des siennes la remplit.
+   */
+  wear: readonly GarmentKey[]
 }
 
 export const BANDS: readonly Band[] = [
-  { from: 20, name: 'Doux', wear: ['maillot manches courtes', 'cuissard'] },
-  {
-    from: 16,
-    name: 'Frais léger',
-    wear: ['manches courtes', 'manchettes ou gilet coupe-vent'],
-  },
+  { from: 20, name: 'Doux', wear: ['manches-courtes', 'cuissard'] },
+  { from: 16, name: 'Frais léger', wear: ['manches-courtes', 'manchettes'] },
   {
     from: 8,
     name: 'Frais',
-    wear: [
-      'sous-vêtement technique',
-      'manches longues ou manchettes',
-      'jambières',
-      'gants légers',
-    ],
+    wear: ['sous-technique', 'manches-longues', 'jambieres', 'gants-legers'],
   },
   {
     from: 3,
     name: 'Froid',
-    wear: [
-      'sous-vêtement thermique',
-      'manches longues',
-      'collant thermique',
-      'gants',
-      'tour de cou',
-    ],
+    wear: ['sous-thermique', 'manches-longues', 'collant', 'gants', 'tour-de-cou'],
   },
   {
     from: -50,
     name: 'Grand froid',
     wear: [
-      'sous-vêtement thermique',
-      'veste coupe-vent',
-      'collant thermique',
-      'gants d’hiver',
+      'sous-thermique',
+      'coupe-vent',
+      'collant',
+      'gants-hiver',
       'couvre-chaussures',
-      'rien de découvert',
+      'bonnet',
     ],
   },
 ]
@@ -231,12 +223,22 @@ export type Dressing = {
    * Le ressenti pour lequel on s'habille réellement, en °C.
    *
    * Égal au ressenti annoncé pour un trajet musculaire ; plus bas en
-   * électrique. L'écran s'en sert pour rapprocher les deux nombres — sans
-   * quoi « 12° » à côté d'une tenue de 9° passe pour une erreur de l'app.
+   * électrique, plus bas encore sous la pluie. L'écran s'en sert pour
+   * rapprocher les deux nombres — sans quoi « 12° » à côté d'une tenue de 9°
+   * passe pour une erreur de l'app.
    */
   effective: number
-  /** Les vêtements, la pluie comprise quand elle est annoncée. */
-  wear: readonly string[]
+  /** Les catégories à porter, la pluie comprise quand elle est annoncée. */
+  wear: readonly GarmentKey[]
+  /**
+   * Ce que la bande demandait et qu'il n'a pas.
+   *
+   * Dit franchement plutôt que masqué : c'est la même règle que pour les
+   * lectures manquantes d'intervals.icu. Une pièce absente ne se remplace pas
+   * par une autre — l'app ne sait pas si son coupe-vent vaut un imperméable,
+   * et le supposer serait exactement ce qu'elle s'interdit.
+   */
+  missing: readonly GarmentKey[]
   /** Ce qui a déplacé la bande, dit en clair. Vide quand rien ne l'a déplacée. */
   because: readonly string[]
 }
@@ -259,8 +261,18 @@ export type Dressing = {
  * de bande pour la pluie — et l'écran affichait alors « comme pour 5° » à côté
  * d'une tenue de grand froid. Les deux nombres se contredisaient, ce qui est
  * pire que de se tromper : l'app ne savait plus dire ce qu'elle faisait.
+ *
+ * **La garde-robe ne change pas le raisonnement, seulement ce qui en sort.**
+ * La bande est choisie sur des degrés, comme avant ; ce que l'athlète ne
+ * possède pas est ensuite retiré de la tenue et nommé à part. Une pièce
+ * manquante n'en fait pas glisser une autre à sa place : l'app ne sait pas ce
+ * que ses affaires valent les unes par rapport aux autres.
  */
-export function dressFor(sky: Sky | null, commute: CommuteKind): Dressing | null {
+export function dressFor(
+  sky: Sky | null,
+  commute: CommuteKind,
+  wardrobe: Wardrobe = {},
+): Dressing | null {
   if (!sky || sky.felt === null || commute === 'aucun') return null
 
   const because: string[] = []
@@ -279,9 +291,16 @@ export function dressFor(sky: Sky | null, commute: CommuteKind): Dressing | null
 
   const index = bandIndex(effective)
   const band = BANDS[index]!
-  const wear = wet ? [...band.wear, 'veste imperméable'] : band.wear
+  const asked: GarmentKey[] = wet ? [...band.wear, 'impermeable'] : [...band.wear]
 
-  return { band, rank: index, effective, wear, because }
+  return {
+    band,
+    rank: index,
+    effective,
+    wear: asked.filter((key) => !lacks(wardrobe, key)),
+    missing: asked.filter((key) => lacks(wardrobe, key)),
+    because,
+  }
 }
 
 /**
@@ -299,9 +318,24 @@ export function dressFor(sky: Sky | null, commute: CommuteKind): Dressing | null
  * pluie, qui ajoute sa veste sans changer de bande quand le froid est déjà au
  * fond du barème.
  */
-export function toCarry(morning: Dressing | null, evening: Dressing | null): string[] {
+export function toCarry(
+  morning: Dressing | null,
+  evening: Dressing | null,
+): readonly GarmentKey[] {
   if (!morning || !evening) return []
   if (evening.rank < morning.rank) return []
   const already = new Set(morning.wear)
   return evening.wear.filter((piece) => !already.has(piece))
+}
+
+/**
+ * Ce que le sac va peser, en un mot.
+ *
+ * Deux pièces de poche ne se remarquent pas ; deux pièces de sac, si. C'est la
+ * seule chose que l'app puisse dire honnêtement d'un encombrement — elle ne
+ * connaît ni la taille de son sac ni ce qu'il y met déjà.
+ */
+export function bagWeight(carry: readonly GarmentKey[]): 'rien' | 'poche' | 'sac' {
+  if (carry.length === 0) return 'rien'
+  return carry.some((key) => garmentOf(key).bulk === 'sac') ? 'sac' : 'poche'
 }

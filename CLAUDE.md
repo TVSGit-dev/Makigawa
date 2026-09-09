@@ -338,6 +338,12 @@ En bref :
   séance et n'entre dans aucune des six conditions du E.2 : une pluie annoncée
   ne fait pas d'un mardi un mauvais jour pour du seuil, la séance est à
   l'intérieur.
+- **La garde-robe est à lui, le vocabulaire est à l'app** (E.32). Elle nomme
+  seize catégories — celles des guides, dont les bandes se servaient déjà — et
+  il dit laquelle de ses affaires remplit chacune, ou qu'elle lui manque. Ce
+  qu'il déclare ne pas avoir **cesse d'être proposé** et se dit à part ; rien
+  n'est remplacé par autre chose, et rien n'est jamais conseillé à l'achat.
+  Une garde-robe vide ne casse rien : les pièces gardent leur nom générique.
 - **La tenue vient des guides, pas du projet** (E.32). Les bandes de ressenti
   sont publiées (20 / 16 / 8 °C), la correction de pluie aussi — sept degrés,
   « douze sous la pluie en valent cinq ». **Un seul nombre est estimé** : les
@@ -432,6 +438,12 @@ ses séances dans des collections qui portent le même vocabulaire que les zones
 du projet ; l'app nomme la bonne et dit quoi y chercher. C'est un panneau
 indicateur, pas une recette : la frontière du E.9 tient, et l'app ne prétend
 pas que la séance existe.
+
+**La garde-robe se remplit une fois.** Repliée comme le catalogue, seize
+catégories, trois réponses possibles pour chacune — la nommer, la déclarer
+absente, ou ne rien dire. Ce n'est pas une liste de courses : l'app n'a pas
+d'avis sur ce que l'athlète devrait posséder, seulement sur ce qu'il fait
+froid.
 
 **Le catalogue s'ouvre.** L'athlète ne voyait jamais que ce qui lui était
 proposé. Les onze familles sont désormais lisibles, avec ce que chacune

@@ -137,8 +137,8 @@ describe('comment s’habiller (E.32)', () => {
     // moins restent dans la même bande, et c'est le résultat juste.
     const doux = dressFor(ciel({ felt: 12 }), 'chill')!
     expect(doux.band.name).toBe('Frais')
-    expect(doux.wear).not.toContain('tour de cou')
-    expect(doux.wear).not.toContain('collant thermique')
+    expect(doux.wear).not.toContain('tour-de-cou')
+    expect(doux.wear).not.toContain('collant')
 
     // À dix-neuf degrés, l'assistance ne change rien à ce qu'on met.
     expect(dressFor(ciel({ felt: 19 }), 'chill')!.band.name).toBe(
@@ -154,8 +154,8 @@ describe('comment s’habiller (E.32)', () => {
     expect(sec.band.name).toBe('Frais')
     expect(mouille.effective).toBe(5)
     expect(mouille.band.name).toBe('Froid')
-    expect(mouille.wear).toContain('veste imperméable')
-    expect(sec.wear).not.toContain('veste imperméable')
+    expect(mouille.wear).toContain('impermeable')
+    expect(sec.wear).not.toContain('impermeable')
   })
 
   it('cumule les deux corrections sur la même échelle', () => {
@@ -228,6 +228,6 @@ describe('ce qu’il faut emporter', () => {
     const matin = dressFor(ciel({ felt: -8, rainChance: 0, code: 0 }), 'hard')
     const soir = dressFor(ciel({ felt: -8, rainChance: 90, code: 61 }), 'hard')
     expect(matin?.rank).toBe(soir?.rank)
-    expect(toCarry(matin, soir)).toEqual(['veste imperméable'])
+    expect(toCarry(matin, soir)).toEqual(['impermeable'])
   })
 })
