@@ -572,11 +572,39 @@ p {
 }
 
 .ticks,
-.marks {
+.marks,
+.skies {
   display: grid;
   grid-template-columns: repeat(14, 1fr);
   gap: 2px;
   padding: 0 0.25rem;
+}
+
+/* Deux signes par jour, le matin au-dessus du soir (E.31). Une colonne fait
+   vingt-six pixels : un mot n'y tient pas, deux signes empilés oui. */
+.skies {
+  padding-top: 0.5rem;
+}
+
+.sky {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.sky i {
+  font-style: normal;
+  /* Une colonne fait vingt-six pixels de large : au-delà de treize, deux
+     signes empilés se touchent. */
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+/* Les jours que la prévision ne couvre pas gardent leur place, sans quoi les
+   colonnes se décaleraient les unes par rapport aux autres. */
+.sky-none {
+  min-height: 2rem;
 }
 
 .ticks {
@@ -698,6 +726,87 @@ p {
 
 .sheet-empty {
   margin: 0;
+}
+
+/* La météo du jour ouvert (E.31, E.32). Deux fenêtres, ce qu'elles valent en
+   degrés ressentis, et la tenue qui va avec. */
+.weather {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+}
+
+.weather-head {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.win-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.win-when {
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--dim);
+  min-width: 3.25rem;
+}
+
+.win-sign {
+  font-size: 1rem;
+}
+
+.win-word {
+  color: var(--text);
+}
+
+.win-deg {
+  margin-left: auto;
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.win-deg em {
+  font-style: normal;
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.6875rem;
+  color: var(--dim);
+}
+
+.win-wear {
+  margin: 0.1875rem 0 0;
+  font-size: 0.75rem;
+  color: var(--dim);
+}
+
+.win-wear strong {
+  color: var(--text);
+}
+
+/* Ce qui doit tenir dans le sac : il se change au bureau, mais ne transporte
+   pas grand-chose. C'est la seule ligne du bloc qui demande une action. */
+.weather-carry {
+  margin: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text);
 }
 
 /* La dose de la semaine et la sortie longue (E.23). Un bloc, un chiffre qui

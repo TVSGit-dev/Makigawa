@@ -33,6 +33,8 @@ import type { Activity } from '../api/intervals'
 import { formatDayShort, formatDuration, type DayKey } from '../calendar/dates'
 import { Profile } from './Profile'
 import { SessionCard, type DeleteState } from './SessionCard'
+import { DayWeather } from './Weather'
+import type { WeatherHour } from '../api/weather'
 
 /**
  * Le poids d'une journée, en un mot.
@@ -68,6 +70,8 @@ type Props = {
   ftp: number | null
   /** L'historique, pour lire ce que les sorties ont réellement coûté (E.23). */
   activities: readonly Activity[]
+  /** La prévision du trajet, sur les sept jours qu'elle couvre (E.31). */
+  weather: readonly WeatherHour[]
   /** Vrai si l'athlète a écarté ou repoussé quelque chose (E.14). */
   refusing: boolean
   removals: Record<string, DeleteState>
@@ -91,6 +95,7 @@ export function Week({
   spread,
   ftp,
   activities,
+  weather,
   refusing,
   removals,
   selected,
@@ -119,6 +124,7 @@ export function Week({
         days={days}
         today={today}
         perDay={perDay(dose)}
+        weather={weather}
         selected={selected}
         onSelect={onSelect}
         onCommute={onCommute}
@@ -147,6 +153,7 @@ export function Week({
         today={today}
         intent={intent}
         ftp={ftp}
+        weather={weather}
         first={first?.date === selected}
         removals={removals}
         onRefuse={onRefuse}
@@ -198,6 +205,7 @@ function DaySheet({
   today,
   intent,
   ftp,
+  weather,
   first,
   removals,
   onRefuse,
@@ -208,6 +216,7 @@ function DaySheet({
   today: DayKey
   intent: Intent
   ftp: number | null
+  weather: readonly WeatherHour[]
   first: boolean
   removals: Record<string, DeleteState>
   onRefuse: (familyKey: string) => void
@@ -224,6 +233,8 @@ function DaySheet({
         </span>
         <Load weight={day.weight} />
       </p>
+
+      <DayWeather hours={weather} date={day.date} commute={day.commute} />
 
       {day.items.map(({ event, proposal }) => {
         const id = event.id ?? ''

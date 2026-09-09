@@ -24,6 +24,8 @@
  */
 
 import { COMMUTE_LABELS, COMMUTE_MARKS, type CommuteKind } from '../actions/commute'
+import type { WeatherHour } from '../api/weather'
+import { SkyPair } from './Weather'
 import { formatDayShort, parseDayKey, type DayKey } from '../calendar/dates'
 import type { DayWeight } from '../rules/types'
 
@@ -51,6 +53,8 @@ type Props = {
   today: DayKey
   /** Ce qu'il faudrait porter chaque jour pour tenir la semaine (E.28). */
   perDay: number
+  /** La prévision du trajet, sur les sept jours qu'elle couvre (E.31). */
+  weather: readonly WeatherHour[]
   selected: DayKey
   onSelect: (date: DayKey) => void
   /** Un tap sur la marque fait défiler électrique → musculaire → rien (E.17). */
@@ -72,7 +76,7 @@ function ceilingOf(days: readonly StripDay[], perDay: number): number {
 /** Le capuchon d'une proposition, en pixels : un repère, pas une valeur. */
 const CAP_PX = 20
 
-export function Strip({ days, today, perDay, selected, onSelect, onCommute }: Props) {
+export function Strip({ days, today, perDay, weather, selected, onSelect, onCommute }: Props) {
   const ceiling = ceilingOf(days, perDay)
   const part = (load: number) => `${Math.min(100, (load / ceiling) * 100)}%`
 
@@ -134,6 +138,19 @@ export function Strip({ days, today, perDay, selected, onSelect, onCommute }: Pr
           </span>
         ))}
       </div>
+
+      {/* Deux signes par jour — le matin au-dessus du soir. Ils viennent après
+          les dates et avant les marques de trajet : les colonnes restent
+          collées à leur jour, et la météo se lit contre le trajet qu'elle
+          concerne. La prévision ne va qu'à sept jours, donc la seconde semaine
+          reste vide — l'app se tait plutôt que de deviner (E.31). */}
+      {weather.length > 0 ? (
+        <div className="skies">
+          {days.map((day) => (
+            <SkyPair hours={weather} date={day.date} key={day.date} />
+          ))}
+        </div>
+      ) : null}
 
       {/* Les marques de trajet restent tapables, une par jour : c'est le geste
           du E.17 révisé, et il n'a pas d'autre place depuis que la liste
