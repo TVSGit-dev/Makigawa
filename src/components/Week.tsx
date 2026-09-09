@@ -14,7 +14,6 @@
  */
 
 import { useState } from 'react'
-import { COMMUTE_LABELS, COMMUTE_MARKS, type CommuteKind } from '../actions/commute'
 import type { CalendarEvent } from '../api/intervals'
 import type { Proposal } from '../rules/decide'
 import type { Intent } from '../rules/intent'
@@ -22,7 +21,8 @@ import type { DayWeight } from '../rules/types'
 import type { Ramp } from '../rules/ramp'
 import type { Suggestion } from '../workouts/week'
 import { toNotation, type Workout } from '../workouts/compose'
-import { shapeOf } from '../workouts/shape'
+import { specsOf } from '../workouts/shape'
+import { Strip, type StripDay } from './Strip'
 import { STANDING_NAMES } from '../workouts/levels'
 import { pointerFor } from '../workouts/zwift'
 import { DISTANCES, paceFor, wattsOf } from '../rides/outing'
@@ -47,10 +47,7 @@ const WEIGHTS: Record<DayWeight, string> = {
   chargee: 'chargée',
 }
 
-export type CalendarDay = {
-  date: DayKey
-  weight: DayWeight
-  commute: CommuteKind
+export type CalendarDay = StripDay & {
   items: readonly { event: CalendarEvent; proposal: Proposal }[]
   suggestion: Suggestion | null
 }
@@ -74,6 +71,9 @@ type Props = {
   /** Vrai si l'athlète a écarté ou repoussé quelque chose (E.14). */
   refusing: boolean
   removals: Record<string, DeleteState>
+  /** Le jour ouvert sous la bande. Il vit dans `Plan`, comme tout le reste. */
+  selected: DayKey
+  onSelect: (date: DayKey) => void
   onCommute: (date: DayKey) => void
   onRefuse: (familyKey: string) => void
   onPostpone: (date: DayKey) => void
@@ -93,6 +93,8 @@ export function Week({
   activities,
   refusing,
   removals,
+  selected,
+  onSelect,
   onCommute,
   onRefuse,
   onPostpone,
@@ -111,11 +113,46 @@ export function Week({
         Le plan vit ici : rien n’est écrit dans intervals.icu.
       </p>
 
-      {ramp ? <RampLine ramp={ramp} /> : null}
+      {/* La bande d'abord : c'est elle qui dit le rythme, et c'est pour elle
+          qu'on ouvre l'app. Les mesures et la sortie longue viennent après. */}
+      <Strip
+        days={days}
+        today={today}
+        perDay={perDay(dose)}
+        selected={selected}
+        onSelect={onSelect}
+        onCommute={onCommute}
+      />
 
-      <DoseBlock dose={dose} />
+      <div className="legend">
+        <span>
+          <i className="swatch swatch-electric" /> électrique
+        </span>
+        <span>
+          <i className="swatch swatch-muscular" /> musculaire
+        </span>
+        <span>
+          <i className="swatch swatch-proposed" /> proposé
+        </span>
+        <span>
+          <i className="swatch swatch-charged" /> chargée
+        </span>
+        <span>
+          <i className="swatch swatch-target" /> objectif/jour
+        </span>
+      </div>
 
-      <SpreadBlock spread={spread} />
+      <DaySheet
+        day={days.find((one) => one.date === selected) ?? days[0]!}
+        today={today}
+        intent={intent}
+        ftp={ftp}
+        first={first?.date === selected}
+        removals={removals}
+        onRefuse={onRefuse}
+        onPostpone={onPostpone}
+        onDelete={onDelete}
+      />
 
       {proposed.length === 0 && refusing ? (
         <p className="muted small">
@@ -135,60 +172,91 @@ export function Week({
         </p>
       ) : null}
 
+      {ramp ? <RampLine ramp={ramp} /> : null}
+
+      <DoseBlock dose={dose} />
+
+      <SpreadBlock spread={spread} />
+
       <Outing ftp={ftp} activities={activities} />
-
-      <div className="calendar">
-        {days.map((day) => (
-          <div
-            className={`day${day.date === today ? ' day-today' : ''}${
-              day.weight === 'chargee' ? ' day-heavy' : ''
-            }`}
-            key={day.date}
-          >
-            <p className="day-title">
-              <button
-                className={`mark mark-${day.commute}`}
-                onClick={() => onCommute(day.date)}
-                aria-label={`Trajet du jour : ${COMMUTE_LABELS[day.commute]}. Taper pour changer.`}
-                title={COMMUTE_LABELS[day.commute]}
-              >
-                {COMMUTE_MARKS[day.commute]}
-              </button>
-              <span className="day-name">
-                {day.date === today ? 'Aujourd’hui' : formatDayShort(day.date)}
-              </span>
-              <Load weight={day.weight} />
-            </p>
-
-            {day.items.map(({ event, proposal }) => {
-              const id = event.id ?? ''
-              return (
-                <SessionCard
-                  key={id || `${day.date}-${event.name}`}
-                  event={event}
-                  proposal={proposal}
-                  intent={intent}
-                  today={today}
-                  open={day.date === today}
-                  remove={removals[id] ?? { status: 'idle' }}
-                  onDelete={() => id && onDelete(id)}
-                />
-              )
-            })}
-
-            {day.suggestion ? (
-              <Proposed
-                suggestion={day.suggestion}
-                first={first?.date === day.date}
-                ftp={ftp}
-                onRefuse={onRefuse}
-                onPostpone={onPostpone}
-              />
-            ) : null}
-          </div>
-        ))}
-      </div>
     </>
+  )
+}
+
+/**
+ * Ce que porte le jour choisi dans la bande (9 septembre 2026).
+ *
+ * La liste verticale montrait les quatorze jours dépliés ; la bande les montre
+ * repliés et n'en ouvre qu'un. Rien n'est perdu — les séances réelles, leur
+ * suppression par appui long, la proposition et ses refus vivent tous ici.
+ *
+ * Un jour vide n'est pas une page blanche : il dit qu'il reste de la place,
+ * ce qui est une information et jamais un reproche (E.6).
+ */
+function DaySheet({
+  day,
+  today,
+  intent,
+  ftp,
+  first,
+  removals,
+  onRefuse,
+  onPostpone,
+  onDelete,
+}: {
+  day: CalendarDay
+  today: DayKey
+  intent: Intent
+  ftp: number | null
+  first: boolean
+  removals: Record<string, DeleteState>
+  onRefuse: (familyKey: string) => void
+  onPostpone: (date: DayKey) => void
+  onDelete: (eventId: string) => void
+}) {
+  const vide = day.items.length === 0 && day.suggestion === null
+
+  return (
+    <section className="sheet">
+      <p className="sheet-head">
+        <span className="sheet-when">
+          {day.date === today ? 'Aujourd’hui' : formatDayShort(day.date)}
+        </span>
+        <Load weight={day.weight} />
+      </p>
+
+      {day.items.map(({ event, proposal }) => {
+        const id = event.id ?? ''
+        return (
+          <SessionCard
+            key={id || `${day.date}-${event.name}`}
+            event={event}
+            proposal={proposal}
+            intent={intent}
+            today={today}
+            open={day.date === today}
+            remove={removals[id] ?? { status: 'idle' }}
+            onDelete={() => id && onDelete(id)}
+          />
+        )
+      })}
+
+      {day.suggestion ? (
+        <Proposed
+          suggestion={day.suggestion}
+          first={first}
+          ftp={ftp}
+          onRefuse={onRefuse}
+          onPostpone={onPostpone}
+        />
+      ) : null}
+
+      {vide ? (
+        <p className="muted small sheet-empty">
+          Rien ce jour-là. C’est de la place, pas un manque.
+        </p>
+      ) : null}
+    </section>
   )
 }
 
@@ -271,12 +339,20 @@ function Proposed({
 
       {/* La forme, pas la recette : assez pour reconnaître une séance
           équivalente dans le catalogue de Zwift, pas assez pour la recopier
-          (E.23). */}
-      <ul className="shape">
-        {shapeOf(suggestion.workout, ftp).map((line) => (
-          <li key={line}>{line}</li>
+          (E.23). En tableau depuis le 9 septembre : les mêmes intitulés au même
+          endroit d'une séance à l'autre, et l'œil va droit au chiffre qui a
+          changé. */}
+      <dl className="specs">
+        {specsOf(suggestion.workout, ftp).map((spec) => (
+          <div className="spec" key={spec.label}>
+            <dt>{spec.label}</dt>
+            <dd>
+              {spec.value}
+              {spec.note ? <small>{spec.note}</small> : null}
+            </dd>
+          </div>
         ))}
-      </ul>
+      </dl>
 
       {/* Le rayon, pas l'article (E.27). Zwift range ses séances sous les mêmes
           noms de zones ; nommer le bon évite de chercher à l'aveugle. */}
@@ -510,7 +586,7 @@ function Copy({ notation }: { notation: string }) {
 
   return (
     <button
-      className="button button-small button-ghost"
+      className="button button-small"
       onClick={() => void copy()}
       title="Copier la structure, prête à coller dans intervals.icu"
     >

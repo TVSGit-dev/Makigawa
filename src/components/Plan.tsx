@@ -68,7 +68,7 @@ import {
 } from '../calendar/dates'
 import { Progress } from './Progress'
 import { Week, type CalendarDay } from './Week'
-import { asPlannedCommute } from '../actions/commute'
+import { asPlannedCommute, COMMUTE_LOADS } from '../actions/commute'
 import { commuteOn, cycleCommute, forgetOldCommutes, type CommuteMarks } from '../storage/commutes'
 import { planWeek } from '../workouts/week'
 import { firstTestDay, ftpTest, FTP_TEST_NAME } from '../workouts/ftp-test'
@@ -180,6 +180,13 @@ export function Plan({
   // Les jours de trajet marqués par l'athlète (E.17 révisé). Ils changent le
   // poids d'une journée, donc le plan se recalcule autour.
   const [commutes, setCommutes] = useState<CommuteMarks>({})
+  /**
+   * Le jour ouvert sous la bande (9 septembre 2026).
+   *
+   * `null` veut dire « aujourd'hui » : le garder en dur figerait l'app sur la
+   * date d'ouverture, et une app qu'on laisse ouverte la nuit s'y tromperait.
+   */
+  const [picked, setPicked] = useState<DayKey | null>(null)
 
   const today = toDayKey(new Date())
 
@@ -535,6 +542,9 @@ export function Plan({
     })
   }, [state, context, today, commutes, suggestions])
 
+  // Un jour choisi hier n'existe plus dans la fenêtre d'aujourd'hui.
+  useEffect(() => setPicked(null), [today])
+
   const planned = days.reduce((total, day) => total + day.items.length, 0)
 
   /**
@@ -628,6 +638,8 @@ export function Plan({
 
       <Week
         days={days}
+        selected={picked ?? today}
+        onSelect={setPicked}
         today={today}
         intent={intent}
         fitness={fitness}
@@ -851,6 +863,16 @@ function buildCalendar({
 
   return Array.from({ length: AHEAD_DAYS }, (_, ahead) => {
     const date = shiftDayKey(today, ahead)
+    const commute = commuteOn(commutes, date)
+
+    // La bande a besoin d'une échelle, donc de charges. Elles ne sont pas
+    // calculées ici : celle d'un trajet est relevée par l'athlète (E.13),
+    // celle d'une séance posée vient d'intervals.icu. Une proposition n'en a
+    // aucune et n'en reçoit pas — c'est la règle du E.28.
+    const sessionLoad = context.planned
+      .filter((one) => one.date === date && !one.commute && one.load !== null)
+      .reduce((total, one) => total + (one.load ?? 0), 0)
+
     return {
       date,
       weight: weighDay(
@@ -858,7 +880,10 @@ function buildCalendar({
         date,
         context.planned,
       ),
-      commute: commuteOn(commutes, date),
+      commute,
+      commuteLoad: COMMUTE_LOADS[commute],
+      sessionLoad,
+      proposed: suggestions.some((one) => one.date === date),
       items: byDay.get(date) ?? [],
       suggestion: suggestions.find((one) => one.date === date) ?? null,
     }

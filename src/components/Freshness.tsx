@@ -80,42 +80,48 @@ export function Freshness({
     <section className="card">
       <h2>Où tu en es</h2>
 
-      {/* Un seul chiffre en grand, et deux satellites. La fraîcheur est celui
-          qui décide — c'est elle que le E.2 consulte, et c'est à elle qu'on
-          répond « je peux y aller ? ». La lire de loin, sans chercher, vaut
-          mieux que trois nombres à égalité qu'il faut comparer. */}
-      <button
-        className={`hero ${freshnessTone(freshness, intent)}`}
-        onClick={() => toggle('freshness')}
-        aria-expanded={open === 'freshness'}
-      >
-        <span className="hero-number">
-          {freshness === null ? '—' : `${freshness > 0 ? '+' : ''}${Math.round(freshness)}`}
-        </span>
-        <span className="hero-label">Fraîcheur</span>
-        <span className="hero-read">{readFreshness(freshness, INTENTS[intent].tsbFloor)}</span>
-      </button>
-
-      <div className="readout">
-        <Value
+      {/* Quatre cadrans, depuis le 9 septembre 2026.
+          Le grand chiffre unique venait de Whoop, et il avait raison sur un
+          point : la fraîcheur est celle qui décide, c'est elle que le E.2
+          consulte. Mais elle ne décide plus seule — la variabilité du matin est
+          la sixième condition (E.30), et un chiffre en grand à côté d'une
+          phrase perdue en dessous disait mal cette égalité. Les quatre se
+          lisent maintenant du même coup d'œil, la fraîcheur gardant sa couleur.
+          Chacun s'ouvre pour dire d'où il sort. */}
+      <dl className="gauges">
+        <Gauge
+          label="Fraîcheur"
+          value={show(freshness, true)}
+          tone={freshnessTone(freshness, intent)}
+          read={readFreshness(freshness, INTENTS[intent].tsbFloor)}
+          open={open === 'freshness'}
+          onToggle={() => toggle('freshness')}
+        />
+        <Gauge
           label="Forme"
-          value={fitness}
+          value={show(fitness)}
           open={open === 'fitness'}
           onToggle={() => toggle('fitness')}
         />
-        <Value
+        <Gauge
           label="Fatigue"
-          value={fatigue}
+          value={show(fatigue)}
           open={open === 'fatigue'}
           onToggle={() => toggle('fatigue')}
         />
-      </div>
+        <Gauge
+          label="Variab."
+          value={variabilityWord(variability)}
+          tone={variability.low ? 'tone-low' : undefined}
+          small
+        />
+      </dl>
 
       {open ? <Explain which={open} days={days} today={today} intent={intent} /> : null}
 
       {open === null ? (
         <p className="muted small">
-          Les trois chiffres viennent d’intervals.icu. Tape l’un d’eux pour voir d’où il sort.
+          Ces chiffres viennent d’intervals.icu. Tape l’un d’eux pour voir d’où il sort.
         </p>
       ) : null}
 
@@ -215,22 +221,6 @@ export function Freshness({
 }
 
 /**
- * La fraîcheur en une phrase.
- *
- * Le chiffre seul ne veut rien dire à qui ne le pratique pas tous les jours.
- * La phrase dit ce qu'il implique — et elle est calée sur le plancher du mode,
- * donc elle change avec lui.
- */
-function readFreshness(freshness: number | null, floor: number): string {
-  if (freshness === null) return 'intervals.icu ne l’a pas encore donnée'
-  if (freshness < floor) return 'sous le plancher : pas de séance de qualité aujourd’hui'
-  if (freshness < floor / 2) return 'tu creuses — encore de la marge, mais pas beaucoup'
-  if (freshness < 0) return 'tu creuses un peu, ce qui est le but d’une semaine de charge'
-  if (freshness < 10) return 'tu es à l’équilibre'
-  return 'tu es frais — c’est le moment d’en faire quelque chose'
-}
-
-/**
  * Pourquoi le mode appliqué n'est pas celui qu'on a choisi.
  *
  * Les quatre garde-fous ne se relâchent jamais, ils ne font que durcir : le
@@ -251,28 +241,23 @@ function whyForced({
   return `le mode ambitieux ne tient que ${MAX_AMBITIOUS_WEEKS} semaines d’affilée`
 }
 
-function Value({
-  label,
-  value,
-  signed = false,
-  tone = '',
-  open,
-  onToggle,
-}: {
-  label: string
-  value: number | null
-  signed?: boolean
-  tone?: string
-  open: boolean
-  onToggle: () => void
-}) {
-  return (
-    <button className={open ? 'value value-open' : 'value'} onClick={onToggle} aria-expanded={open}>
-      <span className="value-label">{label}</span>
-      <span className={`value-number ${tone}`}>{show(value, signed)}</span>
-    </button>
-  )
+/**
+ * La fraîcheur en une phrase.
+ *
+ * Le chiffre seul ne veut rien dire à qui ne le pratique pas tous les jours.
+ * La phrase dit ce qu'il implique — et elle est calée sur le plancher du mode,
+ * donc elle change avec lui.
+ */
+function readFreshness(freshness: number | null, floor: number): string {
+  if (freshness === null) return 'intervals.icu ne l’a pas encore donnée'
+  if (freshness < floor) return 'sous le plancher : pas de séance de qualité aujourd’hui'
+  if (freshness < floor / 2) return 'tu creuses — encore de la marge, mais pas beaucoup'
+  if (freshness < 0) return 'tu creuses un peu, ce qui est le but d’une semaine de charge'
+  if (freshness < 10) return 'tu es à l’équilibre'
+  return 'tu es frais — c’est le moment d’en faire quelque chose'
 }
+
+
 
 /**
  * D'où sort le chiffre.
@@ -433,4 +418,56 @@ function Variabilite({ variability }: { variability: Variability }) {
       )}
     </p>
   )
+}
+
+/**
+ * Un cadran : un intitulé, une valeur, et de quoi l'ouvrir.
+ *
+ * Le dernier — la variabilité — ne s'ouvre pas : sa lecture tient déjà dans la
+ * ligne qui suit les cadrans, et un cadran qui s'ouvre sur rien serait un
+ * bouton qui ment.
+ */
+function Gauge({
+  label,
+  value,
+  tone,
+  read,
+  open,
+  small,
+  onToggle,
+}: {
+  label: string
+  value: string
+  tone?: string
+  read?: string
+  open?: boolean
+  small?: boolean
+  onToggle?: () => void
+}) {
+  const inner = (
+    <>
+      <dt>{label}</dt>
+      <dd className={small ? 'gauge-value gauge-word' : 'gauge-value'}>{value}</dd>
+      {read ? <span className="gauge-read">{read}</span> : null}
+    </>
+  )
+
+  if (!onToggle) return <div className={`gauge ${tone ?? ''}`}>{inner}</div>
+
+  return (
+    <button
+      type="button"
+      className={`gauge ${tone ?? ''}`}
+      onClick={onToggle}
+      aria-expanded={open === true}
+    >
+      {inner}
+    </button>
+  )
+}
+
+/** La variabilité en un mot, pour tenir dans un cadran (E.30). */
+function variabilityWord(variability: Variability): string {
+  if (variability.missing > 0) return variability.nights === 0 ? '—' : 'en cours'
+  return variability.low ? 'basse' : 'normale'
 }
