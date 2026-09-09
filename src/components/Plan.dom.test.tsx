@@ -21,6 +21,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { useCallback, useRef, useState } from 'react'
 import { Plan, type Readout } from './Plan'
+import { GARMENTS } from '../rules/garments'
 import type { Credentials } from '../storage/credentials'
 
 const credentials: Credentials = { athleteId: 'i1', apiKey: 'k' }
@@ -421,8 +422,10 @@ describe('ma garde-robe (E.32, second temps)', () => {
     const { container } = plan()
     await waitFor(() => expect(container.querySelector('.wardrobe')).not.toBeNull())
 
-    expect(container.querySelectorAll('.piece')).toHaveLength(16)
-    expect(container.querySelector('.wardrobe > summary')?.textContent).toContain('0 sur 16')
+    expect(container.querySelectorAll('.piece')).toHaveLength(GARMENTS.length)
+    expect(container.querySelector('.wardrobe > summary')?.textContent).toContain(
+      `0 sur ${GARMENTS.length}`,
+    )
     for (const champ of container.querySelectorAll<HTMLInputElement>('.piece-edit input')) {
       expect(champ.value).toBe('')
     }

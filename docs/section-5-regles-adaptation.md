@@ -2161,15 +2161,57 @@ caprice : ce sont des repères publiés.
 | Ressenti | Ce que ça demande |
 |---|---|
 | **20 °C et plus** | maillot manches courtes, cuissard |
-| **16 à 20** | manches courtes, manchettes ou gilet coupe-vent |
-| **8 à 16** | sous-vêtement technique, manches longues ou manchettes, jambières, gants légers |
-| **3 à 8** | sous-vêtement thermique, manches longues, collant thermique, gants, tour de cou |
-| **sous 3** | tout cela, veste coupe-vent, gants d'hiver, couvre-chaussures, rien de découvert |
+| **16 à 20** | manches courtes, manchettes ou gilet coupe-vent, cuissard |
+| **8 à 16** | sous-vêtement technique, manches longues, cuissard, jambières, gants légers, couvre-orteils |
+| **3 à 8** | sous-vêtement thermique, manches longues, collant thermique, gants, tour de cou, couvre-chaussures |
+| **sous 3** | sous-vêtement thermique, manches longues, collant thermique, veste coupe-vent, gants d'hiver, tour de cou d'hiver, couvre-chaussures d'hiver, sous-casque |
 
 **Une seule borne est ajoutée par le projet, celle de 3 °C.** Les guides
 s'arrêtent à « sous 8 °C » ; à Bruxelles cela couvre tout l'hiver, et un matin
 à 1 °C ne demande pas la même chose qu'un matin à 7. La coupure ne change rien
 au-dessus de 8.
+
+#### Révisé le 9 septembre 2026, en confrontant la table à un placard réel
+
+L'athlète a donné sa garde-robe pièce par pièce. Quatre choses sont ressorties,
+et la première est un défaut.
+
+**« Tout cela » ne se programme pas, et le code ne l'a pas suivi.** La ligne
+« sous 3 » disait *tout cela, plus la veste* ; l'implémentation a écrit une
+liste, et cette liste a perdu en route le **maillot manches longues** et le
+**tour de cou**. À −2 °C l'app habillait donc le cou nu, avec une sous-couche
+sous une veste et rien entre les deux — alors que la même ligne finissait par
+« rien de découvert ». Les cinq lignes sont désormais **explicites**, sans
+renvoi à la précédente : une bande dit tout ce qu'elle demande.
+
+Ce que la substitution garde de légitime : les gants deviennent des gants
+d'hiver, le tour de cou et les couvre-chaussures passent à leur version
+d'hiver. **Une pièce remplacée par sa version plus chaude, oui ; une pièce qui
+disparaît quand il fait plus froid, non.**
+
+**Le même défaut touchait le cuissard**, et il a été trouvé en écrivant le
+garde-fou plutôt qu'en relisant. Il ne figurait qu'au-dessus de 20 °C, et rien
+ne le remplaçait avant le collant à 3 °C : entre 8 et 20, l'app ne nommait donc
+**aucun bas**. Les jambières se portent pourtant par-dessus un cuissard, elles
+ne le remplacent pas. Il figure désormais dans les trois bandes qu'il concerne,
+et c'est le collant qui le remplace en dessous de 3 — une vraie substitution,
+celle-là.
+
+**Un test tient la règle** : entre deux bandes voisines, toute pièce de la plus
+douce doit ou bien rester, ou bien avoir une version plus chaude nommément
+déclarée. Aucune ne peut simplement s'évaporer.
+
+**Les pieds n'existaient qu'en dessous de 3 °C.** Les mains avaient trois
+crans — légers, fermés, hiver — et les pieds un seul. Rien ne justifiait
+l'asymétrie : les couvre-orteils servent de 8 à 16 °C, les couvre-chaussures de
+3 à 8. Le mécanisme n'est pas nouveau, il est seulement appliqué là aussi.
+
+**Le tour de cou se dédouble** pour la même raison que les gants : un cache-cou
+de mi-saison et un d'hiver ne sont pas la même pièce.
+
+**Il manquait un bas de pluie.** C'est le manque qui coûtait le plus cher — la
+pluie retire sept degrés, la plus grosse correction du dispositif, et elle
+n'habillait que le haut du corps. Voir la correction de pluie plus bas.
 
 ### Les deux corrections, et leur sens
 
@@ -2199,6 +2241,15 @@ pluie en valent cinq*, ce qui fait bien monter d'une bande. L'imperméable
 s'ajoute sans que rien ne soit compté deux fois, puisque les guides
 recommandent les deux ensemble. Le vent est déjà dans la température ressentie
 et n'entre pas ici.
+
+**Depuis le 9 septembre 2026, elle ajoute aussi le bas de pluie.** La
+correction valait sept degrés et n'habillait pourtant que le buste : c'était le
+plus gros déséquilibre du dispositif. Les deux pièces s'ajoutent ensemble et
+**à toute température**, comme l'imperméable le faisait déjà seul — ce qui se
+justifie mieux ici qu'ailleurs, puisqu'il ne s'agit pas de rouler mais
+d'**arriver au bureau**. Arriver les jambes trempées est précisément le
+problème que ce bas résout, et il le résout à 18 °C comme à 4. L'athlète
+confirme ou non, comme pour le reste.
 
 ### Une seule échelle, et l'écran dit les deux nombres
 
@@ -2275,6 +2326,15 @@ sait, et il le dit dans l'écran « Ma garde-robe ».
 Une liste pré-remplie aurait été l'erreur : elle aurait mis dans son placard
 des affaires qu'il n'a pas, et l'app se serait mise à conseiller des
 couvre-chaussures imaginaires.
+
+**Elles sont vingt depuis le 9 septembre 2026**, et non plus seize. Les quatre
+ajoutées — bas de pluie, couvre-orteils, couvre-chaussures d'hiver, tour de cou
+d'hiver — ne sortent pas d'une envie de complétude : elles sortent du placard
+réel de l'athlète, où quatre pièces n'avaient aucune case. **C'est le sens de
+lecture qui compte** : la garde-robe n'a pas été pliée pour entrer dans les
+catégories, ce sont les catégories qui ont été corrigées là où elles
+décrivaient mal ce qu'il porte. Une pièce qu'il ne possède pas ne crée pas de
+catégorie ; une catégorie qu'il remplit et que l'app n'avait pas, si.
 
 **Trois réponses par catégorie, et la troisième compte autant que les deux
 autres.**

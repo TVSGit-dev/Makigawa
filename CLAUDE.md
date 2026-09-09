@@ -373,11 +373,16 @@ En bref :
   ne fait pas d'un mardi un mauvais jour pour du seuil, la séance est à
   l'intérieur.
 - **La garde-robe est à lui, le vocabulaire est à l'app** (E.32). Elle nomme
-  seize catégories — celles des guides, dont les bandes se servaient déjà — et
+  vingt catégories — celles des guides, dont les bandes se servaient déjà — et
   il dit laquelle de ses affaires remplit chacune, ou qu'elle lui manque. Ce
   qu'il déclare ne pas avoir **cesse d'être proposé** et se dit à part ; rien
   n'est remplacé par autre chose, et rien n'est jamais conseillé à l'achat.
   Une garde-robe vide ne casse rien : les pièces gardent leur nom générique.
+  **Elles étaient seize jusqu'au 9 septembre 2026** : confronter la table au
+  placard réel de l'athlète a montré quatre pièces sans case — bas de pluie,
+  couvre-orteils, couvre-chaussures d'hiver, tour de cou d'hiver — et **un
+  défaut**, le maillot manches longues et le tour de cou disparaissant sous
+  3 °C alors que la spécification disait « rien de découvert ».
 - **La tenue vient des guides, pas du projet** (E.32). Les bandes de ressenti
   sont publiées (20 / 16 / 8 °C), la correction de pluie aussi — sept degrés,
   « douze sous la pluie en valent cinq ». **Un seul nombre est estimé** : les
@@ -473,7 +478,7 @@ du projet ; l'app nomme la bonne et dit quoi y chercher. C'est un panneau
 indicateur, pas une recette : la frontière du E.9 tient, et l'app ne prétend
 pas que la séance existe.
 
-**La garde-robe se remplit une fois.** Repliée comme le catalogue, seize
+**La garde-robe se remplit une fois.** Repliée comme le catalogue, vingt
 catégories, trois réponses possibles pour chacune — la nommer, la déclarer
 absente, ou ne rien dire. Ce n'est pas une liste de courses : l'app n'a pas
 d'avis sur ce que l'athlète devrait posséder, seulement sur ce qu'il fait
