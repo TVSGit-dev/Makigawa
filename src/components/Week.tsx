@@ -30,7 +30,13 @@ import { loadForDistance, pastWattsFor } from '../rides/history'
 import { perDay, type Dose } from '../rules/dose'
 import { SPREAD_DAYS, type Spread } from '../rules/spread'
 import type { Activity } from '../api/intervals'
-import { formatDayShort, formatDuration, type DayKey } from '../calendar/dates'
+import {
+  formatDayShort,
+  formatDuration,
+  parseDayKey,
+  shiftDayKey,
+  type DayKey,
+} from '../calendar/dates'
 import { Profile } from './Profile'
 import { SessionCard, type DeleteState } from './SessionCard'
 import { DayWeather } from './Weather'
@@ -77,6 +83,8 @@ type Props = {
   wardrobe: Closet
   /** Vrai si l'athlète a écarté ou repoussé quelque chose (E.14). */
   refusing: boolean
+  /** Ce que le report a donné, quand ce n'est pas ce qui était demandé (E.14). */
+  slip: string | null
   removals: Record<string, DeleteState>
   /** Le jour ouvert sous la bande. Il vit dans `Plan`, comme tout le reste. */
   selected: DayKey
@@ -101,6 +109,7 @@ export function Week({
   weather,
   wardrobe,
   refusing,
+  slip,
   removals,
   selected,
   onSelect,
@@ -159,12 +168,17 @@ export function Week({
         ftp={ftp}
         weather={weather}
         wardrobe={wardrobe}
+        horizonEnd={days.at(-1)?.date ?? today}
         first={first?.date === selected}
         removals={removals}
         onRefuse={onRefuse}
         onPostpone={onPostpone}
         onDelete={onDelete}
       />
+
+      {/* Le report n'a pas donné le jour demandé. Le dire est le prix d'un
+          plancher qui n'est pas un rendez-vous (E.14). */}
+      {slip ? <p className="notice small">{slip}</p> : null}
 
       {proposed.length === 0 && refusing ? (
         <p className="muted small">
@@ -212,6 +226,7 @@ function DaySheet({
   ftp,
   weather,
   wardrobe,
+  horizonEnd,
   first,
   removals,
   onRefuse,
@@ -224,6 +239,8 @@ function DaySheet({
   ftp: number | null
   weather: readonly WeatherHour[]
   wardrobe: Closet
+  /** Le dernier jour de la bande : la liste de report s'y arrête (E.14). */
+  horizonEnd: DayKey
   first: boolean
   removals: Record<string, DeleteState>
   onRefuse: (familyKey: string) => void
@@ -269,6 +286,8 @@ function DaySheet({
           suggestion={day.suggestion}
           first={first}
           ftp={ftp}
+          today={today}
+          horizonEnd={horizonEnd}
           onRefuse={onRefuse}
           onPostpone={onPostpone}
         />
@@ -331,15 +350,21 @@ function Proposed({
   suggestion,
   first,
   ftp,
+  today,
+  horizonEnd,
   onRefuse,
   onPostpone,
 }: {
   suggestion: Suggestion
   first: boolean
   ftp: number | null
+  today: DayKey
+  /** Le dernier jour de l'horizon : repousser au-delà ne proposerait rien. */
+  horizonEnd: DayKey
   onRefuse: (familyKey: string) => void
   onPostpone: (date: DayKey) => void
 }) {
+  const [picking, setPicking] = useState(false)
   return (
     <article className="suggested">
       <p className="suggested-name">
@@ -392,17 +417,109 @@ function Proposed({
         </button>
 
         {/* Le report ne s'offre que sur la première : les suivantes sont
-            placées par rapport à elle (E.14). */}
+            placées par rapport à elle (E.14).
+
+            Deux gestes depuis le 9 septembre. Le geste unique ne repoussait que
+            d'un jour et se répétait : atteindre samedi depuis un mardi
+            demandait quatre taps, et rien ne disait où l'on en était. */}
         {first ? (
-          <button
-            className="button button-small button-quiet"
-            onClick={() => onPostpone(suggestion.date)}
-          >
-            Plus tard
-          </button>
+          <>
+            <button
+              className="button button-small button-quiet"
+              onClick={() => onPostpone(shiftDayKey(suggestion.date, 1))}
+            >
+              {/* « Demain » à côté d'une séance proposée jeudi serait un
+                  mensonge : le libellé nomme alors le jour réel. */}
+              {suggestion.date === today
+                ? 'Demain'
+                : dayName(shiftDayKey(suggestion.date, 1))}
+            </button>
+
+            <button
+              className="button button-small button-quiet"
+              aria-expanded={picking}
+              onClick={() => setPicking((open) => !open)}
+            >
+              Un autre jour
+            </button>
+          </>
         ) : null}
       </div>
+
+      {first && picking ? (
+        <DayPicker
+          from={shiftDayKey(suggestion.date, 2)}
+          to={horizonEnd}
+          onPick={(date) => {
+            setPicking(false)
+            onPostpone(date)
+          }}
+        />
+      ) : null}
     </article>
+  )
+}
+
+/** « MER 16 » — le jour, tel qu'il tient sur une pastille. */
+function dayName(date: DayKey): string {
+  const parsed = parseDayKey(date)
+  if (!parsed) return date
+  return parsed.toLocaleDateString('fr-BE', { weekday: 'long' })
+}
+
+/**
+ * La liste des jours où reporter (E.14, révisé le 9 septembre 2026).
+ *
+ * Elle part du surlendemain : le lendemain a déjà son bouton, et le proposer
+ * deux fois n'ajoute rien. Elle s'arrête au bout de l'horizon, parce qu'au-delà
+ * le planificateur n'a rien à placer et qu'un jour qu'on peut choisir sans effet
+ * est pire qu'un jour absent.
+ */
+function DayPicker({
+  from,
+  to,
+  onPick,
+}: {
+  from: DayKey
+  to: DayKey
+  onPick: (date: DayKey) => void
+}) {
+  const days: DayKey[] = []
+  for (let day = from; day <= to; day = shiftDayKey(day, 1)) days.push(day)
+
+  if (days.length === 0) {
+    return (
+      <p className="muted small">
+        L’horizon s’arrête là : il n’y a pas de jour plus loin où la poser.
+      </p>
+    )
+  }
+
+  return (
+    <div className="picker">
+      <p className="muted small">Repousser jusqu’à :</p>
+      <div className="picker-days">
+        {days.map((date) => {
+          const parsed = parseDayKey(date)
+          return (
+            <button
+              className="picker-day"
+              key={date}
+              onClick={() => onPick(date)}
+              aria-label={`Repousser jusqu’à ${formatDayShort(date)}`}
+            >
+              <b>
+                {parsed
+                  ?.toLocaleDateString('fr-BE', { weekday: 'short' })
+                  .replace('.', '')
+                  .slice(0, 3) ?? '—'}
+              </b>
+              {Number(date.slice(-2))}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

@@ -56,7 +56,7 @@ import { loadJournal, recordRefusals, type Journal, type JournalEntry } from '..
 import {
   forgetStalePreferences,
   hasPlanPreferences,
-  postponePlan,
+  postponePlanTo,
   refuseFamily,
   refusedKeys,
   resetPlanPreferences,
@@ -82,7 +82,7 @@ import { Catalogue } from './Catalogue'
 import { toNotation } from '../workouts/compose'
 import { Profile } from './Profile'
 import { type DeleteState } from './SessionCard'
-import { explainTest } from './reasons'
+import { explainSlip, explainTest } from './reasons'
 
 /** Deux semaines devant : l'horizon de planification annoncé par le projet. */
 const AHEAD_DAYS = 14
@@ -537,6 +537,21 @@ export function Plan({
 
   const suggestions = planned2.suggestions
 
+  /**
+   * Ce que le report a donné, quand ce n'est pas ce qui était demandé (E.14).
+   *
+   * Un jour choisi est un plancher, pas un rendez-vous : le E.2 garde le
+   * dernier mot. Le dire est le prix de cette liberté — sans cette ligne,
+   * l'athlète demande jeudi, voit samedi, et n'a rien pour comprendre.
+   */
+  const slip = useMemo(() => {
+    const wanted = choices.notBefore
+    if (!wanted) return null
+    const got = suggestions[0]?.date ?? null
+    const blocked = planned2.refusals.find((one) => one.date === wanted)
+    return explainSlip(wanted, got, blocked?.code ?? null, today)
+  }, [choices.notBefore, suggestions, planned2.refusals, today])
+
   // Le journal se tient à part du calcul : `planWeek` reste déterministe, et
   // l'écriture dans le téléphone est un effet, donc elle vit dans un effet.
   const [journal, setJournal] = useState<Journal>(() => loadJournal())
@@ -691,10 +706,13 @@ export function Plan({
         weather={weather}
         wardrobe={wardrobe}
         refusing={hasPlanPreferences(choices)}
+        slip={slip}
         removals={removals}
         onCommute={(date) => setCommutes(cycleCommute(date))}
         onRefuse={(family) => setChoices(refuseFamily(family, today))}
-        onPostpone={(date) => setChoices(postponePlan(date))}
+        /* `onPostpone` reçoit le jour déjà résolu : « demain » comme le jour
+           choisi dans la liste désignent le jour voulu, pas sa veille (E.14). */
+        onPostpone={(date) => setChoices(postponePlanTo(date))}
         onReset={() => setChoices(resetPlanPreferences())}
         onDelete={(id) => void remove(id)}
       />

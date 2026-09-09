@@ -74,15 +74,32 @@ export function refuseFamily(key: string, today: DayKey): PlanPreferences {
 }
 
 /**
- * « Plus tard » : le plan ne commence pas avant le lendemain de ce jour-là.
+ * « Plus tard » : le plan ne commence pas avant ce jour-là.
  *
- * Le geste se répète — repousser deux fois repousse de deux jours — et c'est
- * tout ce qu'il fait. Le reste du plan se replace autour, parce qu'il est
- * recalculé en entier plutôt que rapiécé.
+ * **Un plancher, pas un rendez-vous** (E.14, révisé le 9 septembre 2026). Le
+ * jour choisi devient le premier jour acceptable et le plan repart de là ;
+ * quand le E.2 dit oui la séance y tombe exactement, quand il dit non elle
+ * glisse au premier jour suivant qui convient. Forcer le jour reviendrait à
+ * poser une séance de qualité sur une journée que les règles refusent,
+ * c'est-à-dire à faire taire le E.2 d'un tap.
+ *
+ * Le reste du plan se replace autour, parce qu'il est recalculé en entier
+ * plutôt que rapiécé.
+ */
+export function postponePlanTo(day: DayKey): PlanPreferences {
+  const current = read()
+  return write({ ...current, notBefore: day })
+}
+
+/**
+ * « Demain » : le geste d'un tap, sur le lendemain de la proposition.
+ *
+ * Il ne fait rien de plus que `postponePlanTo` sur le jour suivant — les deux
+ * gestes du E.14 posent le même plancher et ne diffèrent que par le nombre de
+ * taps.
  */
 export function postponePlan(from: DayKey): PlanPreferences {
-  const current = read()
-  return write({ ...current, notBefore: shiftDayKey(from, 1) })
+  return postponePlanTo(shiftDayKey(from, 1))
 }
 
 /** Le geste qui défait les deux. Rien ne s'installe. */

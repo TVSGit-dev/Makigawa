@@ -496,3 +496,121 @@ describe('ma garde-robe (E.32, second temps)', () => {
     }
   })
 })
+
+describe('repousser une séance (E.14, révisé)', () => {
+  /** Un plan qui a forcément quelque chose à proposer. */
+  const withPlan = () => serve({ weather: false })
+
+  it('offre deux gestes plutôt qu’un bouton qui se répète', async () => {
+    // Le geste unique ne repoussait que d'un jour : atteindre samedi depuis un
+    // mardi demandait quatre taps, et rien ne disait où l'on en était.
+    withPlan()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.suggested')).not.toBeNull())
+
+    const boutons = [...container.querySelectorAll('.suggested-refuse button')].map(
+      (one) => one.textContent,
+    )
+    expect(boutons).toContain('Un autre jour')
+    expect(boutons).not.toContain('Plus tard')
+  })
+
+  it('n’ouvre la liste que sur demande, et elle tient dans l’horizon', async () => {
+    withPlan()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.suggested')).not.toBeNull())
+    expect(container.querySelector('.picker')).toBeNull()
+
+    fireEvent.click(
+      [...container.querySelectorAll<HTMLButtonElement>('.suggested-refuse button')].find(
+        (one) => one.textContent === 'Un autre jour',
+      )!,
+    )
+
+    await waitFor(() => expect(container.querySelector('.picker')).not.toBeNull())
+    const jours = container.querySelectorAll('.picker-day')
+    expect(jours.length).toBeGreaterThan(0)
+    // Jamais plus loin que la bande : un jour choisi sans effet serait pire
+    // qu'un jour absent.
+    expect(jours.length).toBeLessThanOrEqual(14)
+  })
+
+  it('pose le jour choisi tel quel dans le téléphone', async () => {
+    withPlan()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.suggested')).not.toBeNull())
+
+    fireEvent.click(
+      [...container.querySelectorAll<HTMLButtonElement>('.suggested-refuse button')].find(
+        (one) => one.textContent === 'Un autre jour',
+      )!,
+    )
+    await waitFor(() => expect(container.querySelector('.picker-day')).not.toBeNull())
+
+    const choisi = container.querySelectorAll<HTMLButtonElement>('.picker-day')[1]!
+    // Le quantième affiché sur la pastille : c'est lui qui doit se retrouver
+    // tel quel dans le téléphone.
+    const quantieme = Number(choisi.textContent?.match(/(\d+)$/)?.[1])
+    expect(quantieme).toBeGreaterThan(0)
+    fireEvent.click(choisi)
+
+    // La liste se referme, et le report est retenu **tel quel**.
+    //
+    // L'assertion porte sur la valeur, pas sur la présence de la clé : une
+    // version de ce lot ajoutait un lendemain par-dessus le jour choisi —
+    // demander mardi posait mercredi — et un `toContain('notBefore')` laissait
+    // passer le défaut sans broncher. Il a fallu un navigateur pour le voir.
+    await waitFor(() => expect(container.querySelector('.picker')).toBeNull())
+    const garde = JSON.parse(localStorage.getItem('makigawa.plan') ?? '{}')
+    expect(Number(String(garde.notBefore).slice(-2))).toBe(quantieme)
+  })
+
+  it('« Demain » pose bien le lendemain, pas le surlendemain', async () => {
+    // Le même défaut, sur l'autre geste : deux décalages d'un jour se
+    // cumulaient silencieusement.
+    withPlan()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.suggested')).not.toBeNull())
+
+    // Le jour de la proposition, lu sur la première pastille de la liste :
+    // elle commence au surlendemain, donc « demain » est la veille de celle-ci.
+    fireEvent.click(
+      [...container.querySelectorAll<HTMLButtonElement>('.suggested-refuse button')].find(
+        (one) => one.textContent === 'Un autre jour',
+      )!,
+    )
+    await waitFor(() => expect(container.querySelector('.picker-day')).not.toBeNull())
+    const surlendemain = Number(
+      container.querySelector('.picker-day')?.textContent?.match(/(\d+)$/)?.[1],
+    )
+
+    fireEvent.click(
+      [...container.querySelectorAll<HTMLButtonElement>('.suggested-refuse button')].find(
+        (one) => one.textContent !== 'Un autre jour' && one.textContent !== 'Pas celle-ci'
+          && one.textContent !== 'Copier',
+      )!,
+    )
+
+    await waitFor(() => {
+      const garde = JSON.parse(localStorage.getItem('makigawa.plan') ?? '{}')
+      expect(Number(String(garde.notBefore).slice(-2))).toBe(surlendemain - 1)
+    })
+  })
+
+  it('n’appelle jamais « demain » un jour qui ne l’est pas', async () => {
+    // « Demain » à côté d'une séance proposée jeudi serait un mensonge.
+    withPlan()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.suggested')).not.toBeNull())
+
+    const ouvert = container.querySelector('.sheet-when')?.textContent ?? ''
+    const boutons = [...container.querySelectorAll('.suggested-refuse button')].map(
+      (one) => one.textContent ?? '',
+    )
+    if (!ouvert.includes('Aujourd’hui')) {
+      expect(boutons).not.toContain('Demain')
+    }
+    // Dans les deux cas, le premier geste nomme bien un jour.
+    expect(boutons.some((one) => one === 'Demain' || /^[a-zé]+$/i.test(one))).toBe(true)
+  })
+})

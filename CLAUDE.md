@@ -288,8 +288,15 @@ En bref :
 - **L'app propose, l'athlète confirme.** Aucune écriture sans un geste de sa
   part — ce qui fait du moteur une fonction pure.
 - **Une proposition se refuse**, et le plan se recalcule en entier autour du
-  refus : « pas celle-ci » écarte la famille, « plus tard » repousse le jour.
-  Ni l'un ni l'autre ne crée de dette, et rien n'en part dans intervals.icu.
+  refus : « pas celle-ci » écarte la famille, repousser déplace le jour. Ni
+  l'un ni l'autre ne crée de dette, et rien n'en part dans intervals.icu.
+- **Repousser offre deux gestes** (E.14, révisé le 9 septembre 2026) :
+  « demain » en un tap, ou une liste des jours restants de l'horizon. Le geste
+  unique de la veille ne repoussait que d'un jour et se répétait — atteindre
+  samedi depuis un mardi demandait quatre taps. **Un jour choisi est un
+  plancher, pas un rendez-vous** : le E.2 garde le dernier mot, et quand la
+  séance glisse l'app dit le jour demandé, le jour obtenu et le motif. Forcer
+  le jour reviendrait à faire taire le E.2 d'un tap.
 - **L'app relit ce qui a été fait** : elle apparie une séance prévue à
   l'activité qui l'a réalisée, d'abord par le lien d'intervals.icu. Elle
   n'affiche que les séances tenues — jamais les manquées, qui ne servent qu'en
