@@ -29,8 +29,8 @@ export default defineConfig({
         scope: base,
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0c0c0e',
-        theme_color: '#0c0c0e',
+        background_color: '#0d1218',
+        theme_color: '#0d1218',
         categories: ['sports', 'health', 'travel'],
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -39,7 +39,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,woff2}'],
         navigateFallback: `${base}index.html`,
         cleanupOutdatedCaches: true,
       },

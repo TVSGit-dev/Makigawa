@@ -18,7 +18,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { useCallback, useRef, useState } from 'react'
 import { Plan, type Readout } from './Plan'
 import type { Credentials } from '../storage/credentials'
@@ -94,17 +94,17 @@ const plan = () =>
   )
 
 describe('l’écran du plan', () => {
-  it('affiche les quatorze jours, vides compris', async () => {
+  it('affiche les quatorze jours de la bande, vides compris', async () => {
     serve()
     const { container } = plan()
-    await waitFor(() => expect(container.querySelectorAll('.day')).toHaveLength(14))
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
   })
 
   it('n’écrit jamais dans intervals.icu (E.19)', async () => {
     // Le garde-fou statique lit les fichiers ; celui-ci regarde le réseau.
     const calls = serve()
     const { container } = plan()
-    await waitFor(() => expect(container.querySelectorAll('.day')).toHaveLength(14))
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
     expect(calls.filter((call) => call.method !== 'GET')).toEqual([])
   })
 
@@ -113,7 +113,7 @@ describe('l’écran du plan', () => {
     // encore deux lots plus tard.
     serve()
     const { container } = plan()
-    await waitFor(() => expect(container.querySelectorAll('.day')).toHaveLength(14))
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
 
     const texte = container.textContent ?? ''
     for (const fantome of ['Poser une séance', 'Poser celle-ci', 'Tout accepter']) {
@@ -138,7 +138,7 @@ describe('l’écran du plan', () => {
       ],
     })
     const { container } = plan()
-    await waitFor(() => expect(container.querySelectorAll('.day')).toHaveLength(14))
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
     expect(container.textContent).not.toContain('absente')
     expect(container.textContent).not.toContain('manquée')
   })
@@ -147,7 +147,7 @@ describe('l’écran du plan', () => {
     // D'abord une lecture réussie, qui se garde.
     serve()
     const first = plan()
-    await waitFor(() => expect(first.container.querySelectorAll('.day')).toHaveLength(14))
+    await waitFor(() => expect(first.container.querySelectorAll('.col')).toHaveLength(14))
     cleanup()
 
     // Puis plus de réseau du tout.
@@ -155,7 +155,7 @@ describe('l’écran du plan', () => {
     serve({ fail: true })
     const { container } = plan()
     await waitFor(() => expect(container.textContent).toContain('Pas de réseau'))
-    expect(container.querySelectorAll('.day')).toHaveLength(14)
+    expect(container.querySelectorAll('.col')).toHaveLength(14)
   })
 
   it('reconnaît une séance qu’elle a proposée, sans passer par le calendrier', async () => {
@@ -279,5 +279,39 @@ describe('le rendu ne boucle pas', () => {
     render(<Parent onCount={(n) => (count = n)} />)
     await new Promise((resolve) => setTimeout(resolve, 200))
     expect(count).toBeLessThan(10)
+  })
+})
+
+describe('la bande des quatorze jours', () => {
+  it('ouvre aujourd’hui, et change de jour quand on tape une colonne', async () => {
+    // La bande a remplacé la liste verticale : elle montre les quatorze jours
+    // repliés et n'en ouvre qu'un. Sans ce geste, treize d'entre eux
+    // deviendraient inaccessibles.
+    serve()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
+
+    const ouvert = () => container.querySelector('.sheet-when')?.textContent ?? ''
+    expect(ouvert()).toContain('Aujourd’hui')
+
+    const colonnes = container.querySelectorAll<HTMLButtonElement>('.col')
+    fireEvent.click(colonnes[5]!)
+    await waitFor(() => expect(ouvert()).not.toContain('Aujourd’hui'))
+    expect(ouvert().length).toBeGreaterThan(0)
+  })
+
+  it('garde la marque de trajet tapable sous chaque jour (E.17)', async () => {
+    // Le geste vivait sur la ligne du calendrier vertical, qui n'existe plus.
+    serve()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
+    expect(container.querySelectorAll('.marks .mark')).toHaveLength(14)
+
+    const marque = container.querySelector<HTMLButtonElement>('.marks .mark')!
+    const avant = marque.textContent
+    fireEvent.click(marque)
+    await waitFor(() =>
+      expect(container.querySelector('.marks .mark')?.textContent).not.toBe(avant),
+    )
   })
 })

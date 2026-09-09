@@ -330,28 +330,77 @@ document avant le code.
 
 ## Contraintes d'interface
 
-**Un seul chiffre en grand : la fraîcheur.** Révisé le 7 septembre 2026, après
-avoir regardé comment Whoop présente son score de récupération — un nombre
-lisible à bout de bras, sa lecture en une phrase, et le reste plus petit en
-dessous. Trois nombres à égalité obligent à comparer ; un seul répond. La forme
-et la fatigue restent, en satellites.
+**Quatre cadrans, plus un seul chiffre en grand** — révisé le 9 septembre 2026.
+Le grand nombre venait de Whoop et avait raison sur un point : la fraîcheur est
+celle qui décide, c'est elle que le E.2 consulte. Mais elle ne décide plus
+seule — la variabilité du matin est la sixième condition (E.30) — et un chiffre
+en très grand à côté d'une phrase perdue en dessous disait mal cette égalité.
+Fraîcheur, forme, fatigue et variabilité se lisent maintenant du même coup
+d'œil ; seule la fraîcheur garde sa couleur, et chacune s'ouvre pour dire d'où
+elle sort.
 
 **Le poids d'une journée est une jauge, pas un mot.** Quatorze lignes disant
 « légère » sont quatorze fois du bruit ; la profondeur du rose le dit d'un coup
 d'œil. Le mot ne reste que pour la journée chargée, la seule dont on veuille
 être averti.
 
-**La palette est grise, rose et noire** — choix de l'athlète, 6 septembre 2026.
-La sévérité s'exprime par la profondeur du rose plutôt que par de nouvelles
-couleurs : une app d'entraînement n'a pas besoin d'un feu tricolore. Une seule
-exception, tenue par le projet lui-même : **la distinction électrique /
-musculaire**, où le gris dit « ce ne sont pas tes jambes » et le rose dit
-« si ».
+**La palette est encre marine, rouille, sauge et acier** — choix de l'athlète,
+9 septembre 2026, sur maquette. Elle remplace le gris-rose-noir du 6 septembre.
 
-**L'app s'ouvre sur le calendrier des deux prochaines semaines** — révisé le
-7 septembre 2026. La carte « Aujourd'hui » est retirée : elle existait pour
-poser la question du trajet, et cette question ne se pose plus (E.17 révisé).
-Aujourd'hui est simplement la première ligne du calendrier, et c'est assez.
+La logique est celle d'un instrument, pas d'un feu tricolore :
+
+- la **rouille** est l'effort qui compte — une séance, une journée chargée ;
+- l'**acier** est ce qui ne coûte pas les jambes, c'est-à-dire les trajets ;
+- la **sauge** est le facile, la récupération, le bon état ;
+- et une forme s'y ajoute : ce qui est **hachuré n'existe pas encore**. Plein
+  pour une séance posée dans intervals.icu, hachuré pour une proposition.
+
+**La distinction électrique / musculaire reste une priorité**, mais elle ne se
+joue plus sur gris contre rose : c'est la profondeur du même acier, pâle pour
+l'assistance et franc pour les jambes. Les deux restent d'une famille distincte
+de la rouille, qui appartient aux séances — ce qui dit quelque chose de vrai
+que l'ancienne palette ne disait pas : un trajet n'est jamais une séance.
+
+**L'app s'engage sur un monde sombre.** La version claire existe et transpose
+les mêmes teintes pour le plein soleil — mêmes rôles, mêmes formes, seule la
+valeur s'inverse.
+
+**Les polices sont servies depuis le dépôt.** Barlow Condensed pour les
+chiffres et les intitulés, IBM Plex Sans pour le texte, sous-ensemble latin,
+100 Ko préchargés par le service worker. Ni Google Fonts ni aucun tiers :
+l'app doit s'ouvrir hors ligne, et rien de ce que fait l'athlète n'a à passer
+ailleurs qu'à intervals.icu.
+
+**L'app s'ouvre sur la bande des quatorze jours** — révisé le 9 septembre 2026.
+La liste verticale disait chaque jour correctement et ne disait rien du
+**rythme** : il fallait faire défiler quatorze lignes pour voir où ça montait,
+où c'était vide, où deux journées se suivaient. Une bande le donne d'un coup
+d'œil, et c'est ce qu'un plan d'entraînement est censé montrer.
+
+Ce que la bande encode, et rien d'autre :
+
+- la **hauteur** d'une colonne est une charge — celle d'intervals.icu pour les
+  séances posées, celle relevée par l'athlète pour les trajets (E.13) ;
+- la **ligne pointillée** est ce que chaque journée devrait porter pour tenir
+  la semaine, le `perDay` du E.28 ;
+- le **liseré au pied** marque une journée chargée au sens du E.1 ;
+- le **capuchon hachuré** dit qu'une séance est proposée là.
+
+**Le capuchon n'a pas de hauteur proportionnelle, et c'est délibéré.** Une
+séance composée n'a pas de charge — intervals.icu la calculerait depuis la
+structure, et l'app ne lui envoie plus rien (E.19). Lui en donner une
+inventerait un chiffre. Le capuchon dit « il y a quelque chose ici », pas
+« ça pèse tant » : la même distinction que le E.28 fait dans la jauge de la
+semaine.
+
+Un jour se tape pour l'ouvrir en dessous, avec ses séances réelles, leur
+suppression par appui long, la proposition et ses refus. Rien de la liste
+verticale n'est perdu ; tout y est replié.
+
+**Les chiffres d'une séance sont en tableau**, plus en phrases : mêmes
+intitulés au même endroit d'une séance à l'autre, et l'œil va droit au chiffre
+qui a changé. Les phrases restent au catalogue, où l'on découvre une famille et
+où une phrase se comprend sans connaître la notation.
 
 **Elle nomme le rayon, pas l'article** — 8 septembre 2026 (E.27). Zwift range
 ses séances dans des collections qui portent le même vocabulaire que les zones

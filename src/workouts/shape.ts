@@ -68,3 +68,59 @@ export function shapeOf(workout: Workout, ftp: number | null): string[] {
 
   return lines
 }
+
+/** Une ligne du tableau de la séance : un intitulé, une valeur, sa note. */
+export type Spec = { label: string; value: string; note?: string }
+
+/**
+ * Les chiffres d'une séance, en tableau plutôt qu'en phrases (9 septembre 2026).
+ *
+ * `shapeOf` dit la même chose en français, et c'est ce qu'il faut la première
+ * fois. Une fois la notation connue, un tableau se lit plus vite : les mêmes
+ * intitulés au même endroit d'une séance à l'autre, et l'œil va droit au
+ * chiffre qui a changé.
+ *
+ * Rien de neuf n'y est calculé — les pourcentages viennent des familles, les
+ * watts de la FTP d'intervals.icu, les durées de la structure composée.
+ */
+export function specsOf(workout: Workout, ftp: number | null): Spec[] {
+  const { family, sets, reps } = workout
+  const bloc = blockSeconds(family, reps)
+  // Sans récupération entre eux, les blocs se suivent sans coupure : c'est un
+  // seul bloc, et en annoncer plusieurs ferait croire à un fractionné (E.23).
+  const continu = family.between === 0
+  const blocs = continu ? 1 : sets
+
+  const specs: Spec[] = [{ label: 'Travail', value: duration(bloc * sets) }]
+
+  // Un seul bloc : « Découpe » répéterait « Travail » mot pour mot.
+  if (blocs > 1) specs.push({ label: 'Découpe', value: `${blocs} × ${duration(bloc)}` })
+
+  // Un palier par marche du motif. Deux marches sur un over-under, une seule
+  // sur un bloc continu — le tableau suit la famille, il ne la normalise pas.
+  const paliers = family.pattern.filter((block) => block.seconds > 0)
+  for (const [index, block] of paliers.entries()) {
+    specs.push({
+      label:
+        paliers.length === 1
+          ? 'Intensité'
+          : index === 0
+            ? 'Premier palier'
+            : index === paliers.length - 1
+              ? 'Dernier palier'
+              : `Palier ${index + 1}`,
+      value: `${block.percent} %`,
+      note: `${duration(block.seconds)}${wattsOf(block.percent, ftp) === null ? '' : ` · ${wattsOf(block.percent, ftp)} W`}`,
+    })
+  }
+
+  if (blocs > 1 && family.between > 0) {
+    specs.push({
+      label: 'Récup',
+      value: duration(family.between),
+      note: `${family.betweenPercent} %`,
+    })
+  }
+
+  return specs
+}
