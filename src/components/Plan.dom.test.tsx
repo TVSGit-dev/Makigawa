@@ -47,8 +47,30 @@ const wellness = [
   { id: shift(0), ctl: 21, atl: 20 },
 ]
 
+/**
+ * Une prévision Open-Meteo, en colonnes comme le vrai service la rend.
+ *
+ * Aujourd'hui seulement, aux quatre heures qui comptent : c'est tout ce que
+ * les deux fenêtres du E.31 vont regarder.
+ */
+function forecast() {
+  const jour = shift(0)
+  return {
+    hourly: {
+      time: [`${jour}T08:00`, `${jour}T09:00`, `${jour}T17:00`, `${jour}T18:00`],
+      temperature_2m: [9, 10, 15, 15],
+      apparent_temperature: [7, 8, 14, 14],
+      precipitation_probability: [5, 5, 10, 10],
+      precipitation: [0, 0, 0, 0],
+      wind_speed_10m: [12, 12, 15, 15],
+      wind_gusts_10m: [25, 26, 30, 30],
+      weather_code: [0, 1, 3, 3],
+    },
+  }
+}
+
 /** Un `fetch` qui répond comme intervals.icu, et note ce qu'on lui envoie. */
-function serve(overrides: { events?: unknown[]; fail?: boolean } = {}) {
+function serve(overrides: { events?: unknown[]; fail?: boolean; weather?: boolean } = {}) {
   const calls: { method: string; url: string }[] = []
 
   const fetcher = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
@@ -57,6 +79,15 @@ function serve(overrides: { events?: unknown[]; fail?: boolean } = {}) {
     calls.push({ method, url })
 
     if (overrides.fail) throw new TypeError('Failed to fetch')
+
+    // La météo est le seul appel qui ne va pas chez intervals.icu. Elle ne
+    // répond que si le test la demande : les autres n'ont pas à s'en occuper.
+    if (url.includes('open-meteo')) {
+      return new Response(JSON.stringify(overrides.weather ? forecast() : {}), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
 
     const body = url.includes('/events')
       ? (overrides.events ?? [])
@@ -313,5 +344,155 @@ describe('la bande des quatorze jours', () => {
     await waitFor(() =>
       expect(container.querySelector('.marks .mark')?.textContent).not.toBe(avant),
     )
+  })
+})
+
+describe('la météo du trajet (E.31, E.32)', () => {
+  it('montre les deux fenêtres et la tenue du jour ouvert', async () => {
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const bloc = container.querySelector('.weather')!
+    // Les deux fenêtres, nommées par leurs heures.
+    expect(bloc.textContent).toContain('8-9 h')
+    expect(bloc.textContent).toContain('17-18 h')
+    // Le ressenti, pas la température de l'air : 7° le matin, pas 9°.
+    expect(bloc.textContent).toContain('7°')
+    // Et une tenue, puisque le jour porte un trajet électrique par défaut.
+    expect(bloc.querySelectorAll('.win-wear').length).toBe(2)
+  })
+
+  it('pose deux signes par jour sous la bande', async () => {
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelectorAll('.skies .sky')).toHaveLength(14))
+
+    // La prévision ne couvre qu'aujourd'hui : les treize autres restent vides
+    // plutôt que de deviner.
+    expect(container.querySelectorAll('.skies .sky-none')).toHaveLength(13)
+  })
+
+  it('ne dit rien du tout quand la météo ne répond pas', async () => {
+    // Un échec météo ne doit jamais coûter le plan : c'est la même prudence
+    // que pour les courbes cardiaques du E.21.
+    serve()
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
+    expect(container.querySelector('.weather')).toBeNull()
+    expect(container.querySelector('.skies')).toBeNull()
+  })
+
+  it('n’envoie ni clé ni identifiant chez le météorologue', async () => {
+    // Le second tiers du projet. Il ne reçoit que des coordonnées et des
+    // dates — jamais la clé intervals.icu, jamais l'identifiant de l'athlète.
+    const calls = serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const meteo = calls.filter((call) => call.url.includes('open-meteo'))
+    expect(meteo.length).toBeGreaterThan(0)
+    for (const call of meteo) {
+      expect(call.method).toBe('GET')
+      expect(call.url).not.toContain(credentials.apiKey)
+      expect(call.url).not.toContain(credentials.athleteId)
+    }
+  })
+
+  it('repart de la prévision gardée plutôt que du réseau', async () => {
+    // Hors ligne, l'app doit ouvrir déjà habillée : c'est le cas du garage.
+    const calls = serve({ weather: true })
+    const first = plan()
+    await waitFor(() => expect(first.container.querySelector('.weather')).not.toBeNull())
+    const appels = calls.filter((call) => call.url.includes('open-meteo')).length
+    cleanup()
+
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+    expect(calls.filter((call) => call.url.includes('open-meteo'))).toHaveLength(appels)
+  })
+})
+
+describe('ma garde-robe (E.32, second temps)', () => {
+  it('propose toutes les catégories, et aucune n’est remplie au départ', async () => {
+    // « Que tu n'inventes pas » : l'app fournit le vocabulaire, jamais les
+    // pièces. Une garde-robe pré-remplie serait exactement ce qu'il a exclu.
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.wardrobe')).not.toBeNull())
+
+    expect(container.querySelectorAll('.piece')).toHaveLength(16)
+    expect(container.querySelector('.wardrobe > summary')?.textContent).toContain('0 sur 16')
+    for (const champ of container.querySelectorAll<HTMLInputElement>('.piece-edit input')) {
+      expect(champ.value).toBe('')
+    }
+  })
+
+  it('nomme les pièces de l’athlète dans le plan dès qu’il les a dites', async () => {
+    localStorage.setItem(
+      'makigawa.garde-robe',
+      JSON.stringify({ 'gants-legers': 'gants Rogelli noirs' }),
+    )
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const bloc = container.querySelector('.weather')!
+    expect(bloc.textContent).toContain('gants Rogelli noirs')
+    expect(bloc.textContent).not.toContain('gants légers')
+  })
+
+  it('cesse de proposer ce qu’il n’a pas, et le dit', async () => {
+    // Le taire lui laisserait croire qu'il est couvert.
+    localStorage.setItem('makigawa.garde-robe', JSON.stringify({ jambieres: null }))
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const bloc = container.querySelector('.weather')!
+    expect(bloc.querySelector('.win-missing')?.textContent).toContain('jambières')
+    expect(bloc.querySelector('.win-wear')?.textContent).not.toContain('jambières')
+  })
+
+  it('garde le nom générique tant qu’il n’a rien dit', async () => {
+    // Une garde-robe vide ne casse rien : c'est le premier temps du E.32.
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+    expect(container.querySelector('.weather')?.textContent).toContain('gants légers')
+  })
+
+  it('retient ce qu’il tape, et le plan s’en sert aussitôt', async () => {
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const champ = [...container.querySelectorAll<HTMLInputElement>('.piece-edit input')].find(
+      (one) => one.getAttribute('aria-label')?.includes('gants légers'),
+    )!
+    fireEvent.change(champ, { target: { value: 'gants Rogelli noirs' } })
+    fireEvent.blur(champ)
+
+    await waitFor(() =>
+      expect(container.querySelector('.weather')?.textContent).toContain('gants Rogelli noirs'),
+    )
+    expect(localStorage.getItem('makigawa.garde-robe')).toContain('gants Rogelli noirs')
+  })
+
+  it('ne conseille jamais d’acheter ce qui manque', async () => {
+    // L'app n'a pas d'avis sur ce qu'il devrait posséder, seulement sur ce
+    // qu'il fait froid. Le contrôle porte sur le bloc du jour, qui est le seul
+    // endroit où un conseil se donne — l'écran de garde-robe, lui, a le droit
+    // de promettre qu'il n'en donnera pas.
+    localStorage.setItem('makigawa.garde-robe', JSON.stringify({ jambieres: null }))
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const conseil = (container.querySelector('.weather')?.textContent ?? '').toLowerCase()
+    expect(conseil).toContain('il te manque')
+    for (const mot of ['achet', 'procure', 'investis', 'il te faudrait']) {
+      expect(conseil, mot).not.toContain(mot)
+    }
   })
 })

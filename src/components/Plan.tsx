@@ -46,6 +46,11 @@ import { spreadOf } from '../rules/spread'
 import { variabilityOf, type Variability } from '../rules/variability'
 import { bandsOf } from '../rules/peak'
 import { describeAge, loadRead, saveRead } from '../storage/cache'
+import { fetchWeather, type WeatherHour } from '../api/weather'
+import { isFresh, loadWeather, saveWeather } from '../storage/weather'
+import { loadWardrobe } from '../storage/wardrobe'
+import type { Wardrobe as Closet } from '../rules/garments'
+import { Wardrobe } from './Wardrobe'
 import { loadPeaks, savePeaks, type Peaks } from '../storage/peaks'
 import { loadJournal, recordRefusals, type Journal, type JournalEntry } from '../storage/journal'
 import {
@@ -188,11 +193,46 @@ export function Plan({
    */
   const [picked, setPicked] = useState<DayKey | null>(null)
 
+  /**
+   * La prévision du trajet (E.31).
+   *
+   * Elle démarre sur ce que le téléphone a gardé, pour que l'app ouvre déjà
+   * habillée hors ligne, puis se rafraîchit si elle a plus de trois heures.
+   * Elle ne bloque rien : sans météo, le plan est exactement celui d'avant.
+   */
+  const [weather, setWeather] = useState<readonly WeatherHour[]>(
+    () => loadWeather()?.hours ?? [],
+  )
+
+  /**
+   * Ce que l'athlète possède (E.32, second temps).
+   *
+   * Vide au départ, et c'est un état normal : les pièces gardent alors leur
+   * nom générique, ce que l'app faisait avant cet écran.
+   */
+  const [wardrobe, setWardrobe] = useState<Closet>(() => loadWardrobe())
+
   const today = toDayKey(new Date())
 
   useEffect(() => {
     setChoices(forgetStalePreferences(today))
     setCommutes(forgetOldCommutes(today))
+  }, [today])
+
+  // La météo est le seul appel qui ne passe pas par intervals.icu, et le seul
+  // qui ne demande pas de clé. Elle est donc lue à part, sans les
+  // identifiants, et son échec ne touche à rien.
+  useEffect(() => {
+    if (isFresh(loadWeather())) return
+    let vivant = true
+    void fetchWeather().then((outcome) => {
+      if (!vivant || outcome.kind !== 'ok' || outcome.data.length === 0) return
+      saveWeather(outcome.data)
+      setWeather(outcome.data)
+    })
+    return () => {
+      vivant = false
+    }
   }, [today])
 
   const load = useCallback(async () => {
@@ -648,6 +688,8 @@ export function Plan({
         spread={spread}
         ftp={state.data.ftp}
         activities={state.data.activities}
+        weather={weather}
+        wardrobe={wardrobe}
         refusing={hasPlanPreferences(choices)}
         removals={removals}
         onCommute={(date) => setCommutes(cycleCommute(date))}
@@ -660,6 +702,10 @@ export function Plan({
       {/* Le catalogue s'ouvre : l'app propose, mais si rien ne convient
           l'athlète choisit lui-même au lieu de refuser trois fois (E.27). */}
       <Catalogue levels={levels} ftp={state.data.ftp} />
+
+      {/* Sa garde-robe, repliée comme le catalogue : on la remplit une fois,
+          pas tous les matins (E.32). */}
+      <Wardrobe wardrobe={wardrobe} onChange={setWardrobe} />
 
       {context ? (
         <TestDay

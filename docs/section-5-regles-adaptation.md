@@ -2045,6 +2045,236 @@ Elle dérive lentement et dit à peu près ce que dit la variabilité, en moins
 sensible ; en faire une seconde condition ajouterait du bruit, pas du signal.
 
 
+## E.31 La météo du trajet
+
+Demandé le 9 septembre 2026. L'athlète fait six à sept trajets par semaine entre
+Stockel et Wavre, aller le matin et retour le soir, et il s'habille avant de
+partir sans savoir ce qu'il va rencontrer.
+
+### Un second tiers, et pourquoi celui-là
+
+Jusqu'ici l'app ne parlait qu'à intervals.icu. Ajouter une source est une
+décision de sécurité autant que de fonction, et **une seule candidate passe les
+règles du projet** : `api.open-meteo.com`.
+
+- **Aucune clé.** C'est la condition qui élimine tout le reste. Une clé
+  météo dans le bundle serait exactement ce que la section Sécurité interdit —
+  le préfixe `VITE_` l'embarquerait dans le JavaScript servi au navigateur, et
+  une app sans serveur n'a nulle part où la cacher.
+- **Rien de personnel ne part.** La requête porte des coordonnées et des dates.
+  Pas d'identifiant, pas de clé intervals.icu, pas d'activité.
+- **Des coordonnées fixes, pas la géolocalisation.** Le trajet ne bouge pas ;
+  demander la position du téléphone ajouterait une permission et une surface de
+  vie privée pour un renseignement qu'on a déjà. La route est une constante
+  athlète, au même titre que la FCmax.
+
+### Les deux fenêtres
+
+Le trajet du matin part **entre 8 et 9 h**, celui du soir **entre 17 et 18 h**.
+L'app lit ces deux tranches, et rien d'autre : la météo de midi ne le concerne
+pas, il est au bureau.
+
+Sur les deux heures d'une fenêtre, elle retient **ce qu'il va rencontrer de plus
+défavorable** — la température la plus basse, la probabilité de pluie la plus
+haute, la rafale la plus forte. Une moyenne lisserait précisément l'averse
+contre laquelle on s'habille.
+
+### L'horizon, et son honnêteté
+
+Le plan couvre quatorze jours, **la météo n'en couvre que sept**. Au-delà, une
+prévision ne dit plus rien d'utilisable pour choisir une veste, et l'afficher
+donnerait à une supposition l'apparence d'un renseignement. Les jours sans
+prévision n'affichent rien — c'est la règle du projet, appliquée à une
+troisième donnée.
+
+### Ce que ça ne devient pas
+
+**La météo ne décide rien.** Elle ne déplace pas une séance, ne change pas une
+proposition, n'entre dans aucune des six conditions du E.2. Une pluie annoncée
+ne fait pas d'un mardi un mauvais jour pour du seuil — la séance est à
+l'intérieur, et un trajet se fait sous la pluie comme il se fait au sec. Elle
+s'affiche, et c'est tout.
+
+## E.32 Comment s'habiller
+
+La suite immédiate du E.31, demandée en même temps : un chiffre de température
+ne dit pas quoi mettre.
+
+### Sur quelle température
+
+**Sur la température ressentie, pas sur la température de l'air**, et elle est
+lue chez Open-Meteo (`apparent_temperature`) plutôt que calculée. Elle intègre
+déjà le vent et l'humidité ; la recalculer serait refaire moins bien ce que le
+fournisseur fait, et le projet ne recalcule pas ce qu'il lit.
+
+### Les bandes
+
+**Leurs bornes sont celles des guides d'habillement du cyclisme**, qui
+s'accordent : manches courtes au-dessus de 20 °C, manchettes ou gilet de 16 à
+20, sous-vêtement avec manchettes et jambières de 8 à 16, et le thermique en
+dessous de 8. Elles ne sont pas inventées, et elles ne sont pas négociables au
+caprice : ce sont des repères publiés.
+
+| Ressenti | Ce que ça demande |
+|---|---|
+| **20 °C et plus** | maillot manches courtes, cuissard |
+| **16 à 20** | manches courtes, manchettes ou gilet coupe-vent |
+| **8 à 16** | sous-vêtement technique, manches longues ou manchettes, jambières, gants légers |
+| **3 à 8** | sous-vêtement thermique, manches longues, collant thermique, gants, tour de cou |
+| **sous 3** | tout cela, veste coupe-vent, gants d'hiver, couvre-chaussures, rien de découvert |
+
+**Une seule borne est ajoutée par le projet, celle de 3 °C.** Les guides
+s'arrêtent à « sous 8 °C » ; à Bruxelles cela couvre tout l'hiver, et un matin
+à 1 °C ne demande pas la même chose qu'un matin à 7. La coupure ne change rien
+au-dessus de 8.
+
+### Les deux corrections, et leur sens
+
+**Un trajet électrique retire trois degrés au ressenti.** C'est contre-intuitif
+et c'est pourtant le sens juste : les guides sont écrits pour du vélo
+musculaire, donc ils supposent déjà la chaleur d'un effort. L'assistance en
+produit moins, et **les propres chiffres de l'athlète le disent mieux que la
+littérature** : 129 bpm en électrique contre 160 en musculaire, 35 de charge
+contre 115, soit à peu près moitié moins de chaleur produite. Le musculaire ne
+corrige rien, puisque c'est la référence des guides.
+
+**C'est le seul nombre estimé de tout le dispositif**, et il est reconnu comme
+tel. La direction est publiée ; la grandeur ne l'est nulle part. Trois degrés,
+donc, **délibérément moins que la bande de pluie** — celle-ci vaut sept degrés
+et elle est mesurée, celle-là est une estimation. Se tromper vers le chaud est
+la faute la plus coûteuse : on part frais exprès, et on se change au bureau.
+
+**En degrés et non en bandes, et cela compte.** Un premier essai sautait une
+bande entière : douze degrés en électrique ressortaient en tenue d'hiver, tour
+de cou compris, ce qui se voyait à l'écran dès la première capture. Une bande
+vaut cinq à huit degrés ; l'appliquer partout fait le même écart à 19 °C, où
+l'assistance ne change rien à ce qu'on met, et à 11 °C, où elle change tout.
+
+**La pluie, elle, en retire sept**, et ajoute l'imperméable. Ce n'est pas une
+estimation du projet : les guides le disent tel quel — *douze degrés sous la
+pluie en valent cinq*, ce qui fait bien monter d'une bande. L'imperméable
+s'ajoute sans que rien ne soit compté deux fois, puisque les guides
+recommandent les deux ensemble. Le vent est déjà dans la température ressentie
+et n'entre pas ici.
+
+### Une seule échelle, et l'écran dit les deux nombres
+
+**Les deux corrections se comptent en degrés sur le même ressenti**, et le
+nombre qui en sort est celui qui choisit la bande. Un premier essai mélangeait
+les deux mécaniques — des degrés pour l'assistance, un saut de bande pour la
+pluie — et l'écran affichait alors « comme pour 5° » à côté d'une tenue de
+grand froid. Les deux nombres se contredisaient, ce qui est pire que de se
+tromper : l'app ne savait plus dire ce qu'elle faisait.
+
+Le ressenti annoncé s'affiche tel quel — l'app ne maquille pas un thermomètre.
+Quand une correction l'écarte de ce pour quoi on s'habille, la ligne de tenue
+le dit : « comme pour 9° : en électrique tu chauffes moins ». Sans ce pont,
+« 12° » à côté d'une tenue de 9° passe pour une erreur de l'app plutôt que pour
+la correction qu'elle est.
+
+### Ce que la bande ne dit qu'une fois
+
+La bande la plus large des guides couvre huit degrés : un matin à 12 °C et un
+soir à 18 en tombent tous deux dans la même. Réimprimer la liste ne dirait rien
+de plus que « rien à changer », donc le soir affiche **« même tenue qu'au
+matin »**. C'est la même économie que la jauge de journée, qui ne met un mot
+que sur la journée chargée.
+
+### « Il est normal d'avoir un peu froid au départ »
+
+C'est la formulation de l'athlète, et c'est aussi celle des guides : *dress for
+fifteen minutes in, not the car park*. L'app le dit, une fois, plutôt que de
+laisser croire à une erreur de sa part — sans quoi elle serait corrigée à la
+hausse chaque matin et l'athlète arriverait trempé de sueur.
+
+### Ce qu'il faut emporter
+
+L'athlète se change au bureau, **mais ne peut pas transporter grand-chose**.
+Quand les deux fenêtres tombent dans la même bande, il n'y a rien à dire. Quand
+elles diffèrent, l'app nomme **ce que le soir demande en plus du matin**, et
+rien d'autre : c'est cela seul qui doit tenir dans le sac.
+
+Elle ne fait pas de liste de valise. Elle ne dit pas non plus de retirer une
+couche le soir — enlever ne se transporte pas.
+
+### D'où viennent ces nombres
+
+Relevés le 9 septembre 2026, sur les guides d'habillement du cyclisme. Ils
+s'accordent à un ou deux degrés près, ce qui est précisément pourquoi le projet
+les prend tels quels au lieu d'en inventer :
+
+- Cycling Weekly, *What to wear cycling: a temperature-by-temperature dress
+  guide* — les bornes de 20 et 8 °C, et « manchettes et gilet règlent 80 % du
+  problème entre 10 et 20 ».
+- POC, *How to dress for cycling by temperature*, et Pactimo, *Cycling
+  clothing: what to wear in different temperatures* — le découpage 8-16 °C.
+- Down the Road, *What to wear cycling by temperature* — « douze degrés sous la
+  pluie en valent cinq, monte d'une bande » ; c'est la source de la correction
+  de pluie, et la seule des deux corrections qui soit publiée.
+- Tenways et Heybike, guides d'habillement pour vélo à assistance — la
+  **direction** de la correction électrique : moins de chaleur produite, donc
+  se couvrir davantage. Aucun ne la chiffre, d'où les trois degrés estimés du
+  projet.
+
+Tous répètent la même chose sur le départ : *dress for fifteen minutes in, not
+the car park*.
+
+### La garde-robe — le second temps
+
+Demandé en même temps que le reste, et livré le 9 septembre 2026.
+
+**L'app fournit les catégories, l'athlète fournit les pièces.** C'est la seule
+répartition qui respecte sa consigne — *ne rien inventer, ne rien proposer au
+hasard*. Les catégories sont exactement celles que nomment les guides, celles
+dont les bandes se servaient déjà ; ce qu'il possède dans chacune, lui seul le
+sait, et il le dit dans l'écran « Ma garde-robe ».
+
+Une liste pré-remplie aurait été l'erreur : elle aurait mis dans son placard
+des affaires qu'il n'a pas, et l'app se serait mise à conseiller des
+couvre-chaussures imaginaires.
+
+**Trois réponses par catégorie, et la troisième compte autant que les deux
+autres.**
+
+| Ce qu'il répond | Ce que l'app en fait |
+|---|---|
+| Il **nomme** sa pièce | C'est son nom qui s'affiche dans le plan : « gants Rogelli noirs », pas « gants légers » |
+| Il déclare **ne pas l'avoir** | Elle **cesse de la proposer**, et le dit — « il te manque : jambières » |
+| Il **ne dit rien** | La pièce garde son nom générique, ce qui est le comportement du premier temps |
+
+Une garde-robe vide ne casse donc rien : c'est l'état de départ, et l'app
+conseille pendant ce temps-là comme elle le faisait avant l'écran.
+
+### Ce qu'une pièce manquante ne déclenche pas
+
+**Aucun remplacement.** L'app ne sait pas si son coupe-vent vaut un
+imperméable, et le supposer serait exactement ce qu'elle s'interdit ailleurs.
+Elle retire la pièce de la tenue, la nomme à part, et s'arrête là.
+
+**Aucun conseil d'achat.** Elle n'a pas d'avis sur ce qu'il devrait posséder,
+seulement sur ce qu'il fait froid. Un test lit le bloc du jour et refuse le
+moindre « achète » ou « il te faudrait ».
+
+**Aucun changement de bande.** Les degrés décident, la garde-robe ne fait que
+filtrer ce qui en sort. Une pièce absente ne réchauffe ni ne refroidit le
+raisonnement.
+
+### Ce que le sac va peser
+
+Chaque catégorie porte un encombrement — **poche** ou **sac** — parce que
+l'athlète se change au bureau mais ne transporte pas grand-chose. Quand ce que
+le soir demande en plus tient dans une poche, l'app le dit ; sinon elle se
+tait, parce qu'elle ne connaît ni la taille de son sac ni ce qu'il y met déjà.
+C'est tout ce qu'elle peut affirmer honnêtement d'un encombrement.
+
+### Ce qui reste hors de portée
+
+**Elle ne sait pas ce qu'il a déjà porté cette semaine**, ni ce qui est au
+lavage. Une garde-robe dit ce qu'on possède, pas ce qui est propre, et l'app
+n'a aucun moyen de l'apprendre sans le lui demander tous les jours — ce qui
+serait un compteur de plus, exactement ce que le projet refuse.
+
+
 ---
 
 # Partie F — Les décisions arrêtées
@@ -2095,6 +2325,9 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 34 | La charge de la semaine | **ce qui est fait plus ce qui est prévu** — le passé ne se projette pas, et une proposition ne compte jamais d'avance (E.28) |
 | 35 | La répartition d'intensité | **trois bandes lues sur la courbe déjà téléchargée** — 150 et 175 bpm ; un constat, jamais une cible (E.29) |
 | 36 | La variabilité | **moyenne glissante sur 7 jours du ln(rMSSD)**, comparée à une demi-écart-type sous la ligne de base ; sixième condition du E.2, muette tant que la base n'est pas faite (E.30) |
+| 37 | La météo du trajet | **Open-Meteo, sans clé**, sur les fenêtres 8-9 h et 17-18 h ; sept jours au plus, et elle ne décide rien (E.31) |
+| 38 | Comment s'habiller | **des bandes de ressenti relevées dans les guides** (20 / 16 / 8) ; deux corrections en degrés sur la même échelle — trois pour l'électrique, le seul nombre estimé, sept pour la pluie, qui est publié (E.32) |
+| 39 | La garde-robe | **l'app fournit les catégories, l'athlète les pièces** ; ce qu'il déclare ne pas avoir cesse d'être proposé, sans remplacement ni conseil d'achat (E.32) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

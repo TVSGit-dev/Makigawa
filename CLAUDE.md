@@ -227,6 +227,14 @@ chargée. Tant qu'il n'a pas été fait, ne pas déplacer les seuils.
 - **Strava : volontairement exclu.** Ne pas le rajouter. Il estime une
   puissance fausse sur les trajets électriques (306 W relevés là où
   l'athlète en produit ~133) et crée des doublons avec Garmin.
+- **Open-Meteo → l'app, en direct.** Le **second et dernier tiers**, ajouté le
+  9 septembre 2026 (E.31), et le seul qui ne parle pas d'entraînement. Retenu
+  pour une raison qui élimine tout le reste : **il ne demande aucune clé**. Une
+  clé météo dans le bundle serait exactement ce que la section Sécurité
+  interdit. Ne partent que des coordonnées **fixes** — le trajet ne bouge pas,
+  donc pas de géolocalisation — et des dates : pas d'identifiant, pas de clé
+  intervals.icu, aucune activité. Un test lit les fichiers et refuse une
+  troisième adresse.
 
 ## Règle critique — vélo électrique
 
@@ -325,6 +333,25 @@ En bref :
   pyramidal, donc l'app n'affiche aucun objectif : elle montre le piège réel du
   cycliste peu disponible, celui où tout devient modéré.
 
+- **La météo du trajet se lit, elle ne décide rien** (E.31). Deux fenêtres —
+  8-9 h et 17-18 h — et le plus défavorable de chacune. Elle ne déplace pas une
+  séance et n'entre dans aucune des six conditions du E.2 : une pluie annoncée
+  ne fait pas d'un mardi un mauvais jour pour du seuil, la séance est à
+  l'intérieur.
+- **La garde-robe est à lui, le vocabulaire est à l'app** (E.32). Elle nomme
+  seize catégories — celles des guides, dont les bandes se servaient déjà — et
+  il dit laquelle de ses affaires remplit chacune, ou qu'elle lui manque. Ce
+  qu'il déclare ne pas avoir **cesse d'être proposé** et se dit à part ; rien
+  n'est remplacé par autre chose, et rien n'est jamais conseillé à l'achat.
+  Une garde-robe vide ne casse rien : les pièces gardent leur nom générique.
+- **La tenue vient des guides, pas du projet** (E.32). Les bandes de ressenti
+  sont publiées (20 / 16 / 8 °C), la correction de pluie aussi — sept degrés,
+  « douze sous la pluie en valent cinq ». **Un seul nombre est estimé** : les
+  trois degrés que retire l'assistance, faute que quiconque les chiffre, et
+  délibérément moins que la pluie pour cette raison. Les deux corrections se
+  comptent sur la même échelle, et le nombre qui en sort est celui que l'écran
+  montre.
+
 Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.
 
@@ -384,7 +411,11 @@ Ce que la bande encode, et rien d'autre :
 - la **ligne pointillée** est ce que chaque journée devrait porter pour tenir
   la semaine, le `perDay` du E.28 ;
 - le **liseré au pied** marque une journée chargée au sens du E.1 ;
-- le **capuchon hachuré** dit qu'une séance est proposée là.
+- le **capuchon hachuré** dit qu'une séance est proposée là ;
+- **deux signes météo par jour** — le matin au-dessus du soir (E.31), sur les
+  sept jours que la prévision couvre. Au-delà, rien : une prévision à dix jours
+  ne choisit pas une veste, et l'afficher donnerait à une supposition
+  l'apparence d'un renseignement.
 
 **Le capuchon n'a pas de hauteur proportionnelle, et c'est délibéré.** Une
 séance composée n'a pas de charge — intervals.icu la calculerait depuis la
@@ -407,6 +438,12 @@ ses séances dans des collections qui portent le même vocabulaire que les zones
 du projet ; l'app nomme la bonne et dit quoi y chercher. C'est un panneau
 indicateur, pas une recette : la frontière du E.9 tient, et l'app ne prétend
 pas que la séance existe.
+
+**La garde-robe se remplit une fois.** Repliée comme le catalogue, seize
+catégories, trois réponses possibles pour chacune — la nommer, la déclarer
+absente, ou ne rien dire. Ce n'est pas une liste de courses : l'app n'a pas
+d'avis sur ce que l'athlète devrait posséder, seulement sur ce qu'il fait
+froid.
 
 **Le catalogue s'ouvre.** L'athlète ne voyait jamais que ce qui lui était
 proposé. Les onze familles sont désormais lisibles, avec ce que chacune
@@ -451,6 +488,10 @@ exposer les données — hors de proportion pour un usage personnel.
   `localStorage` de son téléphone. Elle n'est transmise qu'à
   intervals.icu, jamais à un tiers.
 - Ne jamais la committer, même en exemple. Utiliser `.env.example`.
+- **La liste des tiers est close : intervals.icu et Open-Meteo.** Elle est
+  tenue par `src/hosts.test.ts`, qui lit les fichiers et échoue sur une
+  troisième adresse, sur `import.meta.env.VITE_`, et sur la moindre mention de
+  Strava. Le météorologue ne reçoit ni clé ni identifiant.
 - **Réserve CORS levée le 5 septembre 2026.** intervals.icu accepte les
   appels directs depuis un navigateur : le test de connexion a rapatrié les
   activités depuis la page. Aucun relais n'est nécessaire, l'app reste un
