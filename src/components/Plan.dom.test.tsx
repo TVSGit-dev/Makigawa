@@ -19,7 +19,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
-import { Plan } from './Plan'
+import { useCallback, useRef, useState } from 'react'
+import { Plan, type Readout } from './Plan'
 import type { Credentials } from '../storage/credentials'
 
 const credentials: Credentials = { athleteId: 'i1', apiKey: 'k' }
@@ -208,5 +209,75 @@ describe('l’écran du plan', () => {
     serve({ fail: true })
     const { container } = plan()
     await waitFor(() => expect(container.textContent).toContain('Appel impossible'))
+  })
+})
+
+describe('le rendu ne boucle pas', () => {
+  /**
+   * Le défaut trouvé le 8 septembre 2026, et le seul de sa famille : `App`
+   * range dans son état ce que `Plan` lui remonte, donc **toute dépendance qui
+   * change d'identité à chaque rendu fait boucler les deux composants**.
+   *
+   * En l'occurrence la lecture vide était écrite `: []`, un objet neuf à chaque
+   * rendu. La boucle tournait tant que la lecture n'aboutissait pas — au
+   * chargement, et sans fin sur l'écran d'erreur, où elle vidait la batterie.
+   *
+   * Le montage reproduit le câblage réel : un parent qui range la remontée.
+   * Sans cela la sonde ne voit rien, ce qui est exactement ce qui s'était
+   * passé la première fois.
+   */
+  const CREDS: Credentials = { athleteId: 'i1', apiKey: 'k' }
+  const NO_WEEKS: ReadonlySet<string> = new Set()
+
+  /** Compte les remontées, et coupe au-delà pour que le test rende la main. */
+  function Parent({ onCount }: { onCount: (n: number) => void }) {
+    const [, setReadout] = useState<Readout | null>(null)
+    const seen = useRef(0)
+    const onReadout = useCallback(
+      (next: Readout) => {
+        seen.current += 1
+        onCount(seen.current)
+        if (seen.current < 200) setReadout(next)
+      },
+      [onCount],
+    )
+
+    return (
+      <Plan
+        credentials={CREDS}
+        intent="normal"
+        unloading={false}
+        unloadedWeeks={NO_WEEKS}
+        onReadout={onReadout}
+      />
+    )
+  }
+
+  it('ne reboucle pas pendant que la lecture n’aboutit pas', async () => {
+    // Une lecture qui ne répond jamais : l'app reste en « chargement ».
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => {})),
+    )
+    let count = 0
+    render(<Parent onCount={(n) => (count = n)} />)
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    // Quelques remontées le temps que l'état se pose, pas trois cents.
+    expect(count).toBeLessThan(10)
+  })
+
+  it('ne reboucle pas non plus quand la lecture échoue', async () => {
+    // C'est le cas le plus grave : l'écran d'erreur reste affiché, donc la
+    // boucle ne s'arrêtait jamais d'elle-même.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => {
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+    let count = 0
+    render(<Parent onCount={(n) => (count = n)} />)
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    expect(count).toBeLessThan(10)
   })
 })
