@@ -2336,28 +2336,49 @@ Ce n'est pas un revirement, parce que **la règle ne portait pas sur le
 remplissage, elle portait sur son auteur**. Ce qui était interdit, c'est que
 l'app *devine* — qu'elle décide qu'il possède des couvre-chaussures parce que
 la plupart des cyclistes en ont. Ce qui est écrit maintenant vient
-intégralement de lui : chacun des dix-neuf noms a été relevé sur ses photos ou
-sa liste, et la vingtième case reste vide **parce qu'il n'a pas la pièce**, pas
-parce qu'on hésite à la remplir. Aucun nom n'a été supposé, et le seul qui a
-failli l'être — un sous-vêtement mi-saison poussé dans la case thermique — a
-été refusé après vérification chez le fabricant.
+intégralement de lui : chacun des vingt noms a été relevé sur ses photos ou sa
+liste. Aucun n'a été supposé, et le seul qui a failli l'être — un sous-vêtement
+mi-saison poussé dans la case thermique — a été refusé après vérification chez
+le fabricant, avant qu'il ne nomme la bonne pièce le lendemain.
 
 Trois garde-fous tiennent la frontière, et un test tient chacun :
 
-- **Une seule fois.** La déclaration est écrite au premier démarrage, jamais
-  après. L'app ne repasse pas derrière lui.
-- **Il gagne toujours.** Renommer, déclarer absente, ou effacer une pièce
-  l'emporte définitivement — une case qu'il vide ne se remplit pas à nouveau
-  au rechargement suivant. C'est ce qui distingue une valeur de départ d'une
-  valeur imposée.
-- **Rien ne s'invente en chemin.** Le vocabulaire reste celui des guides, et
-  la déclaration ne peut nommer que des catégories existantes.
+- **Une fois par version.** La déclaration porte un numéro ; elle n'est posée
+  qu'une fois pour ce numéro. Le monter la repose, et **seulement sur un
+  placard vide** — c'est ainsi que le défaut du 9 septembre a pu être rattrapé
+  sans que personne n'y perde une réponse.
+- **Il gagne toujours.** Une seule réponse enregistrée, fût-ce « je n'ai pas
+  cette pièce », et rien n'est réécrit — d'une version à l'autre comprise.
+  C'est ce qui distingue une valeur de départ d'une valeur imposée.
+- **Rien ne s'invente en chemin.** Le vocabulaire reste celui des guides, la
+  déclaration ne peut nommer que des catégories existantes, et un test compte
+  qu'elle en couvre exactement vingt — le document et le code ne peuvent plus
+  annoncer deux chiffres différents.
+
+#### Le défaut du 9 septembre, et ce qu'il apprend
+
+La première version posait la déclaration si le téléphone ne portait **aucun
+enregistrement**. Or ouvrir l'écran de garde-robe et quitter un champ vide
+appelle `forget`, qui enregistre `{}` — et `localStorage` en rend la *chaîne*
+« {} », vraie en JavaScript. Un placard vide passait donc pour un placard
+rempli, et l'athlète a vu « 0 sur 20 » après le déploiement.
+
+Deux leçons, et la seconde est la vraie :
+
+- **Compter les réponses, jamais la présence d'un enregistrement.** « Il a
+  répondu quelque chose » et « quelque chose est écrit » ne sont pas la même
+  question.
+- **Une marque sans version condamne le téléphone qu'elle a marqué.** La marque
+  était posée avant la vérification, donc le téléphone se retrouvait marqué
+  *et* vide, sans recours. Toute décision qu'on ne prend qu'une fois doit
+  pouvoir être reprise ; c'est à cela que sert le numéro.
 
 Ce qui n'a pas bougé : l'app n'a toujours **aucun avis** sur ce qu'il devrait
 posséder. Elle ne conseille pas d'achat, ne remplace pas une pièce manquante
-par une autre, et ne déplace aucune bande. La case vide du sous-vêtement
-thermique en est la démonstration : l'app la propose sous 8 °C, dit qu'elle
-manque, et n'en tire rien d'autre.
+par une autre, et ne déplace aucune bande. Le fait que les vingt cases soient
+aujourd'hui remplies ne change rien à cela — le jour où il en videra une, elle
+reprendra son nom générique et l'app continuera de la proposer, sans un mot de
+plus.
 
 **Elles sont vingt depuis le 9 septembre 2026**, et non plus seize. Les quatre
 ajoutées — bas de pluie, couvre-orteils, couvre-chaussures d'hiver, tour de cou

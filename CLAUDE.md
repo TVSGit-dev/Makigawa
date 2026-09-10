@@ -383,15 +383,20 @@ En bref :
   couvre-orteils, couvre-chaussures d'hiver, tour de cou d'hiver — et **un
   défaut**, le maillot manches longues et le tour de cou disparaissant sous
   3 °C alors que la spécification disait « rien de découvert ».
-  **L'app démarre désormais avec sa garde-robe déjà remplie**, dix-neuf cases
-  sur vingt, relevées sur ses photos et sa liste (`docs/garde-robe.md`). Ce
-  n'est pas la liste pré-remplie que le E.32 interdisait : **la règle portait
-  sur l'auteur, pas sur le remplissage** — ce qui est interdit, c'est que l'app
-  *devine*. Rien n'est deviné ici, et la vingtième case reste vide parce qu'il
-  n'a pas la pièce. Trois garde-fous, chacun tenu par un test : la déclaration
-  n'est écrite **qu'au premier démarrage**, **l'athlète l'emporte toujours** —
-  une case qu'il vide ne se remplit pas à nouveau — et elle ne peut nommer que
-  des catégories existantes.
+  **L'app démarre désormais avec sa garde-robe déjà remplie**, les vingt cases,
+  relevées sur ses photos et sa liste (`docs/garde-robe.md`). Ce n'est pas la
+  liste pré-remplie que le E.32 interdisait : **la règle portait sur l'auteur,
+  pas sur le remplissage** — ce qui est interdit, c'est que l'app *devine*.
+  Rien n'est deviné ici. Trois garde-fous, chacun tenu par un test : la
+  déclaration porte un **numéro de version** et n'est posée qu'une fois pour
+  ce numéro, **sur un placard vide seulement** ; **l'athlète l'emporte
+  toujours**, une seule réponse enregistrée suffisant à ce que rien ne soit
+  réécrit ; et elle ne peut nommer que des catégories existantes.
+  **Le numéro n'est pas décoratif** : la première version se fiait à la
+  présence d'un enregistrement plutôt qu'au nombre de réponses, or une
+  garde-robe vide s'enregistre `{}` — chaîne vraie en JavaScript — dès qu'on
+  quitte un champ vide. Les téléphones ainsi marqués seraient restés vides
+  sans lui. **Compter les réponses, jamais la présence d'un enregistrement.**
 - **La tenue vient des guides, pas du projet** (E.32). Les bandes de ressenti
   sont publiées (20 / 16 / 8 °C), la correction de pluie aussi — sept degrés,
   « douze sous la pluie en valent cinq ». **Un seul nombre est estimé** : les

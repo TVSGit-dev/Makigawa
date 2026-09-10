@@ -18,7 +18,11 @@ import { DECLARED, forget, loadWardrobe, markMissing, nameGarment, NAME_MAX } fr
  * se réécrirait — ce qui n'est justement pas le comportement voulu.
  */
 function dejaDeclaree(): void {
-  localStorage.setItem('makigawa.garde-robe.declaree', '1')
+  // Poser la déclaration puis vider le placard : c'est exactement l'état d'un
+  // athlète qui a tout effacé. Passer par `loadWardrobe` plutôt que d'écrire
+  // la marque à la main évite de figer son numéro de version dans les tests.
+  loadWardrobe()
+  localStorage.removeItem('makigawa.garde-robe')
 }
 
 describe('la déclaration de départ', () => {
@@ -34,10 +38,12 @@ describe('la déclaration de départ', () => {
     for (const key of Object.keys(DECLARED)) expect(connues.has(key), key).toBe(true)
   })
 
-  it('laisse vide ce que l’athlète ne possède pas', () => {
-    // La meilleure preuve que rien n'est deviné : il n'a pas de sous-vêtement
-    // thermique, donc la case reste vide et l'app la propose en générique.
-    expect('sous-thermique' in DECLARED).toBe(false)
+  it('couvre les vingt catégories, et pas une de plus', () => {
+    // Elle en couvrait dix-neuf jusqu'au 10 septembre 2026 : le sous-vêtement
+    // thermique manquait, et l'athlète a fini par le nommer. Ce compte tient
+    // le lien entre `docs/garde-robe.md` et le code — l'un ne peut plus
+    // annoncer un chiffre que l'autre dément.
+    expect(Object.keys(DECLARED)).toHaveLength(GARMENTS.length)
   })
 
   it('ne se repose jamais après le premier démarrage', () => {
@@ -45,6 +51,24 @@ describe('la déclaration de départ', () => {
     for (const one of GARMENTS) forget(one.key)
     // Il a tout effacé : l'app ne doit pas repasser derrière lui.
     expect(loadWardrobe()).toEqual({})
+  })
+
+  it('se pose malgré une garde-robe enregistrée mais vide', () => {
+    // Le défaut du 9 septembre 2026, constaté sur le téléphone de l'athlète :
+    // il voyait « 0 sur 20 ». Ouvrir l'écran et quitter un champ vide appelle
+    // `forget`, qui enregistre `{}` — et `localStorage` en rend la *chaîne*
+    // « {} », vraie en JavaScript. Le garde-fou « il en a déjà une » la lisait
+    // comme un placard rempli et sautait la déclaration.
+    localStorage.setItem('makigawa.garde-robe', '{}')
+    expect(loadWardrobe()).toEqual(DECLARED)
+  })
+
+  it('rattrape un téléphone déjà marqué par la version précédente', () => {
+    // Le même téléphone porte aussi la marque, posée avant le test qui a
+    // échoué : sans numéro de version, il resterait vide pour toujours.
+    localStorage.setItem('makigawa.garde-robe.declaree', '1')
+    localStorage.setItem('makigawa.garde-robe', '{}')
+    expect(loadWardrobe()).toEqual(DECLARED)
   })
 
   it('ne touche pas à une garde-robe déjà remplie à la main', () => {

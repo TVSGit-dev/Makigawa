@@ -33,7 +33,7 @@ Dans l'ordre des bandes, de la plus douce à la plus froide, la pluie à la fin.
 | Jambières | jambières chaudes Van Rysel | — | 8 à 16 °C |
 | Gants légers | Castelli Perfetto RoS | — | 8 à 16 °C |
 | Couvre-orteils | Assos Spring Fall P1 | — | 8 à 16 °C |
-| Sous-vêtement thermique | **aucune** — voir ci-dessous | — | sous 8 °C |
+| Sous-vêtement thermique | sous-vêtement thermique Van Rysel | — | sous 8 °C |
 | Collant thermique | Gorewear Spinshift thermique à bretelles | GOW682305, XL | sous 8 °C |
 | Gants fermés | Castelli Perfetto Max | — | 3 à 8 °C |
 | Tour de cou | Assos Spring Fall Neck Warmer P1 | — | 3 à 8 °C |
@@ -46,20 +46,20 @@ Dans l'ordre des bandes, de la plus douce à la plus froide, la pluie à la fin.
 | Veste imperméable | Castelli Emergency 3 Rain Jacket | Brilliant Orange, XL | pluie annoncée |
 | Bas de pluie | Vaude Kuro Pro | VAU744935, noir, L | pluie annoncée |
 
-**Le sous-vêtement thermique n'a pas de pièce, et ce n'est pas un oubli.**
-L'athlète a d'abord désigné l'**Assos Spring Fall LS Skin Layer P1** pour cette
-case. Vérification faite chez le fabricant, c'est une pièce de **mi-saison,
-donnée 12 à 20 °C** : elle occupe donc la case « sous-vêtement technique »
-(bande 8 à 16 °C), où elle figure déjà, et elle n'a rien à faire dans une bande
-qui commence sous 8.
+**Les vingt cases sont nommées depuis le 10 septembre 2026.** La dernière — le
+sous-vêtement thermique — a demandé deux passages, et le détour vaut d'être
+gardé.
 
-L'y mettre produirait exactement le défaut corrigé le même jour : une pièce de
-mi-saison conseillée par −2 °C. Assos vend séparément un **Winter LS Skin
-Layer P1**, taillé pour les températures à un chiffre — c'est lui qui
-remplirait la case, s'il l'a ou l'achète un jour.
+L'athlète a d'abord désigné l'**Assos Spring Fall LS Skin Layer P1**.
+Vérification faite chez le fabricant, c'est une pièce de **mi-saison, donnée
+12 à 20 °C** : elle occupe donc la case « sous-vêtement technique » (bande 8 à
+16 °C), où elle figure déjà, et elle n'a rien à faire dans une bande qui
+commence sous 8. L'y mettre aurait produit exactement le défaut corrigé la
+veille : une pièce de mi-saison conseillée par −2 °C.
 
-En attendant, la case garde son nom générique et continue d'être proposée.
-C'est le comportement prévu du E.32 : une case vide ne casse rien.
+La case est finalement remplie par un **Van Rysel**, que l'athlète possédait
+sans y penser. C'est le bon ordre : on demande, on vérifie, et on ne comble pas
+un trou avec ce qui traîne à côté.
 
 **Le Perfetto Max occupe deux cases**, et c'est volontaire : c'est le seul gant
 fermé du placard, et il couvre honnêtement 3 à 8 °C comme en dessous. Rien
@@ -116,11 +116,9 @@ décision à part, pas un ajout de catégorie.
 
 ## Ce qui reste à faire
 
-- **Dix-neuf cases sur vingt sont nommées.** La vingtième, le sous-vêtement
-  thermique, attend une pièce que l'athlète ne possède pas encore — un Assos
-  Winter LS Skin Layer P1 ou l'équivalent d'une autre marque.
-- Recopier les dix-neuf lignes dans l'écran « Ma garde-robe » du téléphone.
-  Rien ne le fait automatiquement, et c'est voulu.
+- **Rien.** Les vingt cases sont nommées, et l'app démarre dessus : il n'y a
+  plus rien à recopier. Ce document reste la trace des références et des
+  arbitrages, pour racheter sans se tromper de modèle.
 
 ## Sources
 

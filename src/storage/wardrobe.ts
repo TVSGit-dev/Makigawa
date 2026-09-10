@@ -24,6 +24,20 @@ const KEY = 'makigawa.garde-robe'
  */
 const SEEDED = 'makigawa.garde-robe.declaree'
 
+/**
+ * La version de la déclaration posée sur ce téléphone.
+ *
+ * **La monter la repose une fois, et seulement sur un placard vide.** Sans ce
+ * numéro, la première version aurait condamné les téléphones qu'elle a marqués
+ * sans rien y écrire — ce qui est arrivé le 9 septembre 2026, faute d'avoir vu
+ * qu'une garde-robe enregistrée vide bloquait la pose.
+ *
+ * Ce que l'athlète a répondu reste intouchable d'une version à l'autre : une
+ * seule réponse enregistrée, fût-ce « je n'ai pas cette pièce », suffit à ce
+ * que rien ne soit réécrit.
+ */
+const DECLARATION = '2'
+
 const KNOWN = new Set<string>(GARMENTS.map((one) => one.key))
 
 /** Ce qu'un nom peut peser sans devenir illisible à l'écran. */
@@ -53,6 +67,7 @@ export const DECLARED: Wardrobe = {
   jambieres: 'jambières chaudes Van Rysel',
   'gants-legers': 'Castelli Perfetto RoS',
   'couvre-orteils': 'Assos Spring Fall P1',
+  'sous-thermique': 'sous-vêtement thermique Van Rysel',
   collant: 'Gorewear Spinshift thermique',
   gants: 'Castelli Perfetto Max',
   'tour-de-cou': 'Assos Spring Fall Neck Warmer P1',
@@ -66,30 +81,9 @@ export const DECLARED: Wardrobe = {
   'bas-pluie': 'Vaude Kuro Pro',
 }
 
-/**
- * Pose la déclaration, **une seule fois dans la vie du téléphone**.
- *
- * Après ce premier passage, le `localStorage` est seul maître : renommer,
- * déclarer absente ou effacer une pièce l'emporte définitivement. C'est ce qui
- * sépare une valeur de départ d'une valeur imposée — sans cela, une case qu'il
- * vide se remplirait à nouveau au rechargement suivant, et l'app aurait le
- * dernier mot sur son propre placard.
- */
-function seedOnce(): void {
+/** Ce que le téléphone contient vraiment, sans rien y poser. */
+function readStored(): Wardrobe {
   try {
-    if (localStorage.getItem(SEEDED)) return
-    localStorage.setItem(SEEDED, '1')
-    if (localStorage.getItem(KEY)) return
-    localStorage.setItem(KEY, JSON.stringify(DECLARED))
-  } catch {
-    // Le quota peut refuser : l'app conseille alors des noms génériques,
-    // c'est-à-dire exactement ce qu'elle faisait avant la garde-robe.
-  }
-}
-
-export function loadWardrobe(): Wardrobe {
-  try {
-    seedOnce()
     const raw = localStorage.getItem(KEY)
     if (!raw) return {}
     const parsed: unknown = JSON.parse(raw)
@@ -105,6 +99,36 @@ export function loadWardrobe(): Wardrobe {
   } catch {
     return {}
   }
+}
+
+/**
+ * Pose la déclaration, **une fois par version et jamais sur un placard rempli**.
+ *
+ * Ce que l'athlète a répondu est intouchable : une seule réponse enregistrée,
+ * fût-ce « je n'ai pas cette pièce », et rien n'est réécrit. C'est ce qui
+ * sépare une valeur de départ d'une valeur imposée.
+ *
+ * **Le compte se fait sur les réponses, pas sur la présence d'un
+ * enregistrement**, et c'est là que la première version s'est trompée : ouvrir
+ * l'écran et quitter un champ vide appelle `forget`, qui enregistre `{}`. Or
+ * `localStorage` en rend la *chaîne* « {} », vraie en JavaScript. Un placard
+ * vide passait donc pour un placard rempli, et l'athlète voyait « 0 sur 20 ».
+ */
+function seedOnce(): void {
+  try {
+    if (localStorage.getItem(SEEDED) === DECLARATION) return
+    localStorage.setItem(SEEDED, DECLARATION)
+    if (Object.keys(readStored()).length > 0) return
+    localStorage.setItem(KEY, JSON.stringify(DECLARED))
+  } catch {
+    // Le quota peut refuser : l'app conseille alors des noms génériques,
+    // c'est-à-dire exactement ce qu'elle faisait avant la garde-robe.
+  }
+}
+
+export function loadWardrobe(): Wardrobe {
+  seedOnce()
+  return readStored()
 }
 
 function write(wardrobe: Wardrobe): Wardrobe {
