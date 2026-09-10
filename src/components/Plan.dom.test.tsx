@@ -365,6 +365,24 @@ describe('la météo du trajet (E.31, E.32)', () => {
     expect(bloc.querySelectorAll('.win-wear').length).toBe(2)
   })
 
+  it('empile les pièces, une par ligne', async () => {
+    // Demandé le 10 septembre 2026 : dix pièces en une phrase formaient un
+    // paragraphe qu'il fallait relire pour vérifier qu'on n'en oubliait pas
+    // une. Une ligne par pièce se pointe du doigt en s'habillant.
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const matin = container.querySelector('.win-wear')!
+    const lignes = matin.querySelectorAll('.win-list li')
+    expect(lignes.length).toBeGreaterThan(1)
+    // Chaque ligne porte une pièce entière, jamais deux collées par une virgule.
+    for (const ligne of lignes) {
+      expect(ligne.textContent?.trim().length).toBeGreaterThan(0)
+      expect(ligne.textContent, ligne.textContent ?? '').not.toContain(',')
+    }
+  })
+
   it('pose deux signes par jour sous la bande', async () => {
     serve({ weather: true })
     const { container } = plan()
