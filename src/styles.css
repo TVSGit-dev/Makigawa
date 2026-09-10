@@ -799,6 +799,43 @@ p {
   color: var(--text);
 }
 
+/* La bande et sa justification : une ligne au-dessus de la liste. */
+.win-band {
+  margin: 0;
+}
+
+.win-same {
+  margin: 0.125rem 0 0;
+}
+
+/* Les pièces, une par ligne — demandé le 10 septembre 2026.
+   Dix pièces en une phrase formaient un paragraphe qu'il fallait relire pour
+   vérifier qu'on n'en oubliait pas une ; empilées, elles se pointent du doigt
+   en s'habillant. Le tiret aligne l'œil sans peser : c'est le même signe que
+   la légende de la bande emploie pour « chargée ». */
+.win-list {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+}
+
+.win-list li {
+  position: relative;
+  padding-left: 0.75rem;
+  line-height: 1.45;
+}
+
+.win-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 0.3125rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
 /* Ce qu'il a déclaré ne pas avoir. Dit franchement plutôt que masqué, et sans
    remplacement proposé : l'app ne sait pas ce que ses affaires valent les unes
    par rapport aux autres. */

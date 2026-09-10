@@ -27,13 +27,31 @@ import {
 import { nameOf, type GarmentKey, type Wardrobe } from '../rules/garments'
 
 /**
- * Les pièces, nommées comme il les nomme.
+ * Les pièces, nommées comme il les nomme, **une par ligne**.
  *
  * Une catégorie qu'il n'a pas remplie garde son nom générique : c'est ce que
  * l'app disait avant la garde-robe, et une garde-robe vide ne casse rien.
+ *
+ * **Empilées et non séparées par des virgules** — demandé le 10 septembre 2026,
+ * au premier vrai matin de pluie. Une bande de grand froid demande dix pièces ;
+ * en une seule phrase, elles formaient un paragraphe de quatre lignes qu'il
+ * fallait relire pour vérifier qu'on n'en oubliait pas une. Empilées, elles se
+ * pointent du doigt en s'habillant, ce qui est l'usage réel de cette liste.
  */
-function listOf(wardrobe: Wardrobe, keys: readonly GarmentKey[]): string {
-  return keys.map((key) => nameOf(wardrobe, key)).join(', ')
+function GarmentList({
+  wardrobe,
+  keys,
+}: {
+  wardrobe: Wardrobe
+  keys: readonly GarmentKey[]
+}) {
+  return (
+    <ul className="win-list">
+      {keys.map((key) => (
+        <li key={key}>{nameOf(wardrobe, key)}</li>
+      ))}
+    </ul>
+  )
 }
 
 /** Le degré, arrondi. Une décimale sur un ressenti donnerait une fausse précision. */
@@ -119,22 +137,30 @@ function WindowLine({
       </p>
 
       {dressing ? (
-        <p className="win-wear">
-          <strong>{dressing.band.name}</strong> —{' '}
-          {same ? 'même tenue qu’au matin' : listOf(wardrobe, dressing.wear)}
-          {/* Le pont entre les deux nombres. Sans lui, « 12° » à côté d'une
-              tenue de 9° passe pour une erreur de l'app plutôt que pour la
-              correction qu'elle est. */}
-          {shifted || dressing.because.length > 0 ? (
-            <span className="muted">
-              {' ('}
-              {shifted ? `comme pour ${degrees(dressing.effective)}` : null}
-              {shifted && dressing.because.length > 0 ? ' : ' : null}
-              {dressing.because.join(', ')}
-              {')'}
-            </span>
-          ) : null}
-        </p>
+        <div className="win-wear">
+          {/* La bande et sa justification tiennent sur une ligne, au-dessus de
+              la liste : le pont entre les deux nombres se lit une fois, les
+              pièces se pointent ensuite une à une. Sans ce pont, « 12° » à
+              côté d'une tenue de 2° passe pour une erreur de l'app plutôt que
+              pour la correction qu'elle est. */}
+          <p className="win-band">
+            <strong>{dressing.band.name}</strong>
+            {shifted || dressing.because.length > 0 ? (
+              <span className="muted">
+                {' ('}
+                {shifted ? `comme pour ${degrees(dressing.effective)}` : null}
+                {shifted && dressing.because.length > 0 ? ' : ' : null}
+                {dressing.because.join(', ')}
+                {')'}
+              </span>
+            ) : null}
+          </p>
+          {same ? (
+            <p className="win-same">même tenue qu’au matin</p>
+          ) : (
+            <GarmentList wardrobe={wardrobe} keys={dressing.wear} />
+          )}
+        </div>
       ) : null}
 
       {/* Ce qu'il a déclaré ne pas avoir. Le taire lui laisserait croire qu'il
@@ -142,7 +168,10 @@ function WindowLine({
           ne sait pas ce que ses affaires valent les unes par rapport aux
           autres. */}
       {dressing && dressing.missing.length > 0 && !same ? (
-        <p className="win-missing">Il te manque : {listOf(wardrobe, dressing.missing)}.</p>
+        <div className="win-missing">
+          <p className="win-band">Il te manque :</p>
+          <GarmentList wardrobe={wardrobe} keys={dressing.missing} />
+        </div>
       ) : null}
     </div>
   )
@@ -203,13 +232,15 @@ export function DayWeather({
           que l'app peut dire honnêtement d'un encombrement, elle ne connaît ni
           son sac ni ce qu'il y met déjà. */}
       {carry.length > 0 ? (
-        <p className="weather-carry">
-          <strong>Dans le sac :</strong> {listOf(wardrobe, carry)}
-          {bagWeight(carry) === 'poche' ? (
-            <span className="muted"> — ça tient dans une poche</span>
-          ) : null}
-          .
-        </p>
+        <div className="weather-carry">
+          <p className="win-band">
+            <strong>Dans le sac :</strong>
+            {bagWeight(carry) === 'poche' ? (
+              <span className="muted"> — ça tient dans une poche</span>
+            ) : null}
+          </p>
+          <GarmentList wardrobe={wardrobe} keys={carry} />
+        </div>
       ) : null}
 
       {commute !== 'aucun' ? (
