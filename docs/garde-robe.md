@@ -30,10 +30,10 @@ Dans l'ordre des bandes, de la plus douce à la plus froide, la pluie à la fin.
 | Manchettes / gilet | Castelli Nano Flex 3G Armwarmer | 4519529-010, Black, L | 16 à 20 °C |
 | Sous-vêtement technique | Assos Spring Fall LS Skin Layer P1 | donné 12 à 20 °C par Assos | 8 à 16 °C |
 | Maillot manches longues | Castelli Espresso Thermal Jersey | 4524508-085, Light Black, XL | sous 16 °C |
-| Jambières | jambières chaudes Van Rysel | — | 8 à 16 °C |
+| Jambières | Van Rysel, chaudes | — | 8 à 16 °C |
 | Gants légers | Castelli Perfetto RoS | — | 8 à 16 °C |
 | Couvre-orteils | Assos Spring Fall P1 | — | 8 à 16 °C |
-| Sous-vêtement thermique | sous-vêtement thermique Van Rysel | — | sous 8 °C |
+| Sous-vêtement thermique | Van Rysel | — | sous 8 °C |
 | Collant thermique | Gorewear Spinshift thermique à bretelles | GOW682305, XL | sous 8 °C |
 | Gants fermés | Castelli Perfetto Max | — | 3 à 8 °C |
 | Tour de cou | Assos Spring Fall Neck Warmer P1 | — | 3 à 8 °C |

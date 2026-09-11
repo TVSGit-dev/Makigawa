@@ -24,19 +24,34 @@ import {
   type Sky,
   type Window,
 } from '../rules/dress'
-import { nameOf, type GarmentKey, type Wardrobe } from '../rules/garments'
+import { garmentOf, isOwned, nameOf, type GarmentKey, type Wardrobe } from '../rules/garments'
 
 /**
- * Les pièces, nommées comme il les nomme, **une par ligne**.
+ * Les pièces, **une par ligne, la catégorie devant**.
  *
- * Une catégorie qu'il n'a pas remplie garde son nom générique : c'est ce que
- * l'app disait avant la garde-robe, et une garde-robe vide ne casse rien.
+ * ```
+ * veste coupe-vent : Castelli Perfetto RoS 2
+ * ```
  *
  * **Empilées et non séparées par des virgules** — demandé le 10 septembre 2026,
  * au premier vrai matin de pluie. Une bande de grand froid demande dix pièces ;
  * en une seule phrase, elles formaient un paragraphe de quatre lignes qu'il
  * fallait relire pour vérifier qu'on n'en oubliait pas une. Empilées, elles se
  * pointent du doigt en s'habillant, ce qui est l'usage réel de cette liste.
+ *
+ * **La catégorie en tête** — demandé le 11 septembre 2026. Une liste de noms
+ * de marques ne dit pas ce qu'on enfile : « Castelli Perfetto RoS » est un
+ * gant, « Castelli Perfetto RoS 2 » une veste, et rien dans les deux noms ne
+ * le distingue. La catégorie, elle, est du vocabulaire des guides — c'est
+ * l'app qui la fournit, et c'est elle qui porte le sens.
+ *
+ * Les catégories gardent leur **nom entier** plutôt qu'un raccourci : « veste »
+ * seul ne séparerait pas le coupe-vent de l'imperméable, qui ne se portent pas
+ * aux mêmes températures et peuvent être demandés ensemble.
+ *
+ * **Rien n'est répété.** Une catégorie qu'il n'a pas remplie garde son nom
+ * générique ; l'écrire deux fois de part et d'autre du deux-points ferait du
+ * bruit là où l'app n'a rien de plus à dire.
  */
 function GarmentList({
   wardrobe,
@@ -48,7 +63,10 @@ function GarmentList({
   return (
     <ul className="win-list">
       {keys.map((key) => (
-        <li key={key}>{nameOf(wardrobe, key)}</li>
+        <li key={key}>
+          <strong>{garmentOf(key).name}</strong>
+          {isOwned(wardrobe, key) ? ` : ${nameOf(wardrobe, key)}` : null}
+        </li>
       ))}
     </ul>
   )

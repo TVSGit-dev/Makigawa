@@ -36,7 +36,7 @@ const SEEDED = 'makigawa.garde-robe.declaree'
  * seule réponse enregistrée, fût-ce « je n'ai pas cette pièce », suffit à ce
  * que rien ne soit réécrit.
  */
-const DECLARATION = '2'
+const DECLARATION = '3'
 
 const KNOWN = new Set<string>(GARMENTS.map((one) => one.key))
 
@@ -53,10 +53,11 @@ export const NAME_MAX = 60
  * noms vient de ses photos ou de sa liste ; le détail et les arbitrages sont
  * dans `docs/garde-robe.md`.
  *
- * `sous-thermique` n'y figure pas, et c'est la meilleure preuve que rien n'est
- * inventé : il n'a pas la pièce. Le sous-vêtement qu'il désignait est donné
- * 12-20 °C par son fabricant, donc il occupe `sous-technique` et n'a rien à
- * faire dans une bande qui commence sous 8.
+ * **Un nom ne répète pas sa catégorie.** L'écran l'affiche devant, en gras —
+ * « veste coupe-vent : Castelli Perfetto RoS 2 » — donc « jambières chaudes
+ * Van Rysel » bégayait. Ce qui va ici est ce qui distingue *sa* pièce des
+ * autres du même genre : une marque, un modèle, au besoin une nuance comme
+ * « chaudes ». Le genre, lui, est déjà dit.
  */
 export const DECLARED: Wardrobe = {
   'manches-courtes': 'Castelli Espresso 2 Jersey',
@@ -64,10 +65,10 @@ export const DECLARED: Wardrobe = {
   manchettes: 'Castelli Nano Flex 3G',
   'sous-technique': 'Assos Spring Fall LS Skin Layer P1',
   'manches-longues': 'Castelli Espresso Thermal Jersey',
-  jambieres: 'jambières chaudes Van Rysel',
+  jambieres: 'Van Rysel, chaudes',
   'gants-legers': 'Castelli Perfetto RoS',
   'couvre-orteils': 'Assos Spring Fall P1',
-  'sous-thermique': 'sous-vêtement thermique Van Rysel',
+  'sous-thermique': 'Van Rysel',
   collant: 'Gorewear Spinshift thermique',
   gants: 'Castelli Perfetto Max',
   'tour-de-cou': 'Assos Spring Fall Neck Warmer P1',

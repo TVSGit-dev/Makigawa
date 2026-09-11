@@ -825,6 +825,15 @@ p {
   line-height: 1.45;
 }
 
+/* La catégorie porte le sens — « Castelli Perfetto RoS » est un gant,
+   « Castelli Perfetto RoS 2 » une veste, et les deux noms ne le disent pas.
+   Elle passe donc devant, dans la couleur du texte, la marque restant en
+   retrait. */
+.win-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .win-list li::before {
   content: '';
   position: absolute;
