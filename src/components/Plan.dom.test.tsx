@@ -463,8 +463,20 @@ describe('ma garde-robe (E.32, second temps)', () => {
     await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
 
     const bloc = container.querySelector('.weather')!
-    expect(bloc.textContent).toContain('gants Rogelli noirs')
-    expect(bloc.textContent).not.toContain('gants légers')
+    // La catégorie devant, sa pièce derrière — demandé le 11 septembre 2026.
+    // Un nom de marque seul ne dit pas ce qu'on enfile ; la catégorie, si.
+    expect(bloc.textContent).toContain('gants légers : gants Rogelli noirs')
+  })
+
+  it('ne répète pas la catégorie quand il n’a rien nommé', async () => {
+    // « gants légers : gants légers » serait du bruit là où l'app n'a rien de
+    // plus à dire que le vocabulaire des guides.
+    serve({ weather: true })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.weather')).not.toBeNull())
+
+    const bloc = container.querySelector('.weather')!
+    expect(bloc.textContent).not.toContain('gants légers : gants légers')
   })
 
   it('cesse de proposer ce qu’il n’a pas, et le dit', async () => {
