@@ -11,7 +11,7 @@
  * n'existe, l'app ne dit rien plutôt qu'un chiffre inventé.
  */
 
-import { averageWattsOf, type Activity } from '../api/intervals'
+import { unassistedWattsOf, type Activity } from '../api/intervals'
 import { isCommute, namedLikeCommute } from '../rules/context'
 
 export type LoadRange = {
@@ -100,14 +100,20 @@ export function loadForDistance(
 }
 
 /**
- * L'allure réellement tenue sur ces sorties, en watts.
+ * L'allure réellement tenue sur ces sorties, en watts de moyenne.
  *
  * Elle sert de contrepoint à l'allure proposée : si l'app dit 180 W et que ses
  * sorties comparables tournent à 150, c'est l'app qui se trompe de cible.
+ *
+ * **C'est `unassistedWattsOf` qui est lu, jamais `averageWattsOf`** (E.33).
+ * `comparable` écarte déjà les trajets, donc l'électrique n'arrive pas
+ * jusqu'ici ; s'en remettre à cet effet de bord serait tenir la règle par
+ * accident. Un watt avec moteur n'est pas un watt sans, et c'est à la porte de
+ * le dire, pas au filtre d'à côté.
  */
 export function pastWattsFor(activities: readonly Activity[], km: number): number | null {
   const watts = comparable(activities, km)
-    .map(averageWattsOf)
+    .map(unassistedWattsOf)
     .filter((value): value is number => value !== null && value > 0)
 
   if (watts.length === 0) return null

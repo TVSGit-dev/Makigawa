@@ -27,6 +27,7 @@ import { STANDING_NAMES } from '../workouts/levels'
 import { pointerFor } from '../workouts/zwift'
 import { DISTANCES, paceFor, wattsOf } from '../rides/outing'
 import { loadForDistance, pastWattsFor } from '../rides/history'
+import { assistedShare, legsOn, type Legs } from '../rides/legs'
 import { perDay, type Dose } from '../rules/dose'
 import { SPREAD_DAYS, type Spread } from '../rules/spread'
 import type { Activity } from '../api/intervals'
@@ -203,6 +204,8 @@ export function Week({
       <DoseBlock dose={dose} />
 
       <SpreadBlock spread={spread} />
+
+      <LegsBlock legs={legsOn(activities, today)} />
 
       <Outing ftp={ftp} activities={activities} />
     </>
@@ -642,6 +645,66 @@ function SpreadBlock({ spread }: { spread: Spread }) {
         Sous 150 bpm, entre 150 et 175, au-dessus — lu sur {spread.days} journée
         {spread.days > 1 ? 's' : ''} des {SPREAD_DAYS} derniers jours. C’est un constat, pas
         un objectif : la recherche ne dit pas quelle répartition viser.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * Ce que ses jambes font sur ses trajets (E.33).
+ *
+ * L'électrique portant un capteur depuis le 18 septembre 2026, ces trajets ne
+ * sont plus une boîte noire. Deux nombres, jamais un seul : c'est le même
+ * parcours et le même homme, et pourtant ils ne veulent pas dire la même chose.
+ *
+ * **Rien n'est fusionné.** Additionner la puissance et le cardio fabriquerait
+ * une charge maison, que le projet interdit. Les juxtaposer, c'est tout ce
+ * qu'on peut honnêtement en faire — et c'est déjà ce qu'on voulait savoir.
+ *
+ * Le bloc disparaît tant qu'aucun trajet n'a été mesuré : une estimation ne
+ * vaut pas une mesure, et l'app préfère se taire.
+ */
+function LegsBlock({ legs }: { legs: Legs }) {
+  if (!legs.assisted && !legs.unassisted) return null
+
+  const share = assistedShare(legs)
+
+  const sides = [
+    { key: 'assisted' as const, tone: 'chip-electric', label: 'électrique' },
+    { key: 'unassisted' as const, tone: 'chip-muscular', label: 'musculaire' },
+  ]
+
+  return (
+    <div className="dose">
+      <p className="now-label">Ce que tes jambes font</p>
+
+      <p className="legs-line">
+        {sides.map((side) => {
+          const reading = legs[side.key]
+          return (
+            <span className="legs-side" key={side.key}>
+              <span className={`chip ${side.tone}`}>{side.label}</span>
+              <span className="dose-number">{reading ? `${reading.watts} W` : '—'}</span>
+              <span className="muted small">
+                {reading
+                  ? `sur ${reading.count} trajet${reading.count > 1 ? 's' : ''}`
+                  : 'rien de mesuré'}
+              </span>
+            </span>
+          )
+        })}
+      </p>
+
+      <p className="muted small">
+        De moyenne au capteur, sur tes trajets des {legs.days} derniers jours.
+        {share === null
+          ? ' Il en faut des deux sortes pour que la comparaison dise quelque chose.'
+          : ` En électrique tes jambes fournissent ${share} % de ce qu’elles produisent sans assistance : le moteur fait le reste.`}
+      </p>
+
+      <p className="muted small">
+        Les deux nombres restent séparés. La puissance dit ce que tu as produit,
+        ta charge dit ce que ça t’a coûté — et elle vient du cardio, toujours.
       </p>
     </div>
   )

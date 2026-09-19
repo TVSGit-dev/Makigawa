@@ -266,21 +266,47 @@ le niveau 3 — chargée, comme attendu. Les seuils tiennent ; ne pas les dépla
 L'athlète fait 6-7 trajets par semaine, majoritairement en vélo
 électrique. Ces trajets portent **60 à 100 % de sa charge hebdomadaire**.
 
-Deux conséquences non négociables :
+**Révisée le 19 septembre 2026 (E.33) : le vélo électrique a un capteur de
+puissance depuis le 18.** La règle ne change pas de fond, elle change de
+critère. Ce qui la portait n'a jamais été le type d'activité mais **l'absence
+de capteur** ; confondre les deux était une commodité, et elle vient de périmer.
 
-1. **Ignorer toute donnée de puissance sur les activités de type
-   `EBikeRide`** : moyenne (`average_watts`), normalisée / pondérée, pic,
-   courbe, et tout champ à venir. Il n'y a pas de capteur de puissance
-   sur ce vélo (`has_device_watts: false`). Toute valeur de puissance y
-   est une estimation fausse, quelle que soit la façon dont elle est
-   présentée. **Exclure par principe, jamais par nom de champ** : ne
-   nommer qu'`average_watts` laisserait passer la puissance normalisée,
-   qui est justement celle affichée par défaut.
-2. La charge de ces trajets vient du **cardio**, telle que calculée par
-   intervals.icu. Ne pas appliquer de coefficient correcteur maison.
+Trois conséquences non négociables :
 
-La puissance n'est exploitable que sur `Ride` (capteur présent) et
-`VirtualRide` (Zwift).
+1. **La puissance ne se lit que sur un capteur confirmé** —
+   `has_device_watts` vrai, et rien d'autre. Ni le type d'activité, ni le nom
+   du vélo, ni la simple présence d'un champ : intervals.icu **estime** une
+   puissance quand il n'en mesure pas, et cette estimation est fausse. Le
+   17 septembre, sans capteur, le même vélo sur le même trajet a été crédité
+   de **369 W** ; le 18, capteur monté, **79 à 90 W**. **Exclure par principe,
+   jamais par nom de champ** : ne nommer qu'`average_watts` laisserait passer
+   la puissance normalisée, qui est justement celle affichée par défaut.
+2. **Un watt assisté n'est jamais comparable à un watt sans moteur.** C'est la
+   règle neuve, et c'est elle qui reprend ce que le type d'activité tenait
+   jusqu'ici. Une puissance mesurée sur l'électrique est **vraie** — ce sont
+   bien ses jambes — mais elle ne dit pas la même chose, puisque le moteur
+   fournit le reste. Elle n'entre donc dans aucune moyenne qui sert à calibrer
+   une allure, ne se compare à aucune sortie musculaire, et ne peut pas servir
+   à estimer une FTP.
+3. La charge de ces trajets vient du **cardio**, telle que calculée par
+   intervals.icu. Ne pas appliquer de coefficient correcteur maison — et ne
+   pas la recalculer depuis la puissance qu'on sait désormais lire.
+
+La puissance est donc **mesurée** sur `Ride`, `VirtualRide` et `EBikeRide`
+quand le capteur le confirme, et **comparable** sur `Ride` et `VirtualRide`
+seulement. Deux questions, deux portes : `averageWattsOf` répond à « est-ce
+mesuré », `unassistedWattsOf` à « est-ce comparable ».
+
+**Le réglage « puissance prioritaire sur le cardio » d'intervals.icu est
+global, pas par sport**, et le capteur vient de l'armer. La note de la phase 3
+disait que ça devrait bien se passer *parce que l'électrique n'avait pas de
+capteur* : cette prémisse est morte. Si intervals.icu se met à calculer la
+charge des trajets depuis 85 W assistés au lieu du cardio, elle s'effondre — et
+avec elle la Fitness, donc la dose de la semaine et le plafond du E.20, qui en
+descendent tous. Ces trajets portant 60 à 100 % de la charge hebdomadaire, ce
+n'est pas un détail d'affichage. **Le réglage doit rester sur le cardio**, et
+cela se vérifie dans intervals.icu, jamais dans l'app : Makigawa lit la charge,
+elle ne la recalcule pas.
 
 **Moyenne ou normalisée : toujours préciser laquelle.** Pour une même
 sortie, intervals.icu affiche par défaut la puissance **normalisée**,
@@ -404,6 +430,15 @@ En bref :
   délibérément moins que la pluie pour cette raison. Les deux corrections se
   comptent sur la même échelle, et le nombre qui en sort est celui que l'écran
   montre.
+- **La puissance de l'électrique se lit, elle ne se compare pas** (E.33). Le
+  capteur monté le 18 septembre 2026 rend le nombre vrai ; le moteur le rend
+  incomparable. L'app affiche donc deux colonnes — électrique et musculaire, sa
+  moyenne au capteur pour chacune — et ne les additionne jamais. **Fusionner la
+  puissance et le cardio en un seul indice serait la charge maison que le projet
+  interdit** : la puissance dit ce qu'il a produit, le cardio ce que ça lui a
+  coûté, et la charge continue de venir du cardio seul. Ce que la juxtaposition
+  ajoute tient en une division entre deux nombres mesurés — la part des jambes —
+  qui n'entre dans aucune règle.
 
 Ne pas modifier ces règles sans le signaler explicitement, et modifier le
 document avant le code.
@@ -626,6 +661,13 @@ une séance d'un trajet dans l'historique, donc le compteur du E.5 fonctionne.
 Il reste un point faible, assumé : un trajet musculaire n'est reconnu que par
 son nom, `Hard Commute`, celui que l'athlète leur donne dans Garmin.
 
+**Ce que les jambes produisent sur un trajet se mesure depuis le 18 septembre**
+(E.33). Le vélo électrique porte un capteur ; ces trajets n'étaient jusque-là
+qu'une charge venue du cardio, sans rien sur ce qu'il y mettait lui-même.
+L'app affiche les deux moyennes côte à côte — l'assistée et la musculaire — et
+ne les mélange pas. **Un trajet sans capteur ne compte pas** : une estimation
+n'est pas une mesure, et l'app préfère se taire.
+
 ## État de la mise en place
 
 > Dernière mise à jour : 5 septembre 2026. Détail des phases dans
@@ -645,6 +687,11 @@ son nom, `Hard Commute`, celui que l'athlète leur donne dans Garmin.
 - [x] Écriture dans le calendrier confirmée depuis le navigateur — le
       contrôle CORS des méthodes d'écriture passe, l'app reste sans serveur
 - [x] Interface construite : lecture de forme, propositions, confirmation
+- [ ] **Réglage « puissance prioritaire sur le cardio » vérifié** — le vélo
+      électrique a un capteur depuis le 18 septembre 2026, et ce réglage est
+      global, pas par sport (E.33). S'il bascule les trajets sur la puissance
+      assistée, leur charge s'effondre et la Fitness avec. À voir dans
+      intervals.icu ; aucune ligne de code de Makigawa ne rattraperait ça
 
 ## Conventions
 

@@ -4,7 +4,7 @@
 > arrêtées, et l'échelle de charge est étalonnée sur des journées réelles
 > depuis le 6 septembre 2026. Les règles vivent dans `src/rules/`.
 >
-> Dernière révision : 6 septembre 2026.
+> Dernière révision : 19 septembre 2026 (E.33).
 
 ---
 
@@ -2437,6 +2437,144 @@ lavage. Une garde-robe dit ce qu'on possède, pas ce qui est propre, et l'app
 n'a aucun moyen de l'apprendre sans le lui demander tous les jours — ce qui
 serait un compteur de plus, exactement ce que le projet refuse.
 
+## E.33 Le capteur sur l'électrique
+
+**Constaté le 18 septembre 2026.** Le vélo électrique porte désormais un capteur
+de puissance, relié au compteur Garmin, et l'athlète annonce qu'il l'emportera à
+chaque trajet. Ces trajets portent 60 à 100 % de sa charge hebdomadaire : ce
+n'est pas un détail d'équipement.
+
+### Ce que ça casse, et ce que ça ne casse pas
+
+La règle critique du projet interdisait la puissance sur `EBikeRide`. Sa
+justification était que **ce vélo n'a pas de capteur** — et cette justification
+vient de tomber.
+
+La règle, elle, ne tombe pas. Elle se sépare en deux, parce qu'elle répondait à
+deux questions avec un seul verrou.
+
+| La question | Ce qui y répond vraiment | Avant | Maintenant |
+|---|---|---|---|
+| Ce nombre est-il **mesuré** ? | le capteur, `has_device_watts` | le type d'activité, par commodité | le capteur, et lui seul |
+| Ce nombre est-il **comparable** ? | l'absence de moteur | le même verrou, par accident | le type, explicitement |
+
+**Le premier verrou se desserre, le second se resserre.** Une puissance
+électrique mesurée est vraie ; elle n'est simplement pas dans la même unité de
+sens qu'une puissance musculaire, puisque le moteur fournit le reste.
+
+Deux fonctions portent les deux questions, et le nom dit laquelle :
+`averageWattsOf` pour « est-ce mesuré », `unassistedWattsOf` pour « est-ce
+comparable ». Tout ce qui compare, calibre ou estime prend la seconde porte.
+
+### Les deux nombres, un jour d'écart
+
+C'est la démonstration la plus nette que le projet ait produite : le même vélo,
+le même trajet, à un jour d'intervalle.
+
+| | 17 septembre | 18 septembre |
+|---|---|---|
+| Capteur | non | oui |
+| `has_device_watts` | faux | vrai |
+| Puissance attribuée aux jambes | **369 W** | **79 à 90 W** |
+
+369 W sur un trajet domicile-travail est physiquement absurde — c'est au-dessus
+de ce que l'athlète tiendrait en test. Ce n'était pas une mesure mais une
+**estimation faite depuis la vitesse et la pente**, qui attribue aux jambes tout
+ce que le moteur a produit.
+
+**Le sens de l'erreur était le pire possible** : elle sur-estimait, et d'un
+facteur quatre. Le projet accepte une seule sur-estimation, celle du E.22, et
+elle est bornée à un cran ; celle-ci ne l'était pas.
+
+**Le champ absent ne vaut pas confirmation.** La première version du verrou
+disait « refuse si `has_device_watts` est faux », ce qui laissait passer une
+activité où le champ manque. Il dit maintenant « n'accepte que si le champ est
+vrai ». La différence est exactement celle entre *ne pas savoir* et *savoir que
+non*, et seule la seconde autorise à lire.
+
+### Ce que l'app en fait
+
+**Elle lit, et elle montre. Elle ne décide de rien avec.**
+
+- **Aucune charge n'en est tirée.** La charge d'un trajet vient du cardio,
+  calculée par intervals.icu. C'était déjà la règle ; elle ne bouge pas parce
+  qu'un capteur est apparu.
+- **Aucune FTP n'en est tirée.** Une demi-heure à 85 W assistés ne dit rien de
+  ce que les jambes valent seules.
+- **Aucune allure n'en est calibrée.** `pastWattsFor` répond à « quelle allure
+  tiens-tu sur ce genre de sortie » ; y verser des watts assistés ferait chuter
+  une référence censée dire ce que les jambes produisent sans aide.
+
+Ce dernier point mérite une note, parce que le code y tenait déjà par accident :
+les trajets étaient écartés de cette moyenne pour une autre raison — un
+aller-retour de quinze kilomètres n'apprend rien sur une sortie de cinquante.
+S'en remettre à cet effet de bord aurait été tenir la règle par chance. C'est la
+porte qui refuse, pas le filtre d'à côté.
+
+### Combiner la puissance et le cardio ? Non — les juxtaposer
+
+La question s'est posée en ces termes, et elle mérite mieux qu'un refus sec.
+
+**Fusionner les deux en un seul nombre est exactement ce que le projet interdit**
+depuis sa première ligne : aucun calcul de charge maison. Un indice composite
+puissance-plus-cardio serait une charge maison, avec un coefficient qu'il
+faudrait inventer, et elle entrerait en concurrence avec celle d'intervals.icu
+sans qu'on sache jamais laquelle croire.
+
+**Ce que les deux instruments apportent, c'est précisément qu'ils ne répondent
+pas à la même question.**
+
+| L'instrument | Ce qu'il dit | Sur un vélo assisté |
+|---|---|---|
+| La puissance | ce que les jambes ont **produit** | elles seules ; le moteur n'y est pas |
+| Le cardio | ce que ça lui a **coûté** | tout, y compris le vent, la chaleur et la nuit d'avant |
+
+Sur un vélo assisté, la puissance seule sous-estime l'effort et le cardio seul ne
+dit pas s'il a pédalé. **Les deux côte à côte disent la vérité ; leur somme ne
+dirait rien.**
+
+C'est ce que l'écran fait : deux colonnes, électrique et musculaire, chacune avec
+sa moyenne au capteur et le nombre de trajets sur lesquels elle est lue. Elles ne
+se mélangent jamais — une moyenne des deux serait un nombre que personne n'a
+produit.
+
+**La part des jambes** est la seule chose que la juxtaposition ajoute : une
+division entre deux nombres mesurés, qui n'entre dans aucune règle et ne corrige
+aucune charge. Elle se tait tant qu'il manque un des deux côtés.
+
+### Ce que ça confirme au passage
+
+Le E.32 retire trois degrés au ressenti pour un trajet électrique, et c'est **le
+seul nombre estimé de tout le dispositif**. Il était justifié par « à peu près
+moitié moins de chaleur produite », déduit du cardio et de la charge.
+
+La puissance mesurée le dit maintenant directement : **79 à 90 W en électrique
+contre 179 W de moyenne sur le Hard Commute**, soit à peu près la moitié. Un
+instrument indépendant retombe sur le même rapport.
+
+**Cela ne change pas les trois degrés.** Savoir qu'on produit deux fois moins de
+chaleur ne dit pas combien de degrés cela vaut sur un thermomètre. Ce qui est
+confirmé, c'est la moitié — pas les trois degrés, qui restent estimés et le
+restent volontairement.
+
+### Le piège, et il est gros
+
+**Le réglage « puissance prioritaire sur le cardio » d'intervals.icu est global,
+pas par sport.** C'était une limite connue et inoffensive, et la note de la
+phase 3 le disait ainsi : *comme ton vélo musculaire a un capteur et l'électrique
+non, ça devrait bien se passer*. **Cette prémisse est morte le 18 septembre.**
+
+Si intervals.icu calcule maintenant la charge des trajets depuis 85 W assistés
+contre une FTP de 221, l'intensité tombe vers 0,38 et la charge s'effondre avec
+elle. La Fitness baisse, donc la dose de la semaine (E.28) et le plafond du E.20
+baissent aussi — et rien dans les jambes n'aura changé. Sur des trajets qui
+portent 60 à 100 % de la charge hebdomadaire, c'est tout le plan qui se
+déréglerait en silence.
+
+**C'est une vérification à faire dans intervals.icu, pas une règle à écrire.**
+L'app lit la charge ; si celle qu'elle lit est fausse, aucune ligne de code de
+Makigawa ne la rattrapera. Le réglage doit rester sur le cardio pour les trajets.
+
 
 ---
 
@@ -2491,6 +2629,7 @@ Des précisions s'y sont ajoutées, le même jour puis le lendemain :
 | 37 | La météo du trajet | **Open-Meteo, sans clé**, sur les fenêtres 8-9 h et 17-18 h ; sept jours au plus, et elle ne décide rien (E.31) |
 | 38 | Comment s'habiller | **des bandes de ressenti relevées dans les guides** (20 / 16 / 8) ; deux corrections en degrés sur la même échelle — trois pour l'électrique, le seul nombre estimé, sept pour la pluie, qui est publié (E.32) |
 | 39 | La garde-robe | **l'app fournit les catégories, l'athlète les pièces** ; ce qu'il déclare ne pas avoir cesse d'être proposé, sans remplacement ni conseil d'achat (E.32) |
+| 40 | La puissance sur l'électrique | **lue quand le capteur la confirme**, jamais comparée à du musculaire ; deux colonnes côte à côte, aucune fusion — la charge vient toujours du cardio (E.33) |
 
 **Plus rien n'est en attente de mesure.** Les bornes des cinq niveaux, dernière
 inconnue, ont été étalonnées le 6 septembre sur des journées réelles. Elles

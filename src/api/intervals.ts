@@ -18,10 +18,10 @@ export type ApiOutcome<T> =
  * Une activité **réalisée**, telle qu'elle est remontée par Garmin ou Zwift.
  *
  * Aucune donnée de puissance n'est lue ici, et c'est délibéré : la règle
- * critique de `CLAUDE.md` exclut la puissance des `EBikeRide` **par principe,
- * jamais par nom de champ**. Ne rien lire est la seule façon de ne pas laisser
- * passer un champ à venir. Ce dont les règles ont besoin — la charge et le
- * type — n'en dépend pas.
+ * critique de `CLAUDE.md` n'accepte une puissance que sur un **capteur
+ * confirmé**, et l'exclut **par principe, jamais par nom de champ**. Ne rien
+ * lire est la seule façon de ne pas laisser passer un champ à venir. Ce dont
+ * les règles ont besoin — la charge et le type — n'en dépend pas.
  */
 export type Activity = {
   id: string | null
@@ -48,29 +48,60 @@ export type Activity = {
 }
 
 /**
- * Les types dont la puissance est réelle : il y a un capteur.
+ * Les types de vélo, où un capteur de puissance a un sens.
  *
- * La règle critique du projet exclut la puissance des `EBikeRide` **par
- * principe, jamais par nom de champ**. C'est pourquoi elle ne figure pas dans
- * le type `Activity` : la lire demande de passer par cette fonction, qui
- * refuse tout ce qui n'est pas dans la liste. Un champ de puissance à venir ne
- * pourra donc pas se glisser dans l'app par inadvertance.
+ * L'électrique y est entré le 18 septembre 2026 (E.33) : il porte maintenant un
+ * capteur. La liste écarte toujours ce qui n'est pas du vélo — une puissance de
+ * course à pied se mesure aussi, mais elle ne s'additionne à rien d'ici.
+ *
+ * La puissance ne figure pas dans le type `Activity`, et c'est volontaire : la
+ * lire demande de passer par une des deux fonctions ci-dessous. Un champ de
+ * puissance à venir ne pourra donc pas se glisser dans l'app par inadvertance.
  */
-const POWERED_TYPES = new Set(['Ride', 'VirtualRide'])
+const CYCLING_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide'])
+
+/** Là où un moteur pédale avec lui. */
+const ASSISTED_TYPES = new Set(['EBikeRide'])
 
 /**
- * La puissance moyenne d'une activité, ou `null` si on n'a pas le droit d'y
- * croire.
+ * **Ce nombre est-il mesuré ?** La puissance moyenne, ou `null` sinon.
  *
- * Deux verrous : le type doit porter un capteur, et intervals.icu doit
- * confirmer qu'il y en avait un (`has_device_watts`). Sur le vélo électrique
- * de l'athlète il vaut `false`, et toute valeur de puissance y est une
- * estimation fausse.
+ * Un seul verrou, et c'est le bon : intervals.icu doit **confirmer** un capteur
+ * (`has_device_watts` vrai). Le champ absent ne suffit pas — sans capteur,
+ * intervals.icu estime la puissance depuis la vitesse et la pente, et attribue
+ * aux jambes tout ce que le moteur a produit. Le 17 septembre 2026 il en a tiré
+ * 369 W sur un trajet ; le 18, capteur monté, 79 à 90 W.
+ *
+ * Le type d'activité ne dit **plus** si le nombre est vrai — il le disait par
+ * commodité, tant que l'électrique n'avait pas de capteur. Il dit maintenant
+ * autre chose, et c'est `unassistedWattsOf` qui s'en charge.
  */
 export function averageWattsOf(activity: Activity): number | null {
-  if (!activity.type || !POWERED_TYPES.has(activity.type)) return null
-  if (activity.raw.has_device_watts === false) return null
+  if (!activity.type || !CYCLING_TYPES.has(activity.type)) return null
+  if (activity.raw.has_device_watts !== true) return null
   return count(activity.raw.average_watts)
+}
+
+/**
+ * **Ce nombre est-il comparable ?** La même puissance, moteur exclu.
+ *
+ * *Un watt assisté n'est jamais comparable à un watt sans moteur* (E.33). Une
+ * puissance mesurée sur l'électrique est vraie — ce sont bien ses jambes — mais
+ * le moteur fournit le reste : la verser dans une moyenne qui sert à calibrer
+ * une allure ferait chuter une référence censée dire ce que les jambes valent
+ * seules.
+ *
+ * C'est la porte que doit prendre tout ce qui compare, calibre ou estime.
+ * `averageWattsOf` ne sert qu'à afficher un nombre à côté de son étiquette.
+ */
+export function unassistedWattsOf(activity: Activity): number | null {
+  if (activity.type !== null && ASSISTED_TYPES.has(activity.type)) return null
+  return averageWattsOf(activity)
+}
+
+/** Vrai quand un moteur a pédalé avec lui sur cette activité (E.33). */
+export function isAssisted(activity: Activity): boolean {
+  return activity.type !== null && ASSISTED_TYPES.has(activity.type)
 }
 
 /**
