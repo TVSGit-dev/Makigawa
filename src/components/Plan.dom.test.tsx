@@ -25,6 +25,24 @@ import { GARMENTS } from '../rules/garments'
 import { DECLARED } from '../storage/wardrobe'
 import type { Credentials } from '../storage/credentials'
 
+/**
+ * L'horloge est arrêtée un mercredi, et c'est un vrai défaut qu'on répare.
+ *
+ * Sept vérifications de ce fichier supposent que le jour ouvert porte un trajet
+ * électrique — le défaut du E.17, qui ne vaut qu'en semaine. Elles lisaient
+ * l'heure du serveur : la suite passait du lundi au vendredi et **virait au
+ * rouge tous les samedis**, sans qu'une ligne de l'app ait bougé.
+ *
+ * Un test qui dépend du jour où on le lance ne garde rien. Le 16 septembre 2026
+ * est un mercredi, assez loin des bords du mois pour que les quatorze jours de
+ * la bande y tiennent des deux côtés.
+ *
+ * Seul `Date` est simulé : `waitFor` a besoin de vrais `setTimeout`, et les
+ * figer ferait attendre indéfiniment.
+ */
+vi.useFakeTimers({ toFake: ['Date'] })
+vi.setSystemTime(new Date(2026, 8, 16, 9, 0, 0))
+
 const credentials: Credentials = { athleteId: 'i1', apiKey: 'k' }
 
 const shift = (days: number) => {
