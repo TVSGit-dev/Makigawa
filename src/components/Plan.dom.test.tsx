@@ -90,7 +90,14 @@ function forecast() {
 }
 
 /** Un `fetch` qui répond comme intervals.icu, et note ce qu'on lui envoie. */
-function serve(overrides: { events?: unknown[]; fail?: boolean; weather?: boolean } = {}) {
+function serve(
+  overrides: {
+    events?: unknown[]
+    fail?: boolean
+    weather?: boolean
+    activities?: unknown[]
+  } = {},
+) {
   const calls: { method: string; url: string }[] = []
 
   const fetcher = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
@@ -115,7 +122,7 @@ function serve(overrides: { events?: unknown[]; fail?: boolean; weather?: boolea
         ? wellness
         : url.includes('/streams')
           ? []
-          : activities
+          : (overrides.activities ?? activities)
 
     return new Response(JSON.stringify(body), {
       status: 200,
@@ -671,5 +678,65 @@ describe('repousser une séance (E.14, révisé)', () => {
     }
     // Dans les deux cas, le premier geste nomme bien un jour.
     expect(boutons.some((one) => one === 'Demain' || /^[a-zé]+$/i.test(one))).toBe(true)
+  })
+})
+
+describe('ce que tes jambes font (E.33)', () => {
+  /** Le trajet du 18 septembre 2026 : capteur monté, puissance vraie. */
+  const mesure = (over: Record<string, unknown>) => ({
+    id: 'e1',
+    type: 'EBikeRide',
+    name: 'Chill Commute',
+    start_date_local: `${shift(-1)}T08:00:00`,
+    icu_training_load: 35,
+    moving_time: 2160,
+    ...over,
+  })
+
+  it('range l’électrique et le musculaire dans deux colonnes', async () => {
+    serve({
+      activities: [
+        mesure({ average_watts: 85, has_device_watts: true }),
+        mesure({
+          id: 'm1',
+          type: 'Ride',
+          name: 'Hard Commute',
+          start_date_local: `${shift(-3)}T08:00:00`,
+          icu_training_load: 116,
+          average_watts: 179,
+          has_device_watts: true,
+        }),
+      ],
+    })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.legs-line')).not.toBeNull())
+
+    const bloc = container.querySelector('.legs-line')!
+    expect(bloc.textContent).toContain('85 W')
+    expect(bloc.textContent).toContain('179 W')
+    // Les deux colonnes restent deux : une moyenne des deux (132 W) ne veut
+    // rien dire, et c'est exactement la fusion que le E.33 refuse.
+    expect(bloc.querySelectorAll('.legs-side')).toHaveLength(2)
+    expect(bloc.textContent).not.toContain('132')
+  })
+
+  it('ne se tait pas sur la provenance de la charge', async () => {
+    serve({ activities: [mesure({ average_watts: 85, has_device_watts: true })] })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelector('.legs-line')).not.toBeNull())
+
+    const bloc = container.querySelector('.legs-line')!.parentElement!
+    expect(bloc.textContent).toContain('cardio')
+  })
+
+  it('n’affiche rien quand aucun capteur n’a mesuré', async () => {
+    // Le 17 septembre 2026, sans capteur, intervals.icu créditait 369 W les
+    // jambes de l'athlète sur ce même trajet. Rien de tout cela ne s'affiche.
+    serve({ activities: [mesure({ average_watts: 369, has_device_watts: false })] })
+    const { container } = plan()
+    await waitFor(() => expect(container.querySelectorAll('.col')).toHaveLength(14))
+
+    expect(container.querySelector('.legs-line')).toBeNull()
+    expect(container.textContent).not.toContain('369')
   })
 })

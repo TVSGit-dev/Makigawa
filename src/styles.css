@@ -1907,3 +1907,20 @@ p {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
+
+/* Deux colonnes qui ne se mélangent pas (E.33) : l'électrique et le musculaire
+   sont le même parcours et deux nombres différents. Les poser côte à côte est
+   tout ce qu'on peut honnêtement en faire — les additionner fabriquerait une
+   charge maison. */
+.legs-line {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0.35rem 0;
+}
+
+.legs-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}

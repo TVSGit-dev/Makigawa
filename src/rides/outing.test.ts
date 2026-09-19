@@ -77,16 +77,40 @@ describe('l’allure réellement tenue', () => {
     expect(pastWattsFor([ride({ km: 50, watts: 170 }), ride({ km: 50, watts: 190 })], 50)).toBe(180)
   })
 
-  it('ne lit jamais la puissance d’un vélo électrique', () => {
-    // La règle critique : il n'y a pas de capteur, toute valeur est fausse.
-    const electrique = ride({ km: 50, type: 'EBikeRide', watts: 306 })
-    expect(pastWattsFor([electrique], 50)).toBeNull()
+  it('ne lit jamais la puissance d’un vélo électrique, capteur ou pas', () => {
+    // E.33 : depuis le 18 septembre 2026 la valeur est vraie — le capteur la
+    // mesure. Elle reste inutilisable ici, et pour une autre raison : le moteur
+    // fournit le reste, donc elle ne dit pas ce que les jambes valent seules.
+    const mesure = ride({ km: 50, type: 'EBikeRide', watts: 85 })
+    expect(mesure.raw).toMatchObject({ has_device_watts: true })
+    expect(pastWattsFor([mesure], 50)).toBeNull()
+
+    // Et avant le capteur, où intervals.icu estimait 369 W sur un trajet.
+    const estimation = ride({ km: 50, type: 'EBikeRide' })
+    estimation.raw = { average_watts: 369, has_device_watts: false }
+    expect(pastWattsFor([estimation], 50)).toBeNull()
+  })
+
+  it('ne dilue pas une vraie moyenne avec des watts assistés', () => {
+    // Le piège du E.33 : une seule sortie électrique dans la moyenne, et la
+    // référence chute d'un tiers sans que rien ne le signale.
+    const sorties = [ride({ km: 50, watts: 170 }), ride({ km: 50, watts: 190 })]
+    const assistee = ride({ km: 50, type: 'EBikeRide', watts: 85 })
+    expect(pastWattsFor([...sorties, assistee], 50)).toBe(180)
   })
 
   it('ne lit pas non plus une puissance sans capteur déclaré', () => {
     const sansCapteur = ride({ km: 50 })
     sansCapteur.raw = { average_watts: 220, has_device_watts: false }
     expect(pastWattsFor([sansCapteur], 50)).toBeNull()
+  })
+
+  it('refuse une puissance dont aucun capteur ne répond', () => {
+    // Le champ absent ne vaut pas confirmation : sans capteur, intervals.icu
+    // estime, et une estimation n'est pas une mesure.
+    const muet = ride({ km: 50 })
+    muet.raw = { average_watts: 220 }
+    expect(pastWattsFor([muet], 50)).toBeNull()
   })
 
   it('ne dit rien quand aucune sortie ne porte de puissance', () => {
