@@ -911,6 +911,58 @@ Le démenti **n'est jamais envoyé à intervals.icu**. Il vit dans le téléphon
 comme les identifiants : c'est un ressenti, pas une mesure, et le calendrier
 n'a pas à en porter la trace.
 
+### On ne dément pas un silence
+
+**Corrigé le 20 septembre 2026, sur une capture de l'athlète.** L'écran disait
+*« La montre n'a rien dit de ta nuit. Tu dis le contraire : la journée passe en
+prudent. »* — et il a demandé si le bouton était relié à quelque chose.
+
+Question légitime : **contredire un silence n'a aucun sens**, et une phrase qui
+n'en a pas se lit comme une panne. Le mécanisme, lui, fonctionnait — le mode
+était bien passé en prudent, visible sur la même capture.
+
+La spécification portait le défaut avant le code. Elle dit « l'app affiche ce
+que la montre a mesuré, et un seul tap la contredit », ce qui suppose qu'il y
+ait quelque chose à contredire. **Ce n'est pas toujours le cas** : Garmin pousse
+la nuit à intervals.icu avec du retard, donc le matin — précisément quand on
+ouvre l'app pour savoir ce qu'on fait de sa journée — le score est souvent
+absent.
+
+Le tap couvre donc **deux gestes, pas un** :
+
+| Ce que la montre dit | Ce que le tap est | Ce que l'app écrit |
+|---|---|---|
+| un score | un **démenti** | « Tu dis le contraire » |
+| rien | un **constat de première main** | « C'est toi qui la dis mauvaise » |
+
+L'effet est le même dans les deux cas — la journée passe en prudent, et rien
+d'autre ne change. C'est la phrase qui se dédouble, pas la règle.
+
+**La phrase vit désormais dans `reasons.ts`**, avec les autres, et un test la
+tient. Elle était écrite en ligne dans le composant, où rien ne la vérifiait :
+c'est la seule raison pour laquelle personne ne l'avait vue.
+
+### Et elle ne promet un effet que s'il y en a un
+
+La même capture en portait un second, plus discret, et c'est **lui qui
+expliquait vraiment le doute**. L'athlète avait déjà réglé sa semaine sur
+prudent. Le démenti ne pouvait donc rien durcir — aucun garde-fou ne va
+au-delà — et l'app annonçait pourtant « la journée passe en prudent ».
+
+Rien n'était faux au sens strict : la journée *était* en prudent. Mais la
+phrase se lisait comme un effet du tap, alors que le tap n'avait rien changé.
+Un geste qu'on annonce agissant et qui ne déplace rien est indiscernable d'un
+bouton débranché, et c'est exactement la conclusion que l'athlète en a tirée.
+
+La phrase dit maintenant l'état plutôt que le passage : « ta semaine est déjà
+en prudent, donc rien ne change de plus ». C'est le même principe que le
+bandeau sous les trois boutons — *tu as choisi normal, l'app tient prudent* —
+qui existait déjà pour que taper « ambitieux » ne semble pas sans effet.
+
+**Le mécanisme, lui, n'a jamais été en cause.** Vérifié au navigateur : sur une
+semaine en normal, le tap fait bien apparaître *« Tu as choisi normal, l'app
+tient prudent — tu as démenti ta nuit »*.
+
 ## E.13 Les trajets, et la souplesse
 
 Deux ajouts demandés le 6 septembre 2026.

@@ -174,3 +174,42 @@ export function explainSlip(
   const pose = `Le plan la pose ${formatRelativeDay(got, today)}`
   return code ? `${demande} ${pose}, parce que ${REASONS[code]}.` : `${demande} ${pose}.`
 }
+
+/**
+ * Ce que dit le bloc de nuit (E.12), selon ce que la montre a donné.
+ *
+ * **On ne dément pas un silence.** L'écran disait « La montre n'a rien dit de
+ * ta nuit. Tu dis le contraire », ce qui n'a aucun sens — et une phrase qui n'en
+ * a pas se lit comme une panne, alors que le mécanisme marchait. Garmin pousse
+ * la nuit avec du retard : le matin, quand on ouvre l'app pour savoir ce qu'on
+ * fait de sa journée, le score est souvent absent.
+ *
+ * Le tap couvre donc deux gestes. Avec un score, c'est un **démenti** ; sans,
+ * c'est un **constat de première main**. L'effet est le même — la journée passe
+ * en prudent — et c'est la phrase qui se dédouble, pas la règle.
+ *
+ * **Et elle ne promet un effet que s'il y en a un.** Une semaine déjà réglée
+ * sur prudent ne peut pas y passer une seconde fois : annoncer le contraire
+ * ferait croire à un geste qui n'a rien fait, ce qui est la même faute que
+ * contredire un silence.
+ */
+export function nightLine(
+  score: number | null,
+  denied: boolean,
+  alreadyCautious = false,
+): string {
+  const montre =
+    score === null
+      ? 'La montre n’a rien dit de ta nuit.'
+      : `La montre donne ${Math.round(score)} à ta nuit.`
+
+  if (!denied) return montre
+
+  const tien = score === null ? 'C’est toi qui la dis mauvaise' : 'Tu dis le contraire'
+
+  const effet = alreadyCautious
+    ? '— ta semaine est déjà en prudent, donc rien ne change de plus.'
+    : ': la journée passe en prudent.'
+
+  return `${montre} ${tien} ${effet}`
+}
