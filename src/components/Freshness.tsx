@@ -13,6 +13,7 @@ import { levelOf } from '../rules/scale'
 import { shiftDayKey, type DayKey } from '../calendar/dates'
 import type { DayRecord } from '../rules/types'
 import { driftOf, type Variability } from '../rules/variability'
+import { nightLine } from './reasons'
 
 const ORDER: Intent[] = ['prudent', 'normal', 'ambitieux']
 
@@ -127,7 +128,12 @@ export function Freshness({
 
       <Variabilite variability={variability} />
 
-      <Night denied={nightDenied} score={sleepScore} onDeny={onDenyNight} />
+      <Night
+        denied={nightDenied}
+        score={sleepScore}
+        alreadyCautious={wanted === 'prudent'}
+        onDeny={onDenyNight}
+      />
 
       <div className="segmented" role="group" aria-label="Intention de la semaine">
         {ORDER.map((option) => (
@@ -331,20 +337,18 @@ const TEXTS: Record<'fitness' | 'fatigue' | 'freshness', (floor: number) => stri
 function Night({
   denied,
   score,
+  alreadyCautious,
   onDeny,
 }: {
   denied: boolean
   score: number | null
+  /** La semaine est déjà en prudent : le démenti ne peut plus rien durcir. */
+  alreadyCautious: boolean
   onDeny: () => void
 }) {
   return (
     <div className={denied ? 'night night-denied' : 'night'}>
-      <p className="night-text">
-        {score === null
-          ? 'La montre n’a rien dit de ta nuit.'
-          : `La montre donne ${Math.round(score)} à ta nuit.`}
-        {denied ? ' Tu dis le contraire : la journée passe en prudent.' : null}
-      </p>
+      <p className="night-text">{nightLine(score, denied, alreadyCautious)}</p>
       <button className="button button-small button-ghost" onClick={onDeny}>
         {denied ? 'Finalement ça va' : 'Ma nuit a été mauvaise'}
       </button>
