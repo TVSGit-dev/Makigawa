@@ -34,6 +34,7 @@ export type Refusal =
   | { code: 'lendemain-charge' }
   | { code: 'tsb-sous-plancher'; tsb: number; floor: number }
   | { code: 'variabilite-basse' }
+  | { code: 'nuit-atroce' }
   | { code: 'quota-hebdomadaire'; charged: number; allowed: number }
   | { code: 'une-seule-par-semaine' }
   | { code: 'qualite-voisine'; date: DayKey }
@@ -64,6 +65,16 @@ export type Context = {
    * faite — sans donnée, l'app ne devine pas.
    */
   lowVariability?: boolean
+  /**
+   * Le jour dont une nuit atroce ferme l'intensité (E.12, second cran).
+   *
+   * **Une date, pas un drapeau**, et c'est ce qui le sépare de
+   * `lowVariability` : celui-là vaut pour l'horizon entier, une nuit ne
+   * concerne qu'un jour. Effacer l'intensité de la quinzaine sur la foi d'une
+   * seule nuit serait exactement ce que le E.12 s'interdit — *un effet borné,
+   * réversible d'un tap, et qui ne touche qu'aujourd'hui*.
+   */
+  closedDay?: DayKey | null
   scale?: LoadScale
 }
 
@@ -132,6 +143,13 @@ export function refuse(
   // toujours.
   const intense = session.intensity ?? isQuality(session, scale)
   if (context.lowVariability && intense) return { code: 'variabilite-basse' }
+
+  // E.2 (7) — la nuit a été atroce (E.12, second cran). Même mécanisme que la
+  // variabilité juste au-dessus — on ferme l'intensité, pas la journée — mais
+  // sur ce jour-là seulement : une nuit ne dit rien de jeudi prochain.
+  if (context.closedDay && date === context.closedDay && intense) {
+    return { code: 'nuit-atroce' }
+  }
 
   // E.2 (4) — en mode prudent, une seule séance de qualité par semaine.
   if (rules.oneQualityPerWeek && countQualityInWeek(date, others, scale) >= 1) {

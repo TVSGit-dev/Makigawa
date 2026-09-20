@@ -14,6 +14,7 @@ import { shiftDayKey, type DayKey } from '../calendar/dates'
 import type { DayRecord } from '../rules/types'
 import { driftOf, type Variability } from '../rules/variability'
 import { nightLine } from './reasons'
+import type { NightKind } from '../storage/night'
 
 const ORDER: Intent[] = ['prudent', 'normal', 'ambitieux']
 
@@ -35,8 +36,12 @@ type Props = {
   /** Les journées observées, pour montrer d'où viennent les chiffres. */
   days: readonly DayRecord[]
   today: DayKey
-  /** La nuit démentie fait passer la journée en prudent (E.12). */
-  nightDenied: boolean
+  /**
+   * Ce que l'athlète dit de sa nuit (E.12), sur deux crans.
+   *
+   * Les deux forcent prudent ; `atroce` ferme en plus l'intensité du jour.
+   */
+  night: NightKind | null
   /** La reprise du E.5 : elle force le mode, comme le démenti de nuit. */
   reprise: boolean
   daysSinceQuality: number | null
@@ -49,7 +54,7 @@ type Props = {
   /** Où en est la variabilité du matin, et si la base tient encore (E.30). */
   variability: Variability
   onIntentChange: (intent: Intent) => void
-  onDenyNight: () => void
+  onNightChange: (kind: NightKind | null) => void
 }
 
 export function Freshness({
@@ -59,7 +64,7 @@ export function Freshness({
   wanted,
   days,
   today,
-  nightDenied,
+  night,
   reprise,
   daysSinceQuality,
   unloading,
@@ -68,7 +73,7 @@ export function Freshness({
   sleepScore,
   variability,
   onIntentChange,
-  onDenyNight,
+  onNightChange,
 }: Props) {
   const [open, setOpen] = useState<'fitness' | 'fatigue' | 'freshness' | null>(null)
   const freshness = fitness !== null && fatigue !== null ? fitness - fatigue : null
@@ -129,10 +134,10 @@ export function Freshness({
       <Variabilite variability={variability} />
 
       <Night
-        denied={nightDenied}
+        night={night}
         score={sleepScore}
         alreadyCautious={wanted === 'prudent'}
-        onDeny={onDenyNight}
+        onChange={onNightChange}
       />
 
       <div className="segmented" role="group" aria-label="Intention de la semaine">
@@ -158,7 +163,7 @@ export function Freshness({
             <strong>
               Tu as choisi {wanted}, l’app tient {intent}
             </strong>{' '}
-            — {whyForced({ nightDenied, reprise, unloading })}.
+            — {whyForced({ night, reprise, unloading })}.
             <br />
           </>
         ) : null}
@@ -213,7 +218,7 @@ export function Freshness({
         </p>
       ) : null}
 
-      {forced && !nightDenied && !reprise && !unloading ? (
+      {forced && night === null && !reprise && !unloading ? (
         <p className="notice">
           <strong>Le mode ambitieux passe la main.</strong>
           <br />
@@ -233,16 +238,17 @@ export function Freshness({
  * plus récemment déclenché a le dernier mot, et c'est celui qu'on nomme.
  */
 function whyForced({
-  nightDenied,
+  night,
   reprise,
   unloading,
 }: {
-  nightDenied: boolean
+  night: NightKind | null
   reprise: boolean
   unloading: boolean
 }): string {
   if (unloading) return 'tu as accepté une semaine de décharge'
-  if (nightDenied) return 'tu as démenti ta nuit'
+  if (night === 'atroce') return 'tu as dit que ta nuit avait été atroce'
+  if (night === 'mauvaise') return 'tu as démenti ta nuit'
   if (reprise) return 'tu reprends après deux semaines sans séance de qualité'
   return `le mode ambitieux ne tient que ${MAX_AMBITIOUS_WEEKS} semaines d’affilée`
 }
@@ -329,29 +335,54 @@ const TEXTS: Record<'fitness' | 'fatigue' | 'freshness', (floor: number) => stri
 }
 
 /**
- * Le démenti de nuit (E.12).
+ * Le cran de nuit (E.12).
  *
  * L'app montre ce que la montre a mesuré et laisse un tap la contredire. Les
  * jours où les deux s'accordent, il n'y a rien à saisir.
+ *
+ * **Trois cases depuis le 20 septembre 2026**, sur le modèle du curseur
+ * d'intention que l'athlète connaît déjà. Prudent étant le mode le plus doux,
+ * le cran unique n'avait plus rien à serrer sur une semaine déjà réglée
+ * dessus ; `atroce` ferme en plus l'intensité du jour.
+ *
+ * Un tap atteint n'importe quel état, retour compris. Un bouton qui se promène
+ * entre trois valeurs aurait demandé deux taps pour atteindre la troisième — et
+ * la troisième est justement celle des mauvais matins.
  */
+const NIGHTS: readonly { kind: NightKind | null; label: string }[] = [
+  { kind: null, label: 'ça va' },
+  { kind: 'mauvaise', label: 'mauvaise' },
+  { kind: 'atroce', label: 'atroce' },
+]
+
 function Night({
-  denied,
+  night,
   score,
   alreadyCautious,
-  onDeny,
+  onChange,
 }: {
-  denied: boolean
+  night: NightKind | null
   score: number | null
-  /** La semaine est déjà en prudent : le démenti ne peut plus rien durcir. */
+  /** La semaine est déjà en prudent : le cran `mauvaise` ne durcit plus rien. */
   alreadyCautious: boolean
-  onDeny: () => void
+  onChange: (kind: NightKind | null) => void
 }) {
   return (
-    <div className={denied ? 'night night-denied' : 'night'}>
-      <p className="night-text">{nightLine(score, denied, alreadyCautious)}</p>
-      <button className="button button-small button-ghost" onClick={onDeny}>
-        {denied ? 'Finalement ça va' : 'Ma nuit a été mauvaise'}
-      </button>
+    <div className={night === null ? 'night' : 'night night-denied'}>
+      <p className="night-text">{nightLine(score, night, alreadyCautious)}</p>
+
+      <div className="segmented" role="group" aria-label="Ta nuit">
+        {NIGHTS.map((one) => (
+          <button
+            key={one.label}
+            className={one.kind === night ? 'segment segment-on' : 'segment'}
+            aria-pressed={one.kind === night}
+            onClick={() => onChange(one.kind)}
+          >
+            {one.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
