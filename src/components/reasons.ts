@@ -14,6 +14,7 @@ import type { Proposal, Refusal } from '../rules/decide'
 import type { TestRefusal } from '../workouts/ftp-test'
 import type { Intent } from '../rules/intent'
 import type { DayKey } from '../calendar/dates'
+import type { NightKind } from '../storage/night'
 
 const INTENT_NAMES: Record<Intent, string> = {
   prudent: 'prudent',
@@ -36,6 +37,8 @@ export function explain(refusal: Refusal, intent: Intent, today: DayKey): string
       return `Ta fraîcheur est à ${Math.round(refusal.tsb)}, sous le plancher de ${refusal.floor} du mode ${INTENT_NAMES[intent]}.`
     case 'variabilite-basse':
       return 'Ta variabilité cardiaque est sous ta normale : ce n’est pas le matin pour de l’intensité.'
+    case 'nuit-atroce':
+      return 'Tu as dit que ta nuit avait été atroce : pas d’intensité aujourd’hui. Le reste de la quinzaine ne bouge pas.'
     case 'quota-hebdomadaire':
       return `Cela ferait ${refusal.charged} journées chargées sur sept jours ; le mode ${INTENT_NAMES[intent]} en tient ${refusal.allowed}.`
     case 'une-seule-par-semaine':
@@ -140,6 +143,7 @@ export const REASONS: Record<Refusal['code'], string> = {
   'lendemain-charge': 'le lendemain est chargé',
   'tsb-sous-plancher': 'la fraîcheur était sous le plancher',
   'variabilite-basse': 'la variabilité était sous la normale',
+  'nuit-atroce': 'ta nuit avait été atroce',
   'quota-hebdomadaire': 'le quota de la semaine était atteint',
   'une-seule-par-semaine': 'le mode prudent n’en garde qu’une',
   'qualite-voisine': 'une autre séance de qualité était trop proche',
@@ -192,10 +196,14 @@ export function explainSlip(
  * sur prudent ne peut pas y passer une seconde fois : annoncer le contraire
  * ferait croire à un geste qui n'a rien fait, ce qui est la même faute que
  * contredire un silence.
+ *
+ * **Le cran `atroce`, lui, fait toujours quelque chose** : il ferme l'intensité
+ * du jour, ce que prudent seul ne fait pas. La phrase le dit donc même sur une
+ * semaine déjà prudente — c'est précisément le cas qui l'a fait naître.
  */
 export function nightLine(
   score: number | null,
-  denied: boolean,
+  night: NightKind | null,
   alreadyCautious = false,
 ): string {
   const montre =
@@ -203,13 +211,26 @@ export function nightLine(
       ? 'La montre n’a rien dit de ta nuit.'
       : `La montre donne ${Math.round(score)} à ta nuit.`
 
-  if (!denied) return montre
+  if (night === null) return montre
 
-  const tien = score === null ? 'C’est toi qui la dis mauvaise' : 'Tu dis le contraire'
+  // Avec un score c'est un démenti ; sans, un constat de première main.
+  const tien =
+    score !== null
+      ? 'Tu dis le contraire'
+      : night === 'atroce'
+        ? 'C’est toi qui la dis atroce'
+        : 'C’est toi qui la dis mauvaise'
+
+  if (night === 'atroce') {
+    const effet = alreadyCautious
+      ? ' : pas d’intensité aujourd’hui.'
+      : ' : la journée passe en prudent, et sans intensité.'
+    return `${montre} ${tien}${effet}`
+  }
 
   const effet = alreadyCautious
-    ? '— ta semaine est déjà en prudent, donc rien ne change de plus.'
-    : ': la journée passe en prudent.'
+    ? ' — ta semaine est déjà en prudent, donc rien ne change de plus.'
+    : ' : la journée passe en prudent.'
 
-  return `${montre} ${tien} ${effet}`
+  return `${montre} ${tien}${effet}`
 }

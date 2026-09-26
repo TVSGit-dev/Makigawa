@@ -156,6 +156,12 @@ type Props = {
   unloading: boolean
   /** Les semaines déjà passées en décharge : le cycle les saute. */
   unloadedWeeks: ReadonlySet<DayKey>
+  /**
+   * Le jour dont une nuit atroce ferme l'intensité (E.12, second cran).
+   *
+   * Une date, pas un drapeau : une nuit ne dit rien de jeudi prochain.
+   */
+  closedDay?: DayKey | null
   onReadout: (readout: Readout) => void
   /**
    * Ce qui se glisse entre « Aujourd'hui » et « Ta semaine ».
@@ -172,6 +178,7 @@ export function Plan({
   intent,
   unloading,
   unloadedWeeks,
+  closedDay = null,
   onReadout,
   children,
 }: Props) {
@@ -482,8 +489,11 @@ export function Plan({
       // Le seul signal du jour dont le moteur dispose (E.30). Faux tant que la
       // ligne de base n'est pas faite : sans donnée, l'app ne devine pas.
       lowVariability: variability.low,
+      // Une nuit ne concerne qu'un jour : c'est une date, pas un drapeau
+      // d'horizon comme la variabilité au-dessus (E.12, second cran).
+      closedDay,
     }
-  }, [state, today, intent, upcoming, commuteSessions, peaks, variability])
+  }, [state, today, intent, upcoming, commuteSessions, peaks, variability, closedDay])
 
   /**
    * La charge de la semaine : ce qui est fait, ce qui est prévu, ce qu'il reste

@@ -963,6 +963,72 @@ qui existait déjà pour que taper « ambitieux » ne semble pas sans effet.
 semaine en normal, le tap fait bien apparaître *« Tu as choisi normal, l'app
 tient prudent — tu as démenti ta nuit »*.
 
+### Deux crans, parce que prudent était le plancher
+
+**Demandé le 20 septembre 2026**, et la demande découle directement du défaut
+ci-dessus : *« on pourrait serrer d'un cran avec un bouton nuit atroce »*.
+
+Le constat était juste. Prudent est le mode **le plus doux qui existe**, donc
+sur une semaine déjà réglée dessus, le démenti n'avait plus rien à serrer. Il
+n'y avait aucun moyen de dire « cette nuit-là était pire », alors que c'est
+précisément le jour où l'app devrait en tenir compte.
+
+Le démenti porte donc désormais **deux crans** :
+
+| Le cran | Ce qu'il dit | Ce qu'il fait |
+|---|---|---|
+| **mauvaise** | la nuit a été hachée | force le mode **prudent** pour la journée |
+| **atroce** | il n'y a pas eu de nuit | force prudent **et ferme l'intensité du jour** |
+
+**Il n'y a pas de troisième cran, et il n'y en aura pas.** Le plancher du
+plancher est « pas d'intensité aujourd'hui », jamais « ne bouge pas ». Une app
+qui peut dire « reste couché » finit par le dire trop souvent, et ce n'est pas
+à elle d'en décider.
+
+#### Le mécanisme est celui du E.30, la portée ne l'est pas
+
+« Fermer l'intensité » est déjà écrit, et c'est ce que fait la variabilité
+basse : *elle ferme l'intensité, pas la journée — le plan redescend sur
+l'endurance et la récupération au lieu de disparaître*. Le cran atroce prend le
+même chemin plutôt que d'en creuser un second.
+
+**Mais il ne prend pas la même portée, et c'est délibéré.** `lowVariability`
+vaut pour tout l'horizon : quand la variabilité du matin est basse, aucune
+séance intense ne se place sur les quatorze jours. Une nuit, elle, ne concerne
+qu'**un jour**. Réutiliser le drapeau tel quel aurait effacé l'intensité de la
+quinzaine sur la foi d'une seule nuit — exactement ce que le E.12 s'interdit
+depuis sa première rédaction : *un effet borné, réversible d'un tap, et qui ne
+touche qu'aujourd'hui.*
+
+La condition est donc posée **sur la date**, et non sur le décor entier. C'est
+une septième condition au E.2, et la seconde qui ne regarde pas en arrière.
+
+#### Ce qui ne change pas
+
+Les deux crans forcent prudent, tous deux s'effacent d'un tap, aucun n'est
+envoyé à intervals.icu, et **aucun ne crée de dette** : une journée sans
+intensité n'est pas une séance manquée, elle n'apparaît nulle part et ne se
+rattrape pas.
+
+Le catalogue n'est pas filtré pour autant. Le planificateur garde ses onze
+familles ; c'est le E.2 qui refuse les intenses sur ce jour-là, et les douces
+s'y posent normalement. Sans quoi l'app afficherait « rien de prévu », ce qui
+se lit « ne bouge pas » — le piège déjà nommé au E.30.
+
+**Constaté au navigateur**, sur une semaine en mode normal : *ça va* pose
+quatre propositions sur la quinzaine, *mauvaise* en pose deux — le quota de
+prudent — et *atroce* en pose deux aussi. Le compte ne bouge pas entre les deux
+crans ; ce qui bouge, c'est qu'aucune ne tombe sur aujourd'hui. **La journée se
+vide, la quinzaine reste pleine**, ce qui est exactement ce qu'on voulait.
+
+#### Trois états, un seul geste
+
+Le bouton unique laisse la place à **trois cases** — *ça va*, *mauvaise*,
+*atroce* — sur le même modèle que le curseur d'intention, que l'athlète connaît
+déjà. Un tap atteint n'importe quel état, retour compris. Un bouton qui se
+promène entre trois valeurs aurait demandé deux taps pour atteindre la
+troisième, et la troisième est justement celle des mauvais matins.
+
 ## E.13 Les trajets, et la souplesse
 
 Deux ajouts demandés le 6 septembre 2026.

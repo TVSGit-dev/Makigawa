@@ -5,7 +5,14 @@ import { Plan, type Readout } from './components/Plan'
 import { Settings } from './components/Settings'
 import { loadCredentials, type Credentials } from './storage/credentials'
 import { loadIntents, saveIntent, weeksBefore } from './storage/preferences'
-import { forgetNightsBefore, intentAfterNight, toggleDenial } from './storage/night'
+import {
+  closedDayOf,
+  forgetNightsBefore,
+  intentAfterNight,
+  nightOn,
+  setNight,
+  type NightKind,
+} from './storage/night'
 import { intentAfterReprise } from './rules/done'
 import { intentAfterUnload } from './rules/decharge'
 import { answerUnload, forgetOldUnloads, unloadedWeeks } from './storage/decharge'
@@ -35,7 +42,10 @@ export default function App() {
   const wanted: Intent = intents[week] ?? 'normal'
 
   const [nights, setNights] = useState(() => forgetNightsBefore(today))
-  const nightDenied = nights.has(today)
+  // Deux crans depuis le 20 septembre 2026 (E.12) : `mauvaise` force prudent,
+  // `atroce` ferme en plus l'intensité — et seulement celle d'aujourd'hui.
+  const night = nightOn(nights, today)
+  const closedDay = closedDayOf(nights, today)
 
   // La décharge du E.18 : proposée par le moteur, décidée par l'athlète, et
   // gardée une semaine entière. Elle vit ici parce que c'est le mode qu'elle
@@ -69,7 +79,7 @@ export default function App() {
   // moteur travaille en prudent.
   const intent = intentAfterUnload(
     intentAfterReprise(
-      intentAfterNight(effectiveIntent(wanted, weeksBefore(intents, week)), nightDenied),
+      intentAfterNight(effectiveIntent(wanted, weeksBefore(intents, week)), night),
       readout.reprise,
     ),
     unloading,
@@ -115,6 +125,7 @@ export default function App() {
             intent={intent}
             unloading={unloading}
             unloadedWeeks={unloaded}
+            closedDay={closedDay}
             onReadout={handleReadout}
           >
             <Freshness
@@ -124,7 +135,7 @@ export default function App() {
               wanted={wanted}
               days={readout.days}
               today={today}
-              nightDenied={nightDenied}
+              night={night}
               reprise={readout.reprise}
               daysSinceQuality={readout.daysSinceQuality}
               unloading={unloading}
@@ -133,7 +144,7 @@ export default function App() {
               sleepScore={readout.sleepScore}
               variability={readout.variability}
               onIntentChange={chooseIntent}
-              onDenyNight={() => setNights(toggleDenial(today))}
+              onNightChange={(kind: NightKind | null) => setNights(setNight(today, kind))}
             />
           </Plan>
 
